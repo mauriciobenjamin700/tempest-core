@@ -66,8 +66,7 @@ class App(Generic[S]):
     state change, so navigation flows through the existing diff with no new patch
     kind.
 
-    Type Args:
-        S: The application state type.
+    The type parameter ``S`` is the application state type.
 
     Methods:
         start: Build the initial scene and record it as the current tree.

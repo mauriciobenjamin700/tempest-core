@@ -1,5 +1,8 @@
 # tempest-core
 
+📚 **Documentation:** [Português (Brasil)](https://mauriciobenjamin700.github.io/tempest-core/)
+· [English (US)](https://mauriciobenjamin700.github.io/tempest-core/en/) — bilingual, on GitHub Pages.
+
 **Renderer-agnostic UI core** shared across the tempest stack — the engine behind
 both [tempestroid](https://github.com/mauriciobenjamin700/tempestroid) (native
 renderers: Qt / Compose / Android) and tempestweb (DOM, WASM + server modes).

@@ -1,0 +1,114 @@
+site_name: tempest-core
+site_description: >-
+  O core de UI agnóstico de renderizador — IR, reconciliador, estado, estilo e
+  widgets — compartilhado pelo tempestroid e pelo tempestweb.
+site_author: Mauricio Benjamin
+site_url: https://mauriciobenjamin700.github.io/tempest-core/
+repo_url: https://github.com/mauriciobenjamin700/tempest-core
+repo_name: mauriciobenjamin700/tempest-core
+edit_uri: edit/main/docs/
+copyright: Copyright &copy; 2026 Mauricio Benjamin — MIT License
+
+theme:
+  name: material
+  language: pt-BR
+  features:
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - toc.follow
+    - search.suggest
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: deep purple
+      toggle:
+        icon: material/weather-sunny
+        name: Mudar para o modo escuro
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: deep purple
+      toggle:
+        icon: material/weather-night
+        name: Mudar para o modo claro
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search:
+      lang:
+        - pt
+        - en
+  - i18n:
+      docs_structure: suffix
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: pt
+          default: true
+          name: Português (Brasil)
+          build: true
+          site_name: tempest-core
+          nav_translations:
+            Home: Início
+            Installation: Instalação
+            Tutorial: Tutorial
+            "Tutorial — build & diff": "Tutorial — build & diff"
+            "1. State and rebuilds": "1. Estado e rebuilds"
+            "2. Styling": "2. Estilo"
+            "API reference": "Referência da API"
+        - locale: en
+          name: English (US)
+          build: true
+          site_name: tempest-core
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_root_heading: true
+            show_source: false
+            members_order: source
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/mauriciobenjamin700/tempest-core
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Tutorial:
+      - "Tutorial — build & diff": tutorial/index.md
+      - "1. State and rebuilds": tutorial/state.md
+      - "2. Styling": tutorial/style.md
+  - API reference: reference.md

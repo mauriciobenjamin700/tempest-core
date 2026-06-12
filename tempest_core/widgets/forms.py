@@ -206,7 +206,7 @@ class Form(Widget):
     # Pydantic's deprecated ``BaseModel.validate`` classmethod with a different,
     # instance-level signature; the scoped ignore keeps the documented public name
     # without weakening strict typing elsewhere.
-    def validate(  # pyright: ignore[reportIncompatibleMethodOverride]
+    def validate(  # type: ignore[override]  # pyright: ignore[reportIncompatibleMethodOverride]
         self, values: dict[str, Any]
     ) -> FormState:
         """Validate every field against ``values`` and build the form state.

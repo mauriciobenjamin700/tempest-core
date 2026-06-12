@@ -109,7 +109,7 @@ def _apply_curve(curve: Curve, t: float) -> float:
         if t in (0.0, 1.0):
             return t
         c4 = (2.0 * math.pi) / 3.0
-        return -(2.0 ** (10.0 * t - 10.0)) * math.sin((t * 10.0 - 10.75) * c4)
+        return float(-(2.0 ** (10.0 * t - 10.0)) * math.sin((t * 10.0 - 10.75) * c4))
     return t
 
 
@@ -348,7 +348,7 @@ class Tween(BaseModel, Generic[T]):
             a = cast("tuple[float, ...]", begin)
             b = cast("tuple[float, ...]", end)
             return _lerp_tuple(a, b, t)  # type: ignore[return-value]
-        type_name: str = type(cast("object", begin)).__name__
+        type_name: str = type(begin).__name__
         raise TypeError(f"Tween cannot interpolate endpoints of type {type_name}")
 
 

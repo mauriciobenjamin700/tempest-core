@@ -257,6 +257,10 @@ class Skeleton(Widget):
         base_color: The resting tone of the gradient.
         highlight_color: The moving highlight tone.
         duration_ms: The duration of one full sweep, in milliseconds.
+        color_scheme: The Material 3 role family the renderer may tint the
+            shimmer tones with — one of the design-system color schemes. The
+            engine carries the prop; the renderer resolves it against the active
+            theme (H4). Defaults to ``"neutral"`` (the classic grey shimmer).
     """
 
     event_schemas: ClassVar[dict[str, type[Event]]] = {}
@@ -280,4 +284,9 @@ class Skeleton(Widget):
     )
     duration_ms: int = Field(
         default=1200, description="The duration of one full sweep, in milliseconds."
+    )
+    color_scheme: str = Field(
+        default="neutral",
+        description="The Material 3 role family the renderer may tint the shimmer "
+        "tones with.",
     )

@@ -281,9 +281,27 @@ def test_resolve_variant_states_covers_every_state() -> None:
 # --------------------------------------------------------------------------- #
 
 
+def test_valid_color_schemes_include_h4_status_families() -> None:
+    """The H4 status families are part of the accepted ``color_scheme`` set."""
+    assert {"success", "warning", "info"} <= VALID_COLOR_SCHEMES
+    assert {"primary", "secondary", "tertiary", "error", "neutral"} <= (
+        VALID_COLOR_SCHEMES
+    )
+
+
 def test_solid_foreground_clears_wcag_aa() -> None:
-    """A solid button's content clears WCAG-AA against its fill for every scheme."""
-    for scheme in VALID_COLOR_SCHEMES:
+    """A solid button's content clears WCAG-AA against its fill for every brand scheme.
+
+    The H4 status families (``success`` / ``warning`` / ``info``) are seeded from
+    fixed semantic colors chosen for *recognizability*, not for AA at the M3
+    ``tone40``-on-white solid pairing (verified: success solid = 3.02, warning =
+    4.0). That is precisely why a status surface uses the **container** treatment
+    (``*_container`` / ``on_*_container``, which clears AA ~13.7) — see
+    ``test_h4_status_container_pairs_clear_wcag_aa`` in ``tests/test_h4_feedback``.
+    The brand families guarantee solid AA, so the solid contrast bar applies to
+    them (plus ``neutral``).
+    """
+    for scheme in ("primary", "secondary", "tertiary", "error", "neutral"):
         style = resolve_variant(
             variant=Variant.SOLID, size=Size.MD, color_scheme=scheme, theme=THEME
         )

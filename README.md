@@ -29,18 +29,19 @@ Components take Chakra-ergonomics props (`variant`/`size`/`color_scheme`) and a
 `theme`, and resolve a concrete Material 3 `Style` via pure resolvers in
 `variants.py` — `resolve_variant` (buttons), `resolve_field_variant` (text
 inputs / select / masked / autocomplete / pin), `resolve_selection_variant`
-(checkbox / switch), `resolve_slider_variant` (sliders) and `resolve_surface_variant`
-(cards / surfaces — H3). The interactive resolvers each ship a `*_states` sibling
-returning the per-state table (default/hover/pressed/disabled/focus) the renderers
-apply on real events; surfaces are non-interactive, so there is no state table. The
-touch target is held ≥ 48dp and WCAG-AA contrast is preserved. An explicit `style=`
-is always merged on top.
+(checkbox / switch), `resolve_slider_variant` (sliders), `resolve_surface_variant`
+(cards / surfaces — H3), `resolve_badge_variant` (badges / tags / chips — H4) and
+`resolve_alert_variant` (alerts / banners — H4). The interactive resolvers each
+ship a `*_states` sibling returning the per-state table (default/hover/pressed/
+disabled/focus) the renderers apply on real events; surfaces and alerts are
+non-interactive, so there is no state table. The touch target is held ≥ 48dp and
+WCAG-AA contrast is preserved. An explicit `style=` is always merged on top.
 
 ```python
-from tempest_core import CardVariant, IconButton, Theme
+from tempest_core import Alert, Badge, CardVariant, IconButton, Stat, Theme
 from tempest_core.components import Card, HStack, Surface, VStack
 from tempest_core.widgets import Input, Spacer, Text
-from tempest_core.style import FieldVariant
+from tempest_core.style import AlertVariant, BadgeVariant, FieldVariant
 
 field = Input(value="", field_variant=FieldVariant.FILLED, color_scheme="primary")
 button = IconButton(icon="settings", color_scheme="primary", label="Open settings")
@@ -50,6 +51,13 @@ button = IconButton(icon="settings", color_scheme="primary", label="Open setting
 card = Card(variant=CardVariant.OUTLINED, color_scheme="primary", children=[
     HStack(gap="md", children=[Text(content="Title"), Spacer(), Text(content="42")]),
 ])
+
+# H4 styled data-display & feedback kit: status families (success/warning/info) +
+# badge/tag/chip + alert/banner + stat.
+ok = Badge(label="LIVE", variant=BadgeVariant.SUBTLE, color_scheme="success")
+note = Alert(title="Saved", body="Your changes are live.",
+             variant=AlertVariant.LEFT_ACCENT, color_scheme="success")
+metric = Stat(label="Active users", value="1.2k", delta="+12%", delta_up=True)
 ```
 
 The H3 surface kit (`CardVariant`, `resolve_surface_variant`, `Surface`,
@@ -57,6 +65,17 @@ The H3 surface kit (`CardVariant`, `resolve_surface_variant`, `Surface`,
 `Shadow` mapped from the M3 level (`elevation=0..5`) — **no new `Style` field**.
 `Card`/`Divider`/`ListTile`/`Accordion`/`Grid` are themed off the tokens, and the
 old call sites stay backward-compatible.
+
+The H4 data-display & feedback kit adds three Material 3 status color families —
+`success` / `warning` / `info` (new `ColorRole` members + `ColorScheme` fields,
+generated from fixed semantic seeds, fully back-compatible) — and two new variant
+resolvers/enums (`BadgeVariant`/`resolve_badge_variant`,
+`AlertVariant`/`resolve_alert_variant`). New components `Alert`, `Stat`,
+`ProgressStepper` and the `Tag` (a static `Chip` preset) join the re-themed
+`Badge`/`Banner`/`Avatar`/`EmptyState`/`SegmentedControl`/`Rating`/`Chip`. Because a
+saturated status role on white can fail WCAG-AA (e.g. success solid = 3.02), the
+subtle status surfaces use the tonal `*_container` / `on_*_container` pairing (AA-
+safe). Still **no new `Style` field** — status flows through `color_scheme`.
 
 ## Install
 

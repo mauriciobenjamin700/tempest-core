@@ -733,6 +733,17 @@ def _scheme_role(scheme: str) -> tuple[ColorRole, ColorRole, ColorRole]:
             ColorRole.TERTIARY_CONTAINER,
         ),
         "error": (ColorRole.ERROR, ColorRole.ON_ERROR, ColorRole.ERROR_CONTAINER),
+        "success": (
+            ColorRole.SUCCESS,
+            ColorRole.ON_SUCCESS,
+            ColorRole.SUCCESS_CONTAINER,
+        ),
+        "warning": (
+            ColorRole.WARNING,
+            ColorRole.ON_WARNING,
+            ColorRole.WARNING_CONTAINER,
+        ),
+        "info": (ColorRole.INFO, ColorRole.ON_INFO, ColorRole.INFO_CONTAINER),
         "neutral": (
             ColorRole.ON_SURFACE,
             ColorRole.SURFACE,

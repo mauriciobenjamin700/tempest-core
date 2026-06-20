@@ -119,13 +119,17 @@ class Theme(BaseModel):
         secondary_seed: Color | None = None,
         tertiary_seed: Color | None = None,
         error_seed: Color | None = None,
+        success_seed: Color | None = None,
+        warning_seed: Color | None = None,
+        info_seed: Color | None = None,
     ) -> Theme:
         """Build a theme whose tokens are derived from a brand seed color.
 
         This is the researcher-facing entry point: seed a single brand color and
         get a complete Material 3 token set (light + dark schemes + the default
         scales). Override the secondary/tertiary/error key colors to hand-pick
-        brand accents.
+        brand accents, or the H4 success/warning/info status seeds to retune the
+        semantic status colors.
 
         Args:
             seed: The primary brand/key color.
@@ -133,6 +137,9 @@ class Theme(BaseModel):
             secondary_seed: Override key color for the secondary palette.
             tertiary_seed: Override key color for the tertiary palette.
             error_seed: Override key color for the error palette.
+            success_seed: Override key color for the success status palette (H4).
+            warning_seed: Override key color for the warning status palette (H4).
+            info_seed: Override key color for the info status palette (H4).
 
         Returns:
             A theme carrying the seeded token set.
@@ -144,6 +151,9 @@ class Theme(BaseModel):
                 secondary_seed=secondary_seed,
                 tertiary_seed=tertiary_seed,
                 error_seed=error_seed,
+                success_seed=success_seed,
+                warning_seed=warning_seed,
+                info_seed=info_seed,
             ),
         )
 

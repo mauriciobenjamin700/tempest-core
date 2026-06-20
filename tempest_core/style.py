@@ -33,6 +33,8 @@ __all__ = [
     "Variant",
     "FieldVariant",
     "CardVariant",
+    "BadgeVariant",
+    "AlertVariant",
     "Size",
     "ComponentState",
     "Color",
@@ -416,6 +418,58 @@ class CardVariant(StrEnum):
     ELEVATED = "elevated"
     FILLED = "filled"
     OUTLINED = "outlined"
+
+
+class BadgeVariant(StrEnum):
+    """The visual variant of a badge / tag / chip (Chakra-style ``variant``).
+
+    Picks the treatment a small inline status pill (badge, tag, chip) renders
+    with, mapped to a Material 3 treatment by the H4 badge resolver
+    (:func:`~tempest_core.variants.resolve_badge_variant`). The ``color_scheme``
+    then chooses *which* color family the badge tints with. Distinct from
+    :class:`Variant` (the *button* treatment): a badge is a compact, pill-shaped
+    label, not a tappable action surface.
+
+    Attributes:
+        SOLID: A filled treatment — the role color as the background with its
+            legible ``on_*`` content (a high-emphasis status pill).
+        SUBTLE: A low-emphasis tonal fill — the ``*_container`` role as the
+            background with its ``on_*_container`` content (WCAG-AA safe, the
+            default subtle badge).
+        OUTLINE: A transparent background with the role color as both the content
+            and a same-color border (the lowest-emphasis badge).
+    """
+
+    SOLID = "solid"
+    SUBTLE = "subtle"
+    OUTLINE = "outline"
+
+
+class AlertVariant(StrEnum):
+    """The visual variant of an alert / banner (Chakra-style ``variant``).
+
+    Picks the treatment a block-level status surface (alert, banner) renders
+    with, mapped to a Material 3 treatment by the H4 alert resolver
+    (:func:`~tempest_core.variants.resolve_alert_variant`). The ``color_scheme``
+    then chooses *which* status family the alert tints with. An alert is
+    non-interactive (no state layer), like a surface.
+
+    Attributes:
+        SUBTLE: A low-emphasis tonal fill — the ``*_container`` role as the
+            background with its ``on_*_container`` content (WCAG-AA safe, the
+            default alert).
+        SOLID: A filled treatment — the role color as the background with its
+            legible ``on_*`` content (a high-emphasis alert).
+        LEFT_ACCENT: A subtle tonal fill with a thick directional border on the
+            leading (start) edge in the saturated role color.
+        TOP_ACCENT: A subtle tonal fill with a thick directional border on the
+            top edge in the saturated role color.
+    """
+
+    SUBTLE = "subtle"
+    SOLID = "solid"
+    LEFT_ACCENT = "left_accent"
+    TOP_ACCENT = "top_accent"
 
 
 class Size(StrEnum):

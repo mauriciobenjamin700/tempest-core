@@ -19,11 +19,12 @@ from __future__ import annotations
 
 from pydantic import Field
 
-from tempest_core.components.base import ACCENT, ON_SURFACE, merge_style
+from tempest_core.components.base import merge_style
 from tempest_core.components.surface import Surface
 from tempest_core.style import (
     AlignItems,
     CardVariant,
+    Color,
     Edge,
     FontWeight,
     Style,
@@ -34,6 +35,35 @@ from tempest_core.tokens import ColorRole
 from tempest_core.widgets import Column, Component, Container, Row, Text, Widget
 
 __all__ = ["Card", "ListTile", "Avatar", "Divider"]
+
+#: Maps a ``color_scheme`` family to its ``(container, on_container)`` color roles,
+#: the WCAG-AA-safe tonal pairing the :class:`Avatar` fills with. ``"neutral"``
+#: uses the surface-variant roles.
+_AVATAR_ROLES: dict[str, tuple[ColorRole, ColorRole]] = {
+    "primary": (ColorRole.PRIMARY_CONTAINER, ColorRole.ON_PRIMARY_CONTAINER),
+    "secondary": (ColorRole.SECONDARY_CONTAINER, ColorRole.ON_SECONDARY_CONTAINER),
+    "tertiary": (ColorRole.TERTIARY_CONTAINER, ColorRole.ON_TERTIARY_CONTAINER),
+    "error": (ColorRole.ERROR_CONTAINER, ColorRole.ON_ERROR_CONTAINER),
+    "success": (ColorRole.SUCCESS_CONTAINER, ColorRole.ON_SUCCESS_CONTAINER),
+    "warning": (ColorRole.WARNING_CONTAINER, ColorRole.ON_WARNING_CONTAINER),
+    "info": (ColorRole.INFO_CONTAINER, ColorRole.ON_INFO_CONTAINER),
+    "neutral": (ColorRole.SURFACE_VARIANT, ColorRole.ON_SURFACE),
+}
+
+
+def _avatar_colors(color_scheme: str, theme: Theme) -> tuple[Color, Color]:
+    """Resolve the ``(background, content)`` colors for an avatar circle.
+
+    Args:
+        color_scheme: The Material 3 role family to tint with.
+        theme: The theme whose scheme resolves the roles.
+
+    Returns:
+        The tonal ``*_container`` fill and its legible ``on_*_container`` content,
+        falling back to the primary container for an unknown scheme.
+    """
+    container, on_container = _AVATAR_ROLES.get(color_scheme, _AVATAR_ROLES["primary"])
+    return theme.color(container), theme.color(on_container)
 
 
 def _no_widgets() -> list[Widget]:
@@ -235,11 +265,19 @@ class ListTile(Component):
 
 
 class Avatar(Component):
-    """A round badge showing short initials.
+    """A round badge showing short initials, themed via the container roles.
+
+    Themed (Trilho H4): the circle fills with the ``color_scheme``'s tonal
+    ``*_container`` role and the initials use its legible ``on_*_container`` role
+    (WCAG-AA safe by construction), resolved from the theme rather than a fixed
+    hex. Backward-compatible: ``Avatar(initials="MB")`` is a primary-container
+    circle.
 
     Attributes:
         initials: The short text shown inside the circle (e.g. ``"MB"``).
         size: The circle's diameter in logical pixels.
+        color_scheme: The Material 3 role family the circle tints with.
+        theme: The design-system theme resolving the circle colors.
     """
 
     initials: str = Field(
@@ -249,6 +287,14 @@ class Avatar(Component):
     size: float = Field(
         default=40.0, description="The circle's diameter in logical pixels."
     )
+    color_scheme: str = Field(
+        default="primary",
+        description="The Material 3 role family the circle tints with.",
+    )
+    theme: Theme = Field(
+        default_factory=Theme,
+        description="The design-system theme resolving the circle colors.",
+    )
 
     def render(self) -> Widget:
         """Lower the avatar into a circular container with centered initials.
@@ -256,11 +302,12 @@ class Avatar(Component):
         Returns:
             A ``Container`` sized to ``size`` wrapping a centered ``Text``.
         """
+        background, content = _avatar_colors(self.color_scheme, self.theme)
         default = Style(
             width=self.size,
             height=self.size,
             radius=self.size / 2.0,
-            background=ACCENT,
+            background=background,
             align=AlignItems.CENTER,
         )
         return Container(
@@ -269,7 +316,7 @@ class Avatar(Component):
             child=Text(
                 content=self.initials,
                 style=Style(
-                    color=ON_SURFACE,
+                    color=content,
                     font_weight=FontWeight.BOLD,
                     text_align=TextAlign.CENTER,
                 ),

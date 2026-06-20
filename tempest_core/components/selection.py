@@ -1,8 +1,13 @@
-"""Selection components: SegmentedControl, RadioGroup, Chip and Rating.
+"""Selection components: SegmentedControl, RadioGroup, Chip, Tag and Rating.
 
 Single-choice / value pickers built from primitive ``Button`` rows. They lower to
-primitives via :meth:`Component.render`, so they work in both renderers and on
-the device with no renderer changes.
+primitives via :meth:`Component.render`, so they work in both renderers and on the
+device with no renderer changes. With Trilho H4 these are **themed via the
+design-system tokens**: ``SegmentedControl`` resolves its active/inactive segments
+through :func:`~tempest_core.variants.resolve_variant` (active = solid, rest =
+ghost); ``Chip`` resolves its pill through
+:func:`~tempest_core.variants.resolve_badge_variant`; ``Rating`` reads its star
+color from the theme. ``Tag`` is a closed, non-selectable :class:`Chip` preset.
 """
 
 from __future__ import annotations
@@ -12,14 +17,26 @@ from typing import Any
 
 from pydantic import Field
 
-from tempest_core.components.base import ACCENT, MUTED, ON_SURFACE, SURFACE, merge_style
-from tempest_core.style import Color, Edge, FontWeight, Size, Style
+from tempest_core.components.base import merge_style
+from tempest_core.style import (
+    BadgeVariant,
+    Color,
+    Edge,
+    Size,
+    Style,
+    Variant,
+)
 from tempest_core.theme import MediaQueryData, Theme
 from tempest_core.tokens import ColorRole
-from tempest_core.variants import ResponsiveSize, resolve_selection_variant
+from tempest_core.variants import (
+    ResponsiveSize,
+    resolve_badge_variant,
+    resolve_selection_variant,
+    resolve_variant,
+)
 from tempest_core.widgets import Button, Column, Component, Row, Text, Widget
 
-__all__ = ["SegmentedControl", "RadioGroup", "Chip", "Rating"]
+__all__ = ["SegmentedControl", "RadioGroup", "Chip", "Tag", "Rating"]
 
 
 def _no_labels() -> list[str]:
@@ -32,12 +49,21 @@ def _no_labels() -> list[str]:
 
 
 class SegmentedControl(Component):
-    """A compact single-choice pill group.
+    """A compact single-choice pill group, themed via the H1 variant resolver.
+
+    Themed (Trilho H4): the active segment resolves to a Material 3 ``solid``
+    treatment and the inactive ones to ``ghost`` via
+    :func:`~tempest_core.variants.resolve_variant` against the ``theme`` — so dark
+    mode and brand color work for free instead of hard-coded hexes.
 
     Attributes:
         options: The visible segment labels, in order.
         selected: The index of the active segment.
         on_select: Called with the tapped segment's index.
+        color_scheme: The Material 3 role family the active segment paints with.
+        size: The density size of each segment.
+        theme: The design-system theme resolving the segments.
+        media: Optional viewport snapshot for a responsive ``size``.
     """
 
     options: list[str] = Field(
@@ -46,6 +72,21 @@ class SegmentedControl(Component):
     selected: int = Field(default=0, description="The index of the active segment.")
     on_select: Callable[[int], Any] = Field(
         description="Called with the tapped segment's index."
+    )
+    color_scheme: str = Field(
+        default="primary",
+        description="The Material 3 role family the active segment paints with.",
+    )
+    size: ResponsiveSize = Field(
+        default=Size.SM, description="The density size of each segment."
+    )
+    theme: Theme = Field(
+        default_factory=Theme,
+        description="The design-system theme resolving the segments.",
+    )
+    media: MediaQueryData | None = Field(
+        default=None,
+        description="Optional viewport snapshot for a responsive ``size``.",
     )
 
     def _handler(self, index: int) -> Callable[[], None]:
@@ -69,30 +110,35 @@ class SegmentedControl(Component):
         Returns:
             A ``Row`` of segment buttons with the active one highlighted.
         """
-        default = Style(gap=4.0, padding=Edge.all(4.0), radius=10.0, background=SURFACE)
-        return Row(
-            key=self.key or "segmented",
-            style=merge_style(default, self.style),
-            children=[
+        surface = self.theme.color(ColorRole.SURFACE_VARIANT)
+        default = Style(
+            gap=self.theme.space("xs"),
+            padding=Edge.all(self.theme.space("xs")),
+            radius=self.theme.radius("md"),
+            background=surface,
+        )
+        children: list[Widget] = []
+        for index, label in enumerate(self.options):
+            active = index == self.selected
+            seg = resolve_variant(
+                variant=Variant.SOLID if active else Variant.GHOST,
+                size=self.size,
+                color_scheme=self.color_scheme,
+                theme=self.theme,
+                media=self.media,
+            )
+            children.append(
                 Button(
                     label=label,
                     on_click=self._handler(index),
                     key=f"seg-{index}",
-                    style=Style(
-                        grow=1.0,
-                        padding=Edge.symmetric(vertical=8.0, horizontal=12.0),
-                        radius=8.0,
-                        background=ACCENT if index == self.selected else SURFACE,
-                        color=ON_SURFACE,
-                        font_weight=(
-                            FontWeight.BOLD
-                            if index == self.selected
-                            else FontWeight.NORMAL
-                        ),
-                    ),
+                    style=merge_style(seg, Style(grow=1.0)),
                 )
-                for index, label in enumerate(self.options)
-            ],
+            )
+        return Row(
+            key=self.key or "segmented",
+            style=merge_style(default, self.style),
+            children=children,
         )
 
 
@@ -186,7 +232,7 @@ class RadioGroup(Component):
         Returns:
             A ``Column`` of one button per option, the chosen one marked.
         """
-        default = Style(gap=6.0)
+        default = Style(gap=self.theme.space("sm"))
         children: list[Widget] = []
         for index, label in enumerate(self.options):
             chosen = index == self.selected
@@ -198,7 +244,7 @@ class RadioGroup(Component):
                     key=f"radio-{index}",
                     style=Style(
                         padding=Edge.symmetric(vertical=10.0, horizontal=14.0),
-                        radius=8.0,
+                        radius=self.theme.radius("sm"),
                         background=surface,
                         color=marker,
                     ),
@@ -212,24 +258,47 @@ class RadioGroup(Component):
 
 
 class Chip(Component):
-    """A small rounded label, optionally selectable.
+    """A small rounded label, optionally selectable, themed via the badge resolver.
+
+    Themed (Trilho H4): the pill treatment comes from
+    :func:`~tempest_core.variants.resolve_badge_variant` against the theme — a
+    ``solid`` badge when selected, a ``subtle`` badge otherwise. A tappable chip
+    (``on_click`` set) lowers to a ``Button`` carrying the resolved badge style;
+    a presentational chip lowers to a ``Text`` pill.
 
     Attributes:
         label: The chip text.
-        selected: Whether the chip reads as active (only meaningful with
-            ``on_click``).
+        selected: Whether the chip reads as active (a solid badge vs a subtle one).
         on_click: Optional tap handler; when ``None`` the chip is presentational.
+        color_scheme: The Material 3 role family the chip tints with.
+        size: The density size of the pill.
+        theme: The design-system theme resolving the chip treatment.
+        media: Optional viewport snapshot for a responsive ``size``.
     """
 
     label: str = Field(default="", description="The chip text.")
     selected: bool = Field(
         default=False,
-        description="Whether the chip reads as active (only meaningful with "
-        "``on_click``).",
+        description="Whether the chip reads as active (solid vs subtle badge).",
     )
     on_click: Callable[[], Any] | None = Field(
         default=None,
         description="Optional tap handler; when ``None`` the chip is presentational.",
+    )
+    color_scheme: str = Field(
+        default="primary",
+        description="The Material 3 role family the chip tints with.",
+    )
+    size: ResponsiveSize = Field(
+        default=Size.MD, description="The density size of the pill."
+    )
+    theme: Theme = Field(
+        default_factory=Theme,
+        description="The design-system theme resolving the chip treatment.",
+    )
+    media: MediaQueryData | None = Field(
+        default=None,
+        description="Optional viewport snapshot for a responsive ``size``.",
     )
 
     def render(self) -> Widget:
@@ -238,13 +307,12 @@ class Chip(Component):
         Returns:
             A ``Button`` when ``on_click`` is set, otherwise a ``Text`` pill.
         """
-        background = ACCENT if self.selected else MUTED
-        chip_style = Style(
-            padding=Edge.symmetric(vertical=6.0, horizontal=12.0),
-            radius=14.0,
-            background=background,
-            color=ON_SURFACE,
-            font_size=14.0,
+        chip_style = resolve_badge_variant(
+            variant=BadgeVariant.SOLID if self.selected else BadgeVariant.SUBTLE,
+            size=self.size,
+            color_scheme=self.color_scheme,
+            theme=self.theme,
+            media=self.media,
         )
         if self.on_click is not None:
             return Button(
@@ -260,14 +328,42 @@ class Chip(Component):
         )
 
 
+class Tag(Chip):
+    """A closed, non-selectable label — a thin preset of :class:`Chip`.
+
+    A ``Tag`` is exactly a :class:`Chip` fixed to its presentational, low-emphasis
+    form: never selectable and never tappable (``selected`` and ``on_click`` are
+    not exposed), so it always lowers to a static ``subtle`` badge ``Text`` pill.
+    It carries the same theming props (``color_scheme`` / ``size`` / ``theme``) as
+    ``Chip`` and reuses :func:`~tempest_core.variants.resolve_badge_variant`. Use it
+    for read-only category/status labels where a ``Chip``'s interactivity is wrong.
+    """
+
+    selected: bool = Field(
+        default=False,
+        frozen=True,
+        description="A tag is never selected — fixed to the subtle badge.",
+    )
+    on_click: Callable[[], Any] | None = Field(
+        default=None,
+        frozen=True,
+        description="A tag is never tappable — always a static pill.",
+    )
+
+
 class Rating(Component):
     """A row of stars showing (and optionally setting) a 1-based rating.
+
+    Themed (Trilho H4): the star color reads the ``color_scheme`` role from the
+    theme rather than a hard-coded accent, so dark mode and brand color apply.
 
     Attributes:
         value: The number of filled stars.
         max_stars: The total number of stars shown.
         on_rate: Optional handler called with the tapped star's 1-based value;
             when ``None`` the rating is presentational.
+        color_scheme: The Material 3 role family the filled stars paint with.
+        theme: The design-system theme resolving the star color.
     """
 
     value: int = Field(default=0, description="The number of filled stars.")
@@ -276,6 +372,14 @@ class Rating(Component):
         default=None,
         description="Optional handler called with the tapped star's 1-based value; "
         "when ``None`` the rating is presentational.",
+    )
+    color_scheme: str = Field(
+        default="primary",
+        description="The Material 3 role family the filled stars paint with.",
+    )
+    theme: Theme = Field(
+        default_factory=Theme,
+        description="The design-system theme resolving the star color.",
     )
 
     def _handler(self, rating: int) -> Callable[[], None]:
@@ -294,17 +398,18 @@ class Rating(Component):
 
         return handler
 
-    def _star(self, index: int) -> Widget:
+    def _star(self, index: int, color: Color) -> Widget:
         """Build one star cell.
 
         Args:
             index: The zero-based star position.
+            color: The resolved star color.
 
         Returns:
             A tappable ``Button`` when ``on_rate`` is set, else a ``Text`` glyph.
         """
         glyph = "★" if index < self.value else "☆"
-        star_style = Style(font_size=24.0, color=ACCENT)
+        star_style = Style(font_size=24.0, color=color)
         if self.on_rate is not None:
             return Button(
                 label=glyph,
@@ -320,9 +425,10 @@ class Rating(Component):
         Returns:
             A ``Row`` of star cells.
         """
-        default = Style(gap=4.0)
+        color = self.theme.color(self.color_scheme)
+        default = Style(gap=self.theme.space("xs"))
         return Row(
             key=self.key or "rating",
             style=merge_style(default, self.style),
-            children=[self._star(index) for index in range(self.max_stars)],
+            children=[self._star(index, color) for index in range(self.max_stars)],
         )

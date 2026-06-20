@@ -470,8 +470,11 @@ class DataTable(Component):
                     ],
                 )
             )
+        row_offset = self.page * self.page_size if self.page_size else 0
         for r_index, row in enumerate(self._page_rows()):
-            stripe = zebra if r_index % 2 == 1 else surface
+            # Zebra parity follows the ABSOLUTE row index so stripes stay
+            # continuous across pages (not restarting each page slice).
+            stripe = zebra if (row_offset + r_index) % 2 == 1 else surface
             body.append(
                 Row(
                     key=f"dt-row-{r_index}",

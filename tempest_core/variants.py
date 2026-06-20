@@ -371,10 +371,12 @@ def _apply_state(
                 border=Border(width=2.0, color=role_color),
             ),
         )
-    # DISABLED: drop content + (filled) container to the M3 disabled opacities;
-    # keep contrast structure but visibly muted.
+    # DISABLED: M3 mutes per element (content vs container), NOT a blanket box
+    # opacity. Fade the content color to 38% and (filled) the container to 12%.
+    # Setting BOTH Style.opacity AND a faded color would double up (0.38 x 0.38),
+    # so the box opacity is intentionally left unset.
     disabled_content = base.color
-    overrides = Style(opacity=DISABLED_CONTENT_OPACITY)
+    overrides = Style()
     if disabled_content is not None:
         faded = disabled_content.with_alpha(DISABLED_CONTENT_OPACITY)
         overrides = merge_styles(overrides, Style(color=faded))

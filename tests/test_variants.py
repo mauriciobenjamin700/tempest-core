@@ -243,7 +243,15 @@ def test_focus_adds_indicator_border() -> None:
 
 
 def test_disabled_drops_content_opacity() -> None:
-    """The disabled state drops content + container to the M3 disabled opacities."""
+    """Disabled mutes per element (content 38% + filled container 12%).
+
+    M3 fades the content color and the container separately, not via a blanket
+    box opacity — so ``Style.opacity`` stays unset (else the faded color and the
+    box opacity would compound to ~0.14 instead of the spec's 0.38).
+    """
+    base = resolve_variant(
+        variant=Variant.SOLID, size=Size.MD, color_scheme="primary", theme=THEME
+    )
     disabled = resolve_variant(
         variant=Variant.SOLID,
         size=Size.MD,
@@ -251,9 +259,11 @@ def test_disabled_drops_content_opacity() -> None:
         theme=THEME,
         state=ComponentState.DISABLED,
     )
-    assert disabled.opacity == DISABLED_CONTENT_OPACITY
+    assert disabled.opacity is None  # no blanket box opacity (no double-fade)
     assert disabled.color is not None
     assert disabled.color.a == pytest.approx(DISABLED_CONTENT_OPACITY)
+    # The filled container is muted (changed from the base solid fill).
+    assert disabled.background != base.background
 
 
 def test_resolve_variant_states_covers_every_state() -> None:
@@ -463,3 +473,22 @@ def test_button_event_contract_unchanged() -> None:
     from tempest_core.widgets.events import TapEvent
 
     assert Button.event_schemas == {"on_click": TapEvent}
+
+
+def test_button_build_excludes_theme_from_props() -> None:
+    """The Button IR node carries the resolved style but NOT the heavy theme/media.
+
+    ``theme``/``media`` are build-time resolution inputs; baking them into every
+    node's props would bloat the tree and the serialized bridge payload. The
+    resolved ``style`` already captures the theme's effect.
+    """
+    from tempest_core import Button
+    from tempest_core.core.reconciler import build
+
+    node = build(Button(label="Save", variant=Variant.SOLID, color_scheme="primary"))
+    assert "theme" not in node.props
+    assert "media" not in node.props
+    # The resolved style + the small variant props are still present.
+    assert node.props.get("style") is not None
+    assert node.props["variant"] == Variant.SOLID
+    assert node.props["label"] == "Save"

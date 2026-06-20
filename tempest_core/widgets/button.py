@@ -62,6 +62,12 @@ class Button(Widget):
 
     event_schemas: ClassVar[dict[str, type[Event]]] = {"on_click": TapEvent}
 
+    #: ``theme``/``media`` are build-time resolution inputs only — they bake into
+    #: the resolved ``style`` and are kept OUT of the IR props (a full ``Theme``
+    #: per node would bloat the tree and the serialized bridge payload). The
+    #: resolved ``style`` already carries their effect.
+    prop_exclude_names: ClassVar[frozenset[str]] = frozenset({"theme", "media"})
+
     label: str = Field(description="The text shown on the button.")
     on_click: EventHandler | None = Field(
         default=None,

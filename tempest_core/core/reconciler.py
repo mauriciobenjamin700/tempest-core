@@ -64,7 +64,7 @@ def build(widget: Widget) -> Node:
     if isinstance(widget, Component):
         return build(widget.render())
     children = [build(child) for child in widget.child_nodes()]
-    skip = widget.child_field_names
+    skip = widget.child_field_names | widget.prop_exclude_names
     props: dict[str, Any] = {}
     for name in type(widget).model_fields:
         if name == "key" or name in skip:

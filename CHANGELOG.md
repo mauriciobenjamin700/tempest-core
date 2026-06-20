@@ -4,6 +4,33 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [Unreleased]
+
+### Added
+
+- **Material 3 design-token foundation** (Trilho H, phase H0) — a new
+  `tokens.py` module with the typed, frozen token model: `TonalPalette` +
+  `tonal_palette_from_seed` (deterministic, dependency-free M3 tonal-palette
+  generation from a brand seed), `ColorScheme`/`ColorSchemes` +
+  `color_schemes_from_seed` (the full M3 color roles for light **and** dark,
+  WCAG-AA contrast on every `on_*` role), the systematic scales (`SpacingScale`
+  4dp grid, `ShapeScale` radius, `TypographyScale` display/headline/title/body/
+  label, `ElevationScale` levels 0-5, `MotionScale` durations + easing),
+  `Breakpoints`, and the `TokenSet` bundle (`TokenSet.from_seed` /
+  `default_tokens`).
+- **`Theme` resolves tokens** — `Theme` now carries a `TokenSet` (default M3
+  seeded from the reference purple) and exposes `Theme.from_seed`,
+  `scheme`/`color`/`space`/`radius`/`typography`/`elevation`, and `resolve_ref`
+  /`resolve_style`. `TokenRef` is the **Style ⟷ token seam**: a style field can
+  carry a token reference (`TokenRef.color("primary")`, `TokenRef.radius("lg")`,
+  …) that `Theme.resolve_style` resolves into a concrete, frozen `Style` before
+  the diff. Additive and backward-compatible — raw `Style`/`Theme` values keep
+  working unchanged; the legacy flat color fields remain.
+- Re-exported the new public surface from `tempest_core` (`TokenSet`,
+  `TokenRef`, `TonalPalette`, `ColorScheme`/`ColorSchemes`, `ColorRole`, the
+  scale classes, `default_tokens`, `tonal_palette_from_seed`,
+  `color_schemes_from_seed`).
+
 ## [0.1.0] — 2026-06-11
 
 First public release. The renderer-agnostic UI core shared across the tempest

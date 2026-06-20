@@ -53,6 +53,8 @@ from tempest_core.style import (
     Color,
     ComponentState,
     Edge,
+    FieldVariant,
+    SideBorder,
     Size,
     Style,
     TextDecoration,
@@ -69,11 +71,19 @@ __all__ = [
     "FOCUS_OPACITY",
     "DISABLED_CONTENT_OPACITY",
     "DISABLED_CONTAINER_OPACITY",
+    "SELECTION_SIZE",
+    "SLIDER_SIZE",
     "ResponsiveSize",
     "merge_styles",
     "resolve_size",
     "resolve_variant",
     "resolve_variant_states",
+    "resolve_field_variant",
+    "resolve_field_variant_states",
+    "resolve_selection_variant",
+    "resolve_selection_variant_states",
+    "resolve_slider_variant",
+    "resolve_slider_variant_states",
 ]
 
 #: The ``color_scheme`` names a styled component accepts. Each names a Material 3
@@ -124,6 +134,26 @@ _SIZE_DENSITY: dict[Size, tuple[float, float, str, str]] = {
 #: widest breakpoint whose min-width the viewport meets wins (mobile-first, like
 #: Chakra). ``"base"`` is the implicit ``0``-width entry.
 _BREAKPOINT_ORDER: tuple[str, ...] = ("base", "sm", "md", "lg", "xl")
+
+#: The control-box edge (width == height) per ``size`` for a selection control
+#: (checkbox / switch thumb dimension) in logical pixels. The visible box scales
+#: with size; the *touch target* stays ≥ 48dp via the parent row, never the box.
+SELECTION_SIZE: dict[Size, float] = {
+    Size.XS: 16.0,
+    Size.SM: 18.0,
+    Size.MD: 20.0,
+    Size.LG: 24.0,
+}
+
+#: The active/inactive track thickness per ``size`` for a slider, in logical
+#: pixels. The thumb halo + touch target stay ≥ 48dp via the renderer, never the
+#: track height.
+SLIDER_SIZE: dict[Size, float] = {
+    Size.XS: 2.0,
+    Size.SM: 3.0,
+    Size.MD: 4.0,
+    Size.LG: 6.0,
+}
 
 
 def _scheme_roles(color_scheme: str) -> tuple[ColorRole, ColorRole, ColorRole]:
@@ -498,6 +528,553 @@ def resolve_variant_states(
     return {
         state: resolve_variant(
             variant=variant,
+            size=size,
+            color_scheme=color_scheme,
+            theme=theme,
+            state=state,
+            platform_dark_mode=platform_dark_mode,
+            media=media,
+        )
+        for state in ComponentState
+    }
+
+
+# --------------------------------------------------------------------------- #
+# H2 — field family (text inputs / select / masked / autocomplete / pin)
+# --------------------------------------------------------------------------- #
+
+
+def _field_base_style(
+    *,
+    variant: FieldVariant,
+    role_color: Color,
+    on_surface: Color,
+    surface_variant: Color,
+    outline: Color,
+    size: Size,
+    theme: Theme,
+) -> Style:
+    """Build the resting (``DEFAULT``-state) style for a field variant + size.
+
+    Fields are focus-led: the resting treatment is low-emphasis (an outline, a
+    tonal fill, or a single bottom rule) and the ``color_scheme`` role only tints
+    the focus/caret/label (applied by :func:`_apply_field_state`), never the
+    resting fill. The content (typed text) is always ``on_surface`` so it stays
+    legible on every variant.
+
+    Args:
+        variant: The field treatment (outline / filled / flushed).
+        role_color: The resolved ``color_scheme`` role color (unused at rest; the
+            focus tint reads it later).
+        on_surface: The resolved ``ON_SURFACE`` color (the typed-text content).
+        surface_variant: The resolved ``SURFACE_VARIANT`` color (the filled fill).
+        outline: The resolved ``OUTLINE`` color (the resting border).
+        size: The concrete density size.
+        theme: The theme (for the shape scale).
+
+    Returns:
+        The base, resting ``Style`` for the field.
+    """
+    vpad, hpad, font_role, _radius_step = _SIZE_DENSITY[size]
+    typography = theme.typography(font_role)
+    padding = Edge.symmetric(vertical=vpad, horizontal=hpad)
+    radius_sm = theme.radius("sm")
+
+    if variant is FieldVariant.FILLED:
+        return Style(
+            background=surface_variant,
+            color=on_surface,
+            radius=radius_sm,
+            padding=padding,
+            min_height=MIN_TOUCH_TARGET,
+            font_size=typography.font_size,
+            font_weight=typography.font_weight,
+        )
+    if variant is FieldVariant.FLUSHED:
+        return Style(
+            border=SideBorder(bottom=Border(width=1.0, color=outline)),
+            color=on_surface,
+            radius=theme.radius("none"),
+            padding=padding,
+            min_height=MIN_TOUCH_TARGET,
+            font_size=typography.font_size,
+            font_weight=typography.font_weight,
+        )
+    # OUTLINE — a full same-color outline border at the resting outline role.
+    return Style(
+        border=Border(width=1.0, color=outline),
+        color=on_surface,
+        radius=radius_sm,
+        padding=padding,
+        min_height=MIN_TOUCH_TARGET,
+        font_size=typography.font_size,
+        font_weight=typography.font_weight,
+    )
+
+
+def _apply_field_state(
+    base: Style,
+    *,
+    variant: FieldVariant,
+    state: ComponentState,
+    accent: Color,
+    on_surface: Color,
+    on_surface_variant: Color,
+    outline_variant: Color,
+    error: Color,
+    invalid: bool,
+) -> Style:
+    """Layer the focus/hover/disabled treatment over a resting field style.
+
+    The border color leads the field's state feedback: ``FOCUS``/``PRESSED`` tint
+    it to the ``color_scheme`` ``accent`` (2px), ``HOVER`` to
+    ``on_surface_variant``, ``DISABLED`` fades the content to 38% and the border
+    to ``outline_variant``. When ``invalid`` is set the border/label are forced to
+    the ``error`` role regardless of state (the focus accent gives way to error).
+
+    Args:
+        base: The resting field style.
+        variant: The field treatment (decides which border slot to tint).
+        state: The interaction state to resolve for.
+        accent: The resolved ``color_scheme`` role color (focus tint).
+        on_surface: The resolved ``ON_SURFACE`` color.
+        on_surface_variant: The resolved ``ON_SURFACE_VARIANT`` color (hover).
+        outline_variant: The resolved ``OUTLINE_VARIANT`` color (disabled border).
+        error: The resolved ``ERROR`` color (invalid border).
+        invalid: Whether the field is in an invalid (error) state.
+
+    Returns:
+        The state-adjusted field style.
+    """
+
+    def _border(color: Color, width: float) -> Border | SideBorder:
+        if variant is FieldVariant.FLUSHED:
+            return SideBorder(bottom=Border(width=width, color=color))
+        return Border(width=width, color=color)
+
+    # An invalid field paints its border error-red in every state; focus still
+    # thickens it to 2px so the active error field reads as focused-and-wrong.
+    if invalid:
+        width = 2.0 if state in (ComponentState.FOCUS, ComponentState.PRESSED) else 1.0
+        return merge_styles(base, Style(border=_border(error, width), color=error))
+
+    if state is ComponentState.DEFAULT:
+        return base
+    if state is ComponentState.HOVER:
+        return merge_styles(base, Style(border=_border(on_surface_variant, 1.0)))
+    if state in (ComponentState.FOCUS, ComponentState.PRESSED):
+        # PRESSED is treated as FOCUS for a field (no ripple — it gains focus).
+        return merge_styles(base, Style(border=_border(accent, 2.0)))
+    # DISABLED — fade content to 38% and the border to the low-emphasis outline.
+    return merge_styles(
+        base,
+        Style(
+            color=on_surface.with_alpha(DISABLED_CONTENT_OPACITY),
+            border=_border(outline_variant, 1.0),
+        ),
+    )
+
+
+def resolve_field_variant(
+    *,
+    variant: FieldVariant,
+    size: ResponsiveSize,
+    color_scheme: str,
+    theme: Theme,
+    state: ComponentState = ComponentState.DEFAULT,
+    invalid: bool = False,
+    platform_dark_mode: bool = False,
+    media: MediaQueryData | None = None,
+) -> Style:
+    """Resolve a text-field's Chakra-style props into a Material 3 ``Style``.
+
+    The H2 sibling of :func:`resolve_variant` for the **field family** (text input,
+    text area, select/dropdown, masked input, autocomplete, pin). A field is
+    focus-led: the resting treatment is low-emphasis (outline / filled / flushed)
+    and the ``color_scheme`` role only tints the focus border/caret/label. An
+    ``invalid`` field forces the border + label to the ``error`` role in every
+    state (it coexists with the field's separate error-message text, which the
+    field widget renders elsewhere). Pure and deterministic, like every resolver.
+
+    Args:
+        variant: The field treatment (outline / filled / flushed).
+        size: The density size — a single :class:`~tempest_core.style.Size` or a
+            per-breakpoint map resolved against the theme + ``media``.
+        color_scheme: The Material 3 role family the focus tint paints with — one
+            of :data:`VALID_COLOR_SCHEMES`.
+        theme: The theme whose tokens supply colors, spacing, shape and type.
+        state: The interaction state to resolve for (default
+            :attr:`~tempest_core.style.ComponentState.DEFAULT`).
+        invalid: Whether the field is in an invalid (error) state — forces the
+            border/label to the ``error`` role.
+        platform_dark_mode: The OS dark-mode flag, used to resolve the scheme.
+        media: The current viewport snapshot for a responsive ``size``.
+
+    Returns:
+        The resolved, frozen ``Style`` for the requested field combination.
+
+    Raises:
+        ValueError: If ``color_scheme`` is unknown or the ``size`` map is
+            malformed.
+    """
+    if color_scheme not in VALID_COLOR_SCHEMES:
+        raise ValueError(
+            f"unknown color_scheme: {color_scheme!r}; "
+            f"expected one of {sorted(VALID_COLOR_SCHEMES)}"
+        )
+
+    concrete_size = resolve_size(size, theme, media=media)
+    scheme = theme.scheme(platform_dark_mode=platform_dark_mode)
+    role, _on_role, _container = _scheme_roles(color_scheme)
+    accent = scheme.role(role)
+    on_surface = scheme.role(ColorRole.ON_SURFACE)
+    surface_variant = scheme.role(ColorRole.SURFACE_VARIANT)
+    outline = scheme.role(ColorRole.OUTLINE)
+    on_surface_variant = scheme.role(ColorRole.ON_SURFACE_VARIANT)
+    outline_variant = scheme.role(ColorRole.OUTLINE_VARIANT)
+    error = scheme.role(ColorRole.ERROR)
+
+    base = _field_base_style(
+        variant=variant,
+        role_color=accent,
+        on_surface=on_surface,
+        surface_variant=surface_variant,
+        outline=outline,
+        size=concrete_size,
+        theme=theme,
+    )
+    return _apply_field_state(
+        base,
+        variant=variant,
+        state=state,
+        accent=accent,
+        on_surface=on_surface,
+        on_surface_variant=on_surface_variant,
+        outline_variant=outline_variant,
+        error=error,
+        invalid=invalid,
+    )
+
+
+def resolve_field_variant_states(
+    *,
+    variant: FieldVariant,
+    size: ResponsiveSize,
+    color_scheme: str,
+    theme: Theme,
+    invalid: bool = False,
+    platform_dark_mode: bool = False,
+    media: MediaQueryData | None = None,
+) -> dict[ComponentState, Style]:
+    """Resolve the full per-state style table for a field variant + size + scheme.
+
+    The H2 field-family counterpart of :func:`resolve_variant_states` — the seam
+    the renderers consume to apply the matching style on real focus/hover events.
+
+    Args:
+        variant: The field treatment (outline / filled / flushed).
+        size: The density size (single or responsive map).
+        color_scheme: The Material 3 role family — one of
+            :data:`VALID_COLOR_SCHEMES`.
+        theme: The theme whose tokens supply the values.
+        invalid: Whether the field is in an invalid (error) state.
+        platform_dark_mode: The OS dark-mode flag.
+        media: The current viewport snapshot for a responsive ``size``.
+
+    Returns:
+        A mapping of every :class:`~tempest_core.style.ComponentState` to its
+        resolved ``Style``.
+
+    Raises:
+        ValueError: If ``color_scheme`` is unknown or the ``size`` map is
+            malformed.
+    """
+    return {
+        state: resolve_field_variant(
+            variant=variant,
+            size=size,
+            color_scheme=color_scheme,
+            theme=theme,
+            state=state,
+            invalid=invalid,
+            platform_dark_mode=platform_dark_mode,
+            media=media,
+        )
+        for state in ComponentState
+    }
+
+
+# --------------------------------------------------------------------------- #
+# H2 — selection family (checkbox / switch / radio row)
+# --------------------------------------------------------------------------- #
+
+
+def resolve_selection_variant(
+    *,
+    size: ResponsiveSize,
+    color_scheme: str,
+    theme: Theme,
+    state: ComponentState = ComponentState.DEFAULT,
+    checked: bool = False,
+    platform_dark_mode: bool = False,
+    media: MediaQueryData | None = None,
+) -> Style:
+    """Resolve a selection control's props into a Material 3 ``Style``.
+
+    The H2 sibling of :func:`resolve_variant` for the **selection family**
+    (checkbox, switch, radio row). Material 3 gives selection controls a single
+    affordance each, so there is **no** ``variant`` param. The resolved style
+    carries: the accent (``color_scheme`` role) as ``color`` (the tick / on-track);
+    ``background`` = the accent when ``checked`` else transparent (no fill); the
+    ``outline`` role as the empty-ring ``border`` when unchecked; and the control
+    box dimension (``width`` == ``height``) from :data:`SELECTION_SIZE`. The 48dp
+    touch target is the parent row's job, never the box.
+
+    Args:
+        size: The density size — a single :class:`~tempest_core.style.Size` or a
+            per-breakpoint map resolved against the theme + ``media``.
+        color_scheme: The Material 3 role family the accent paints with — one of
+            :data:`VALID_COLOR_SCHEMES`.
+        theme: The theme whose tokens supply colors and the dimension.
+        state: The interaction state to resolve for.
+        checked: Whether the control is currently selected/on.
+        platform_dark_mode: The OS dark-mode flag, used to resolve the scheme.
+        media: The current viewport snapshot for a responsive ``size``.
+
+    Returns:
+        The resolved, frozen ``Style`` for the requested selection combination.
+
+    Raises:
+        ValueError: If ``color_scheme`` is unknown or the ``size`` map is
+            malformed.
+    """
+    if color_scheme not in VALID_COLOR_SCHEMES:
+        raise ValueError(
+            f"unknown color_scheme: {color_scheme!r}; "
+            f"expected one of {sorted(VALID_COLOR_SCHEMES)}"
+        )
+
+    concrete_size = resolve_size(size, theme, media=media)
+    scheme = theme.scheme(platform_dark_mode=platform_dark_mode)
+    role, _on_role, _container = _scheme_roles(color_scheme)
+    accent = scheme.role(role)
+    on_surface = scheme.role(ColorRole.ON_SURFACE)
+    outline = scheme.role(ColorRole.OUTLINE)
+    dim = SELECTION_SIZE[concrete_size]
+
+    if checked:
+        base = Style(
+            color=accent,
+            background=accent,
+            width=dim,
+            height=dim,
+        )
+    else:
+        base = Style(
+            color=accent,
+            border=Border(width=2.0, color=outline),
+            width=dim,
+            height=dim,
+        )
+
+    if state is ComponentState.DEFAULT:
+        return base
+    # A selection control's state layer paints the ``on_surface`` content color
+    # over the backdrop — the accent fill (when checked) or the surface (when
+    # unchecked) — so the layer is always a visible tint distinct from the fill.
+    layer_source = on_surface
+    backdrop = accent if checked else scheme.role(ColorRole.SURFACE)
+    if state is ComponentState.HOVER:
+        return merge_styles(
+            base, Style(background=layer_source.overlay(backdrop, HOVER_OPACITY))
+        )
+    if state is ComponentState.PRESSED:
+        return merge_styles(
+            base, Style(background=layer_source.overlay(backdrop, PRESSED_OPACITY))
+        )
+    if state is ComponentState.FOCUS:
+        return merge_styles(
+            base,
+            Style(
+                background=layer_source.overlay(backdrop, FOCUS_OPACITY),
+                border=Border(width=2.0, color=accent),
+            ),
+        )
+    # DISABLED — fade the accent (and the ring, when unchecked) to 38%.
+    overrides = Style(color=accent.with_alpha(DISABLED_CONTENT_OPACITY))
+    if checked:
+        overrides = merge_styles(
+            overrides, Style(background=accent.with_alpha(DISABLED_CONTENT_OPACITY))
+        )
+    else:
+        overrides = merge_styles(
+            overrides,
+            Style(
+                border=Border(
+                    width=2.0, color=outline.with_alpha(DISABLED_CONTENT_OPACITY)
+                )
+            ),
+        )
+    return merge_styles(base, overrides)
+
+
+def resolve_selection_variant_states(
+    *,
+    size: ResponsiveSize,
+    color_scheme: str,
+    theme: Theme,
+    checked: bool = False,
+    platform_dark_mode: bool = False,
+    media: MediaQueryData | None = None,
+) -> dict[ComponentState, Style]:
+    """Resolve the full per-state style table for a selection control.
+
+    The H2 selection-family counterpart of :func:`resolve_variant_states`.
+
+    Args:
+        size: The density size (single or responsive map).
+        color_scheme: The Material 3 role family — one of
+            :data:`VALID_COLOR_SCHEMES`.
+        theme: The theme whose tokens supply the values.
+        checked: Whether the control is currently selected/on.
+        platform_dark_mode: The OS dark-mode flag.
+        media: The current viewport snapshot for a responsive ``size``.
+
+    Returns:
+        A mapping of every :class:`~tempest_core.style.ComponentState` to its
+        resolved ``Style``.
+
+    Raises:
+        ValueError: If ``color_scheme`` is unknown or the ``size`` map is
+            malformed.
+    """
+    return {
+        state: resolve_selection_variant(
+            size=size,
+            color_scheme=color_scheme,
+            theme=theme,
+            state=state,
+            checked=checked,
+            platform_dark_mode=platform_dark_mode,
+            media=media,
+        )
+        for state in ComponentState
+    }
+
+
+# --------------------------------------------------------------------------- #
+# H2 — slider family (slider / range slider)
+# --------------------------------------------------------------------------- #
+
+
+def resolve_slider_variant(
+    *,
+    size: ResponsiveSize,
+    color_scheme: str,
+    theme: Theme,
+    state: ComponentState = ComponentState.DEFAULT,
+    platform_dark_mode: bool = False,
+    media: MediaQueryData | None = None,
+) -> Style:
+    """Resolve a slider's props into a Material 3 ``Style``.
+
+    The H2 sibling of :func:`resolve_variant` for the **slider family** (slider,
+    range slider). Material 3 gives a slider a single affordance, so there is
+    **no** ``variant`` param. The resolved style carries: the accent
+    (``color_scheme`` role) as ``color`` (the active track + thumb); the
+    ``surface_variant`` role as ``background`` (the inactive track); the track
+    thickness as ``height`` from :data:`SLIDER_SIZE`; and a thumb radius hint as
+    ``radius`` (the M3 ``full`` pill). The thumb halo + 48dp touch target are the
+    renderer's job, never the track height.
+
+    Args:
+        size: The density size — a single :class:`~tempest_core.style.Size` or a
+            per-breakpoint map resolved against the theme + ``media``.
+        color_scheme: The Material 3 role family the accent paints with — one of
+            :data:`VALID_COLOR_SCHEMES`.
+        theme: The theme whose tokens supply colors and the track thickness.
+        state: The interaction state to resolve for.
+        platform_dark_mode: The OS dark-mode flag, used to resolve the scheme.
+        media: The current viewport snapshot for a responsive ``size``.
+
+    Returns:
+        The resolved, frozen ``Style`` for the requested slider combination.
+
+    Raises:
+        ValueError: If ``color_scheme`` is unknown or the ``size`` map is
+            malformed.
+    """
+    if color_scheme not in VALID_COLOR_SCHEMES:
+        raise ValueError(
+            f"unknown color_scheme: {color_scheme!r}; "
+            f"expected one of {sorted(VALID_COLOR_SCHEMES)}"
+        )
+
+    concrete_size = resolve_size(size, theme, media=media)
+    scheme = theme.scheme(platform_dark_mode=platform_dark_mode)
+    role, _on_role, _container = _scheme_roles(color_scheme)
+    accent = scheme.role(role)
+    surface_variant = scheme.role(ColorRole.SURFACE_VARIANT)
+    track = SLIDER_SIZE[concrete_size]
+
+    base = Style(
+        color=accent,
+        background=surface_variant,
+        height=track,
+        radius=theme.radius("full"),
+    )
+
+    if state is ComponentState.DEFAULT:
+        return base
+    if state in (ComponentState.HOVER, ComponentState.PRESSED, ComponentState.FOCUS):
+        # The thumb halo is a state layer over the accent; the active track stays
+        # the accent (carried in ``color``).
+        opacity = {
+            ComponentState.HOVER: HOVER_OPACITY,
+            ComponentState.PRESSED: PRESSED_OPACITY,
+            ComponentState.FOCUS: FOCUS_OPACITY,
+        }[state]
+        return merge_styles(base, Style(color=accent.overlay(surface_variant, opacity)))
+    # DISABLED — fade both tracks to 38%.
+    return merge_styles(
+        base,
+        Style(
+            color=accent.with_alpha(DISABLED_CONTENT_OPACITY),
+            background=surface_variant.with_alpha(DISABLED_CONTENT_OPACITY),
+        ),
+    )
+
+
+def resolve_slider_variant_states(
+    *,
+    size: ResponsiveSize,
+    color_scheme: str,
+    theme: Theme,
+    platform_dark_mode: bool = False,
+    media: MediaQueryData | None = None,
+) -> dict[ComponentState, Style]:
+    """Resolve the full per-state style table for a slider.
+
+    The H2 slider-family counterpart of :func:`resolve_variant_states`.
+
+    Args:
+        size: The density size (single or responsive map).
+        color_scheme: The Material 3 role family — one of
+            :data:`VALID_COLOR_SCHEMES`.
+        theme: The theme whose tokens supply the values.
+        platform_dark_mode: The OS dark-mode flag.
+        media: The current viewport snapshot for a responsive ``size``.
+
+    Returns:
+        A mapping of every :class:`~tempest_core.style.ComponentState` to its
+        resolved ``Style``.
+
+    Raises:
+        ValueError: If ``color_scheme`` is unknown or the ``size`` map is
+            malformed.
+    """
+    return {
+        state: resolve_slider_variant(
             size=size,
             color_scheme=color_scheme,
             theme=theme,

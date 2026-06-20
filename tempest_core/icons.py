@@ -30,6 +30,7 @@ from pathlib import Path
 
 __all__ = [
     "ICON_PATHS",
+    "MATERIAL_ALIASES",
     "Icons",
     "icon_path",
     "icon_names",
@@ -150,6 +151,57 @@ ICON_PATHS: dict[str, str] = {
 }
 
 
+#: Common Material Symbols / Material Icons names → the nearest curated
+#: :data:`ICON_PATHS` glyph. Promoted to the engine (from the Qt renderer's
+#: former ``_ICON_ALIASES``) so alias resolution is renderer-agnostic: both
+#: renderers delegate to :func:`icon_path`, which consults this map after the
+#: curated set and any custom icons. An alias only ever points at a curated name
+#: (never another alias), so resolution is a single hop.
+MATERIAL_ALIASES: dict[str, str] = {
+    "photo_camera": "eye",
+    "camera": "eye",
+    "camera_alt": "eye",
+    "visibility": "eye",
+    "visibility_off": "eye-off",
+    "history": "clock",
+    "schedule": "clock",
+    "access_time": "clock",
+    "person": "user",
+    "account_circle": "user",
+    "email": "mail",
+    "email_outlined": "mail",
+    "lock_outline": "lock",
+    "lock_open": "unlock",
+    "edit": "settings",
+    "create": "settings",
+    "tune": "settings",
+    "content_copy": "check",
+    "done": "check",
+    "close": "x",
+    "cancel": "x",
+    "add": "plus",
+    "remove": "minus",
+    "delete": "trash",
+    "delete_outline": "trash",
+    "favorite": "heart",
+    "favorite_border": "heart",
+    "notifications": "bell",
+    "notifications_none": "bell",
+    "expand_more": "chevron-down",
+    "expand_less": "chevron-up",
+    "navigate_before": "chevron-left",
+    "navigate_next": "chevron-right",
+    "arrow_back": "arrow-left",
+    "arrow_forward": "arrow-right",
+    "call": "phone",
+    "phone_in_talk": "phone",
+    "event": "calendar",
+    "date_range": "calendar",
+    "grade": "star",
+    "info_outline": "info",
+}
+
+
 class Icons(StrEnum):
     """The names of the curated built-in icons.
 
@@ -229,15 +281,23 @@ def icon_path(name: str) -> str | None:
             transparently.
 
     Returns:
-        The icon's ``d`` string — from the curated set, else a custom icon
-        registered via :func:`register_icon` — or ``None`` when the name is
-        unknown (the renderer then falls back to a platform icon / the name).
+        The icon's ``d`` string — from the curated set, then a custom icon
+        registered via :func:`register_icon`, then a Material-name alias in
+        :data:`MATERIAL_ALIASES` resolved to its curated glyph — or ``None`` when
+        the name is unknown (the renderer then falls back to a platform icon /
+        the name).
     """
     key = str(name)
     curated = ICON_PATHS.get(key)
     if curated is not None:
         return curated
-    return _CUSTOM_PATHS.get(key)
+    custom = _CUSTOM_PATHS.get(key)
+    if custom is not None:
+        return custom
+    aliased = MATERIAL_ALIASES.get(key)
+    if aliased is not None:
+        return ICON_PATHS.get(aliased)
+    return None
 
 
 def icon_names() -> list[str]:

@@ -41,7 +41,7 @@ from tempest_core.widgets.base import (
     Widget,
     handler_accepts_event,
 )
-from tempest_core.widgets.button import Button
+from tempest_core.widgets.button import Button, IconButton
 from tempest_core.widgets.events import (
     AppState,
     ConnectivityEvent,
@@ -223,6 +223,7 @@ __all__ = [
     "Component",
     "Text",
     "Button",
+    "IconButton",
     "Column",
     "Row",
     "Container",

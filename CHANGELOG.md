@@ -6,6 +6,8 @@ versioning.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-19
+
 ### Added
 
 - **Chakra-style variant API** (Trilho H, phase H1) — a new `variants.py` module

@@ -6,6 +6,8 @@ versioning.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-19
+
 ### Added
 
 - **Material 3 design-token foundation** (Trilho H, phase H0) — a new

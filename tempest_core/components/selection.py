@@ -13,7 +13,10 @@ from typing import Any
 from pydantic import Field
 
 from tempest_core.components.base import ACCENT, MUTED, ON_SURFACE, SURFACE, merge_style
-from tempest_core.style import Edge, FontWeight, Style
+from tempest_core.style import Color, Edge, FontWeight, Size, Style
+from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.tokens import ColorRole
+from tempest_core.variants import ResponsiveSize, resolve_selection_variant
 from tempest_core.widgets import Button, Column, Component, Row, Text, Widget
 
 __all__ = ["SegmentedControl", "RadioGroup", "Chip", "Rating"]
@@ -94,12 +97,23 @@ class SegmentedControl(Component):
 
 
 class RadioGroup(Component):
-    """A vertical single-choice list with radio markers.
+    """A vertical single-choice list with radio markers, theme-driven colors.
+
+    Each row's marker/text color is resolved from the H2 selection variant
+    (:func:`~tempest_core.variants.resolve_selection_variant`) against the
+    ``theme`` — the chosen row reads the ``color_scheme`` accent, the rest read
+    a muted on-surface tone — so dark mode and brand color work for free. The
+    ◉/○ glyphs are unchanged; only the colors become theme-driven.
 
     Attributes:
         options: The choice labels, in order.
         selected: The index of the chosen option.
         on_select: Called with the tapped option's index.
+        size: The density size of each row's marker.
+        color_scheme: The Material 3 role family the chosen row's accent paints
+            with.
+        theme: The design-system theme resolving the row colors.
+        media: Optional viewport snapshot for a responsive ``size``.
     """
 
     options: list[str] = Field(
@@ -108,6 +122,21 @@ class RadioGroup(Component):
     selected: int = Field(default=0, description="The index of the chosen option.")
     on_select: Callable[[int], Any] = Field(
         description="Called with the tapped option's index."
+    )
+    size: ResponsiveSize = Field(
+        default=Size.MD, description="The density size of each row's marker."
+    )
+    color_scheme: str = Field(
+        default="primary",
+        description="The Material 3 role family the chosen row's accent paints with.",
+    )
+    theme: Theme = Field(
+        default_factory=Theme,
+        description="The design-system theme resolving the row colors.",
+    )
+    media: MediaQueryData | None = Field(
+        default=None,
+        description="Optional viewport snapshot for a responsive ``size``.",
     )
 
     def _handler(self, index: int) -> Callable[[], None]:
@@ -125,6 +154,32 @@ class RadioGroup(Component):
 
         return handler
 
+    def _row_colors(self, *, chosen: bool) -> tuple[Color, Color]:
+        """Resolve the (marker/text color, row background) for a radio row.
+
+        Args:
+            chosen: Whether this row is the selected option.
+
+        Returns:
+            The marker/text color (the accent when chosen, else the muted
+            on-surface variant) and the row surface background, from the theme.
+        """
+        accent_style = resolve_selection_variant(
+            size=self.size,
+            color_scheme=self.color_scheme,
+            theme=self.theme,
+            checked=chosen,
+            media=self.media,
+        )
+        accent = accent_style.color
+        marker = (
+            accent
+            if (chosen and accent is not None)
+            else self.theme.color(ColorRole.ON_SURFACE_VARIANT)
+        )
+        surface = self.theme.color(ColorRole.SURFACE)
+        return marker, surface
+
     def render(self) -> Widget:
         """Lower the group into a primitive column of radio buttons.
 
@@ -132,23 +187,27 @@ class RadioGroup(Component):
             A ``Column`` of one button per option, the chosen one marked.
         """
         default = Style(gap=6.0)
-        return Column(
-            key=self.key or "radiogroup",
-            style=merge_style(default, self.style),
-            children=[
+        children: list[Widget] = []
+        for index, label in enumerate(self.options):
+            chosen = index == self.selected
+            marker, surface = self._row_colors(chosen=chosen)
+            children.append(
                 Button(
-                    label=("◉" if index == self.selected else "○") + f"  {label}",
+                    label=("◉" if chosen else "○") + f"  {label}",
                     on_click=self._handler(index),
                     key=f"radio-{index}",
                     style=Style(
                         padding=Edge.symmetric(vertical=10.0, horizontal=14.0),
                         radius=8.0,
-                        background=SURFACE,
-                        color=ON_SURFACE if index == self.selected else MUTED,
+                        background=surface,
+                        color=marker,
                     ),
                 )
-                for index, label in enumerate(self.options)
-            ],
+            )
+        return Column(
+            key=self.key or "radiogroup",
+            style=merge_style(default, self.style),
+            children=children,
         )
 
 

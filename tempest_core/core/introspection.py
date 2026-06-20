@@ -48,6 +48,7 @@ from tempest_core.widgets import (
     GestureDetector,
     Hero,
     Icon,
+    IconButton,
     Image,
     Input,
     InteractiveViewer,
@@ -129,6 +130,7 @@ __all__ = [
 WIDGET_TYPES: tuple[type[Widget], ...] = (
     Text,
     Button,
+    IconButton,
     Column,
     Row,
     Container,

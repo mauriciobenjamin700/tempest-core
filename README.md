@@ -23,6 +23,26 @@ new = build(Column(children=[Text(content="Count: 1", key="label")]))
 patches = diff(old, new)          # -> [Update(set_props={"content": "Count: 1"})]
 ```
 
+### Design system (Chakra-style variants → Material 3)
+
+Components take Chakra-ergonomics props (`variant`/`size`/`color_scheme`) and a
+`theme`, and resolve a concrete Material 3 `Style` via pure resolvers in
+`variants.py` — `resolve_variant` (buttons), `resolve_field_variant` (text
+inputs / select / masked / autocomplete / pin), `resolve_selection_variant`
+(checkbox / switch) and `resolve_slider_variant` (sliders). Each ships a
+`*_states` sibling returning the per-state table (default/hover/pressed/disabled/
+focus) the renderers apply on real events. The touch target is held ≥ 48dp and
+WCAG-AA contrast is preserved. An explicit `style=` is always merged on top.
+
+```python
+from tempest_core import IconButton, Theme
+from tempest_core.widgets import Input
+from tempest_core.style import FieldVariant
+
+field = Input(value="", field_variant=FieldVariant.FILLED, color_scheme="primary")
+button = IconButton(icon="settings", color_scheme="primary", label="Open settings")
+```
+
 ## Install
 
 ```bash

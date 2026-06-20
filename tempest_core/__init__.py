@@ -34,7 +34,7 @@ from tempest_core.core import (
 )
 from tempest_core.i18n import Locale, t, translate
 from tempest_core.navigation import NavStack, Route, routes_from_path
-from tempest_core.style import ComponentState, Size, Style, Variant
+from tempest_core.style import ComponentState, FieldVariant, Size, Style, Variant
 from tempest_core.theme import MediaQueryData, Theme, ThemeMode
 from tempest_core.tokens import (
     Breakpoints,
@@ -55,8 +55,16 @@ from tempest_core.tokens import (
     tonal_palette_from_seed,
 )
 from tempest_core.variants import (
+    SELECTION_SIZE,
+    SLIDER_SIZE,
     ResponsiveSize,
+    resolve_field_variant,
+    resolve_field_variant_states,
+    resolve_selection_variant,
+    resolve_selection_variant_states,
     resolve_size,
+    resolve_slider_variant,
+    resolve_slider_variant_states,
     resolve_variant,
     resolve_variant_states,
 )
@@ -65,6 +73,7 @@ from tempest_core.widgets import (
     Column,
     Component,
     Container,
+    IconButton,
     Row,
     Text,
     Widget,
@@ -83,6 +92,8 @@ __all__ = [
     "ComponentState",
     "Container",
     "ElevationScale",
+    "FieldVariant",
+    "IconButton",
     "Insert",
     "Locale",
     "MediaQueryData",
@@ -98,6 +109,8 @@ __all__ = [
     "ResponsiveSize",
     "Route",
     "Row",
+    "SELECTION_SIZE",
+    "SLIDER_SIZE",
     "Scene",
     "ShapeScale",
     "Size",
@@ -122,7 +135,13 @@ __all__ = [
     "diff_scene",
     "event_catalog",
     "introspect",
+    "resolve_field_variant",
+    "resolve_field_variant_states",
+    "resolve_selection_variant",
+    "resolve_selection_variant_states",
     "resolve_size",
+    "resolve_slider_variant",
+    "resolve_slider_variant_states",
     "resolve_variant",
     "resolve_variant_states",
     "routes_from_path",

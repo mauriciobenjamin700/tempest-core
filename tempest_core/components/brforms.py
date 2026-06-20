@@ -20,9 +20,12 @@ from typing import Any
 
 from pydantic import Field
 
-from tempest_core.components.base import BACKGROUND, ON_MUTED, ON_SURFACE, merge_style
-from tempest_core.style import Color, Edge, FontWeight, Style
+from tempest_core.components.base import merge_style
+from tempest_core.style import FieldVariant, FontWeight, Size, Style
+from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.tokens import ColorRole
 from tempest_core.validators import EMAIL_PATTERN
+from tempest_core.variants import ResponsiveSize
 from tempest_core.widgets import (
     Column,
     Component,
@@ -43,46 +46,54 @@ __all__ = [
     "AddressInput",
 ]
 
-#: The error-text color shared by every labelled BR field.
-_ERROR_COLOR: Color = Color.from_hex("#ef4444")
 
-
-def _label_text(label: str, key: str) -> Widget:
-    """Build the small label shown above a field.
+def _label_text(label: str, key: str, theme: Theme) -> Widget:
+    """Build the small label shown above a field, in the theme's muted color.
 
     Args:
         label: The label text.
         key: The reconciler key.
+        theme: The design-system theme supplying the muted (``on_surface_variant``)
+            color so the label tracks dark mode.
 
     Returns:
         A muted, medium-weight :class:`~tempestroid.widgets.Text`.
     """
+    muted = theme.color(ColorRole.ON_SURFACE_VARIANT)
     return Text(
         content=label,
-        style=Style(font_size=13.0, font_weight=FontWeight.MEDIUM, color=ON_MUTED),
+        style=Style(font_size=13.0, font_weight=FontWeight.MEDIUM, color=muted),
         key=key,
     )
 
 
-def _error_text(error: str, key: str) -> Widget:
-    """Build the red error line shown under a field.
+def _error_text(error: str, key: str, theme: Theme) -> Widget:
+    """Build the error line shown under a field, in the theme's error color.
 
     Args:
         error: The validation message.
         key: The reconciler key.
+        theme: The design-system theme supplying the ``error`` role color.
 
     Returns:
-        A red :class:`~tempestroid.widgets.Text` carrying the message.
+        A :class:`~tempestroid.widgets.Text` carrying the message in the error
+        color.
     """
+    error_color = theme.color(ColorRole.ERROR)
     return Text(
         content=error,
-        style=Style(font_size=12.0, color=_ERROR_COLOR),
+        style=Style(font_size=12.0, color=error_color),
         key=key,
     )
 
 
 def _labelled_field(
-    label: str, field: Widget, error: str, key: str, style: Style | None
+    label: str,
+    field: Widget,
+    error: str,
+    key: str,
+    style: Style | None,
+    theme: Theme,
 ) -> Widget:
     """Wrap an input in an optional label + optional error column.
 
@@ -92,6 +103,7 @@ def _labelled_field(
         error: The validation message (the error line is hidden when empty).
         key: The reconciler key for the wrapping column.
         style: The caller-supplied style merged over the default column style.
+        theme: The design-system theme driving the label/error colors.
 
     Returns:
         A :class:`~tempestroid.widgets.Column` of the label, the field and the
@@ -99,10 +111,10 @@ def _labelled_field(
     """
     children: list[Widget] = []
     if label:
-        children.append(_label_text(label, "field-label"))
+        children.append(_label_text(label, "field-label", theme))
     children.append(field)
     if error:
-        children.append(_error_text(error, "field-error"))
+        children.append(_error_text(error, "field-error", theme))
     default = Style(gap=4.0)
     return Column(key=key, style=merge_style(default, style), children=children)
 
@@ -124,22 +136,64 @@ def _on_value(handler: Callable[[str], Any]) -> Callable[[TextChangeEvent], None
     return adapter
 
 
-def _field_style() -> Style:
-    """Build the shared visual style for the inner input widget.
+class _BRField(Component):
+    """Base for the labelled Brazilian field components.
 
-    Returns:
-        A :class:`~tempestroid.style.Style` with padding, radius and on-surface
-        text color.
+    Carries the shared styling props every BR field threads into its inner
+    :class:`~tempestroid.widgets.Input` / :class:`~tempestroid.widgets.MaskedInput`
+    so the field resolves its Material 3 appearance from the design-system theme
+    (dark mode + brand color free), plus the labelled-wrapper label/error colors.
+    The inner input resolves its own ``field_variant`` / ``size`` /
+    ``color_scheme`` style against the theme — no hard-coded hexes — while the
+    component's own ``style`` still overrides the wrapping column.
+
+    Attributes:
+        field_variant: The inner field treatment (outline/filled/flushed).
+        size: The density size of the inner field.
+        color_scheme: The Material 3 role family the inner field's focus paints
+            with.
+        theme: The design-system theme resolving the field + label/error colors.
+        media: Optional viewport snapshot for a responsive ``size``.
     """
-    return Style(
-        padding=Edge.symmetric(vertical=10.0, horizontal=14.0),
-        radius=8.0,
-        background=BACKGROUND,
-        color=ON_SURFACE,
+
+    field_variant: FieldVariant = Field(
+        default=FieldVariant.OUTLINE,
+        description="The inner field treatment (outline/filled/flushed).",
+    )
+    size: ResponsiveSize = Field(
+        default=Size.MD,
+        description="The density size of the inner field.",
+    )
+    color_scheme: str = Field(
+        default="primary",
+        description="The Material 3 role family the inner field's focus paints with.",
+    )
+    theme: Theme = Field(
+        default_factory=Theme,
+        description="The design-system theme resolving the field + label/error colors.",
+    )
+    media: MediaQueryData | None = Field(
+        default=None,
+        description="Optional viewport snapshot for a responsive ``size``.",
     )
 
+    def _field_kwargs(self) -> dict[str, Any]:
+        """Build the shared styling kwargs threaded into the inner field.
 
-class EmailInput(Component):
+        Returns:
+            A mapping of the inner field's ``field_variant`` / ``size`` /
+            ``color_scheme`` / ``theme`` / ``media`` keyword arguments.
+        """
+        return {
+            "field_variant": self.field_variant,
+            "size": self.size,
+            "color_scheme": self.color_scheme,
+            "theme": self.theme,
+            "media": self.media,
+        }
+
+
+class EmailInput(_BRField):
     """A labelled e-mail field with the e-mail keyboard and a mail icon.
 
     Validate with :func:`tempestroid.validators.validate_email`.
@@ -148,7 +202,7 @@ class EmailInput(Component):
         value: The current text value (controlled).
         label: The label shown above the field (omitted when empty).
         placeholder: The empty-field hint.
-        error: The validation message; shown in red when non-empty.
+        error: The validation message; shown in the theme's error color.
         on_change: Called with the new string value on each edit.
     """
 
@@ -156,7 +210,7 @@ class EmailInput(Component):
     label: str = Field(default="E-mail", description="The label shown above the field.")
     placeholder: str = Field(default="", description="The empty-field hint.")
     error: str = Field(
-        default="", description="The validation message; shown in red when non-empty."
+        default="", description="The validation message; shown in the error color."
     )
     on_change: Callable[[str], Any] = Field(
         description="Called with the new string value on each edit."
@@ -175,23 +229,29 @@ class EmailInput(Component):
             keyboard=KeyboardType.EMAIL,
             pattern=EMAIL_PATTERN,
             leading_icon="mail",
+            error=self.error,
             on_change=_on_value(self.on_change),
-            style=_field_style(),
             key="email-field",
+            **self._field_kwargs(),
         )
         return _labelled_field(
-            self.label, field, self.error, self.key or "email-input", self.style
+            self.label,
+            field,
+            self.error,
+            self.key or "email-input",
+            self.style,
+            self.theme,
         )
 
 
-class PasswordInput(Component):
+class PasswordInput(_BRField):
     """A labelled password field (secure, with the built-in eye toggle).
 
     Attributes:
         value: The current text value (controlled).
         label: The label shown above the field (omitted when empty).
         placeholder: The empty-field hint.
-        error: The validation message; shown in red when non-empty.
+        error: The validation message; shown in the theme's error color.
         on_change: Called with the new string value on each edit.
     """
 
@@ -199,7 +259,7 @@ class PasswordInput(Component):
     label: str = Field(default="Senha", description="The label shown above the field.")
     placeholder: str = Field(default="Senha", description="The empty-field hint.")
     error: str = Field(
-        default="", description="The validation message; shown in red when non-empty."
+        default="", description="The validation message; shown in the error color."
     )
     on_change: Callable[[str], Any] = Field(
         description="Called with the new string value on each edit."
@@ -217,16 +277,22 @@ class PasswordInput(Component):
             placeholder=self.placeholder,
             secure=True,
             leading_icon="lock",
+            error=self.error,
             on_change=_on_value(self.on_change),
-            style=_field_style(),
             key="password-field",
+            **self._field_kwargs(),
         )
         return _labelled_field(
-            self.label, field, self.error, self.key or "password-input", self.style
+            self.label,
+            field,
+            self.error,
+            self.key or "password-input",
+            self.style,
+            self.theme,
         )
 
 
-class PhoneInput(Component):
+class PhoneInput(_BRField):
     """A labelled Brazilian phone field, masked ``(99) 99999-9999``.
 
     Validate with :func:`tempestroid.validators.validate_phone`.
@@ -235,7 +301,7 @@ class PhoneInput(Component):
         value: The current text value (controlled).
         label: The label shown above the field (omitted when empty).
         placeholder: The empty-field hint.
-        error: The validation message; shown in red when non-empty.
+        error: The validation message; shown in the theme's error color.
         on_change: Called with the new string value on each edit.
     """
 
@@ -245,7 +311,7 @@ class PhoneInput(Component):
     )
     placeholder: str = Field(default="", description="The empty-field hint.")
     error: str = Field(
-        default="", description="The validation message; shown in red when non-empty."
+        default="", description="The validation message; shown in the error color."
     )
     on_change: Callable[[str], Any] = Field(
         description="Called with the new string value on each edit."
@@ -264,15 +330,20 @@ class PhoneInput(Component):
             mask="(99) 99999-9999",
             keyboard=KeyboardType.PHONE,
             on_change=_on_value(self.on_change),
-            style=_field_style(),
             key="phone-field",
+            **self._field_kwargs(),
         )
         return _labelled_field(
-            self.label, field, self.error, self.key or "phone-input", self.style
+            self.label,
+            field,
+            self.error,
+            self.key or "phone-input",
+            self.style,
+            self.theme,
         )
 
 
-class CPFInput(Component):
+class CPFInput(_BRField):
     """A labelled CPF field, masked ``999.999.999-99``.
 
     Validate with :func:`tempestroid.validators.validate_cpf`.
@@ -281,7 +352,7 @@ class CPFInput(Component):
         value: The current text value (controlled).
         label: The label shown above the field (omitted when empty).
         placeholder: The empty-field hint.
-        error: The validation message; shown in red when non-empty.
+        error: The validation message; shown in the theme's error color.
         on_change: Called with the new string value on each edit.
     """
 
@@ -289,7 +360,7 @@ class CPFInput(Component):
     label: str = Field(default="CPF", description="The label shown above the field.")
     placeholder: str = Field(default="", description="The empty-field hint.")
     error: str = Field(
-        default="", description="The validation message; shown in red when non-empty."
+        default="", description="The validation message; shown in the error color."
     )
     on_change: Callable[[str], Any] = Field(
         description="Called with the new string value on each edit."
@@ -308,15 +379,20 @@ class CPFInput(Component):
             mask="999.999.999-99",
             keyboard=KeyboardType.NUMBER,
             on_change=_on_value(self.on_change),
-            style=_field_style(),
             key="cpf-field",
+            **self._field_kwargs(),
         )
         return _labelled_field(
-            self.label, field, self.error, self.key or "cpf-input", self.style
+            self.label,
+            field,
+            self.error,
+            self.key or "cpf-input",
+            self.style,
+            self.theme,
         )
 
 
-class CNPJInput(Component):
+class CNPJInput(_BRField):
     """A labelled CNPJ field, masked ``99.999.999/9999-99``.
 
     Validate with :func:`tempestroid.validators.validate_cnpj`.
@@ -325,7 +401,7 @@ class CNPJInput(Component):
         value: The current text value (controlled).
         label: The label shown above the field (omitted when empty).
         placeholder: The empty-field hint.
-        error: The validation message; shown in red when non-empty.
+        error: The validation message; shown in the theme's error color.
         on_change: Called with the new string value on each edit.
     """
 
@@ -333,7 +409,7 @@ class CNPJInput(Component):
     label: str = Field(default="CNPJ", description="The label shown above the field.")
     placeholder: str = Field(default="", description="The empty-field hint.")
     error: str = Field(
-        default="", description="The validation message; shown in red when non-empty."
+        default="", description="The validation message; shown in the error color."
     )
     on_change: Callable[[str], Any] = Field(
         description="Called with the new string value on each edit."
@@ -352,15 +428,20 @@ class CNPJInput(Component):
             mask="99.999.999/9999-99",
             keyboard=KeyboardType.NUMBER,
             on_change=_on_value(self.on_change),
-            style=_field_style(),
             key="cnpj-field",
+            **self._field_kwargs(),
         )
         return _labelled_field(
-            self.label, field, self.error, self.key or "cnpj-input", self.style
+            self.label,
+            field,
+            self.error,
+            self.key or "cnpj-input",
+            self.style,
+            self.theme,
         )
 
 
-class AddressInput(Component):
+class AddressInput(_BRField):
     """A grouped Brazilian address block of labelled fields.
 
     Renders a labelled ``Column`` of CEP (masked ``99999-999``), street, number,
@@ -423,7 +504,8 @@ class AddressInput(Component):
         """
         children: list[Widget] = []
         if self.label:
-            children.append(_label_text(self.label, "address-label"))
+            children.append(_label_text(self.label, "address-label", self.theme))
+        field_kwargs = self._field_kwargs()
         children.append(
             MaskedInput(
                 value=self.cep,
@@ -431,8 +513,8 @@ class AddressInput(Component):
                 mask="99999-999",
                 keyboard=KeyboardType.NUMBER,
                 on_change=self._field_handler("cep"),
-                style=_field_style(),
                 key="address-cep",
+                **field_kwargs,
             )
         )
         text_fields: list[tuple[str, str, str]] = [
@@ -449,8 +531,8 @@ class AddressInput(Component):
                     value=field_value,
                     placeholder=placeholder,
                     on_change=self._field_handler(field_name),
-                    style=_field_style(),
                     key=f"address-{field_name}",
+                    **field_kwargs,
                 )
             )
         default = Style(gap=8.0)

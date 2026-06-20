@@ -31,6 +31,7 @@ __all__ = [
     "Position",
     "StackAlign",
     "Variant",
+    "FieldVariant",
     "Size",
     "ComponentState",
     "Color",
@@ -363,6 +364,30 @@ class Variant(StrEnum):
     OUTLINE = "outline"
     GHOST = "ghost"
     LINK = "link"
+
+
+class FieldVariant(StrEnum):
+    """The visual variant of a text-input field (Chakra-style ``field_variant``).
+
+    Picks the treatment a value-bearing field (text input, select, masked input,
+    autocomplete, …) renders with, mapped to a Material 3 text-field appearance by
+    the H2 field resolver (:func:`~tempest_core.variants.resolve_field_variant`).
+    Distinct from :class:`Variant` (which is the *button* treatment) because fields
+    have their own affordances: a field is never "solid" or "link", and the
+    ``color_scheme`` only tints the focus/caret/label, never the resting fill.
+
+    Attributes:
+        OUTLINE: A transparent fill with a full same-color outline border and a
+            small radius — the M3 *outlined* text field (the default).
+        FILLED: A low-emphasis tonal fill (``surface_variant``) with no resting
+            border and a small radius — the M3 *filled* text field.
+        FLUSHED: A transparent fill with only a bottom border and no radius — a
+            minimal, underline-only field (Chakra ``flushed``).
+    """
+
+    OUTLINE = "outline"
+    FILLED = "filled"
+    FLUSHED = "flushed"
 
 
 class Size(StrEnum):

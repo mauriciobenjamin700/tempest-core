@@ -142,6 +142,108 @@ tabs = Tabs(tabs=["Overview", "Activity"], active=0, on_select=lambda i: None)  
     icon system. The old `glyph` prop stays as a **deprecated** backward-compat
     fallback, but the button always shows the real icon.
 
+## Research components (H6) 🔬
+
+The last layer of the design system is the **research / data-science** kit: the
+components an academic researcher uses to show an ONNX /
+[`ort-vision-sdk`](https://github.com/mauriciobenjamin700/ort-vision-sdk) result
+end to end. Everything lowers to **existing** primitives (composition) or to a
+`Canvas` command list (charts / overlays) — **no new `Style` field, no new
+resolver and no new draw command**.
+
+### Metric cards and confidence badge
+
+```python
+from tempest_core import ConfidenceBadge, MetricCard, StatCard
+
+# Card (H3) + Stat (H4) — label, value and a status-tinted trend (success/error).
+accuracy = MetricCard(label="Accuracy", value="92%", delta="+3%", delta_up=True)
+
+# A compact preset (a "filled" surface).
+total = StatCard(label="Images", value="1,024")
+
+# Badge (H4) colored by confidence: >=80% = success, >=50% = warning, else error.
+conf = ConfidenceBadge(confidence=0.92, label="cat")  # the pill "cat 92%"
+```
+
+!!! info "`confidence_scheme`"
+    The badge picks its color family with the pure
+    `confidence_scheme(conf, *, high=0.8, mid=0.5)` → `"success"` / `"warning"` /
+    `"error"`. Use it to color your own confidence affordances too.
+
+### Charts over the `Canvas`
+
+```python
+from tempest_core import BarChart, ChartSeries, LineChart
+
+line = LineChart(series=[
+    ChartSeries(points=[0.1, 0.4, 0.35, 0.8], label="loss", color_scheme="primary"),
+])
+bars = BarChart(values=[3.0, 5.0, 2.0], labels=["a", "b", "c"])
+```
+
+A series' data is a frozen `ChartSeries` (`points` + `label` + optional
+`color_scheme`), not a bare list, so a chart can plot several named series.
+`BarChart` also accepts a plain `values: list[float]` for the single-series case.
+Each chart emits a **deterministic** `Canvas` command list — the conformance suite
+pins the sequence.
+
+!!! note "Draw vocabulary — there is no `DrawLine`"
+    A line is `MoveTo` + a run of `LineTo` + one `StrokeCmd`; a bar is `DrawRect` +
+    `FillCmd`; y-axis labels are `DrawText` (baseline-anchored, no align field → 
+    right-aligned by estimating the text width). No new draw command is introduced.
+
+### Detection overlay
+
+```python
+from tempest_core import DetectionBox, DetectionOverlay
+
+overlay = DetectionOverlay(image_src="photo.jpg", boxes=[
+    DetectionBox(x1=0.1, y1=0.2, x2=0.5, y2=0.6, name="cat", conf=0.93),
+])
+```
+
+A `DetectionBox` is **normalized `[0, 1]` `xyxy`** — resolution-independent,
+multiplied by the canvas size at draw time. The overlay is a `Stack` of an `Image`
+(`fit=COVER`) under a `Canvas` that draws each box (`DrawRect` + `StrokeCmd`,
+colored by `confidence_scheme(box.conf)`) with a `"{name} {conf:.0%}"` caption. The
+engine takes **no** `ort-vision-sdk` dependency — the `Detection` → `DetectionBox`
+adapter lives on the tempestroid side.
+
+### Image-picker → result flow
+
+```python
+from tempest_core import ResultView
+
+view = ResultView(
+    label="Upload a photo",
+    on_pick=lambda uri: app.set_state(...),  # run inference
+    result=overlay,                          # the widget you built from the result
+)
+```
+
+### `DataTable` with sort and pagination
+
+`DataTable` gained themed colors and **app-driven** affordances (the component
+holds no state — it mirrors the E1 list pattern): the app holds `sort_column` /
+`sort_ascending` / `page` and passes the rows already sorted.
+
+```python
+from tempest_core.components import DataTable
+
+table = DataTable(
+    columns=["Class", "Confidence"],
+    rows=sorted_rows,                 # the app sorts
+    sort_column=1, sort_ascending=False, on_sort=lambda col: app.sort(col),
+    page=0, page_size=10, on_page=lambda p: app.go_to(p),
+)
+```
+
+The active column shows the ▲/▼ arrow; with `on_sort` the header cells become
+buttons; with `page_size` the table projects the current page slice and renders a
+prev/next pager. `Calendar` / `Clock` also migrated to the theme tokens (the
+default look shifts from the legacy dark palette to M3 light).
+
 ## Recap
 
 - `variant` / `size` / `color_scheme` describe the intent; the pure resolver
@@ -154,5 +256,10 @@ tabs = Tabs(tabs=["Overview", "Activity"], active=0, on_select=lambda i: None)  
 - Navigation (`AppBar` / `NavBar` / `Tabs` / `SearchBar`) is a skin pass: bars via
   the surface resolver, active item via the accent pill, tabs with an underline —
   no new resolver/enum/field.
+- Research (`MetricCard` / `StatCard` / `ConfidenceBadge` / `LineChart` /
+  `BarChart` / `DetectionOverlay` / `ResultView`) composes primitives and draws
+  charts/overlays via a `Canvas` command list — deterministic, no new draw command;
+  `confidence_scheme` maps confidence → status; `DataTable` gains app-driven
+  sort/pagination.
 - `HStack` / `VStack` accept a token-step `gap`; `Spacer` is a flex.
 - An explicit `style=` is always merged on top.

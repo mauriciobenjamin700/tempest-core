@@ -15,15 +15,10 @@ from typing import Any
 
 from pydantic import Field
 
-from tempest_core.components.base import (
-    ACCENT,
-    MUTED,
-    ON_MUTED,
-    ON_SURFACE,
-    SURFACE,
-    merge_style,
-)
+from tempest_core.components.base import merge_style
 from tempest_core.style import AlignItems, Edge, FontWeight, Style, TextAlign
+from tempest_core.theme import Theme
+from tempest_core.tokens import ColorRole
 from tempest_core.widgets import Button, Column, Component, Container, Row, Text, Widget
 
 __all__ = ["Calendar", "Clock"]
@@ -34,12 +29,22 @@ _WEEKDAYS: tuple[str, ...] = ("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su")
 class Calendar(Component):
     """A month grid of selectable day cells.
 
+    Themed (Trilho H6): the title/day text reads the theme's ``ON_SURFACE`` role,
+    the weekday header and unselected days the muted ``ON_SURFACE_VARIANT`` /
+    ``SURFACE_VARIANT`` roles, and the selected day fills with the
+    ``color_scheme`` role (default ``primary``) on its legible ``on_*`` content —
+    all resolved from the theme rather than hard-coded hexes. Backward-compatible:
+    ``Calendar(on_select=…)`` renders against the default M3 light theme (a visual
+    shift from the previous dark palette).
+
     Attributes:
         month: The displayed month as ``"YYYY-MM"``; empty means the current
             month.
         selected: The selected day as ``"YYYY-MM-DD"`` (highlighted when it falls
             in the displayed month); empty means no selection.
         on_select: Called with the tapped day's ISO ``"YYYY-MM-DD"`` string.
+        color_scheme: The Material 3 role family the selected day fills with.
+        theme: The design-system theme whose tokens supply the colors.
     """
 
     month: str = Field(
@@ -54,6 +59,14 @@ class Calendar(Component):
     )
     on_select: Callable[[str], Any] = Field(
         description='Called with the tapped day\'s ISO ``"YYYY-MM-DD"`` string.'
+    )
+    color_scheme: str = Field(
+        default="primary",
+        description="The Material 3 role family the selected day fills with.",
+    )
+    theme: Theme = Field(
+        default_factory=Theme,
+        description="The design-system theme whose tokens supply the colors.",
     )
 
     def _year_month(self) -> tuple[int, int]:
@@ -100,6 +113,12 @@ class Calendar(Component):
             return Container(key=f"pad-{week_index}-{col}", style=Style(grow=1.0))
         iso = f"{year:04d}-{mon:02d}-{day:02d}"
         selected = iso == self.selected
+        if selected:
+            background = self.theme.color(self.color_scheme)
+            color = self.theme.color(f"on_{self.color_scheme}")
+        else:
+            background = self.theme.color(ColorRole.SURFACE_VARIANT)
+            color = self.theme.color(ColorRole.ON_SURFACE)
         return Button(
             label=str(day),
             on_click=self._make_handler(iso),
@@ -108,8 +127,8 @@ class Calendar(Component):
                 grow=1.0,
                 padding=Edge.symmetric(vertical=10.0, horizontal=6.0),
                 radius=8.0,
-                background=ACCENT if selected else MUTED,
-                color=ON_SURFACE,
+                background=background,
+                color=color,
             ),
         )
 
@@ -121,9 +140,12 @@ class Calendar(Component):
         """
         year, mon = self._year_month()
         weeks = _calendar.Calendar().monthdayscalendar(year, mon)
+        on_surface = self.theme.color(ColorRole.ON_SURFACE)
+        muted = self.theme.color(ColorRole.ON_SURFACE_VARIANT)
+        surface = self.theme.color(ColorRole.SURFACE)
         title = Text(
             content=f"{_calendar.month_name[mon]} {year}",
-            style=Style(font_size=18.0, font_weight=FontWeight.BOLD, color=ON_SURFACE),
+            style=Style(font_size=18.0, font_weight=FontWeight.BOLD, color=on_surface),
             key="calendar-title",
         )
         header = Row(
@@ -134,7 +156,7 @@ class Calendar(Component):
                     style=Style(
                         grow=1.0,
                         font_size=12.0,
-                        color=ON_MUTED,
+                        color=muted,
                         text_align=TextAlign.CENTER,
                     ),
                     key=f"wd-{name}",
@@ -154,7 +176,7 @@ class Calendar(Component):
             )
             for week_index, week in enumerate(weeks)
         ]
-        default = Style(gap=6.0, padding=Edge.all(12.0), background=SURFACE)
+        default = Style(gap=6.0, padding=Edge.all(12.0), background=surface)
         return Column(
             key=self.key or "calendar",
             style=merge_style(default, self.style),
@@ -165,10 +187,19 @@ class Calendar(Component):
 class Clock(Component):
     """A digital clock face rendering a preformatted time string.
 
+    Themed (Trilho H6): the time reads the theme's ``ON_SURFACE`` role (or an
+    optional ``color_scheme`` role), the caption the muted ``ON_SURFACE_VARIANT``
+    role, and the background the ``SURFACE`` role — resolved from the theme rather
+    than hard-coded hexes. Backward-compatible: ``Clock(time=…)`` renders against
+    the default M3 light theme (a visual shift from the previous dark palette).
+
     Attributes:
         time: The time text to display (e.g. ``"12:34:56"``); the app formats and
             ticks it from state.
         label: An optional caption shown muted under the time.
+        color_scheme: Optional Material 3 role family tinting the time; ``None``
+            keeps the neutral ``ON_SURFACE`` time.
+        theme: The design-system theme whose tokens supply the colors.
     """
 
     time: str = Field(
@@ -179,6 +210,14 @@ class Clock(Component):
     label: str | None = Field(
         default=None, description="An optional caption shown muted under the time."
     )
+    color_scheme: str | None = Field(
+        default=None,
+        description="Optional Material 3 role family tinting the time.",
+    )
+    theme: Theme = Field(
+        default_factory=Theme,
+        description="The design-system theme whose tokens supply the colors.",
+    )
 
     def render(self) -> Widget:
         """Lower the clock into a centered primitive column.
@@ -186,13 +225,20 @@ class Clock(Component):
         Returns:
             A ``Column`` with the time and, when set, the label.
         """
+        time_color = (
+            self.theme.color(self.color_scheme)
+            if self.color_scheme is not None and self.color_scheme != "neutral"
+            else self.theme.color(ColorRole.ON_SURFACE)
+        )
+        muted = self.theme.color(ColorRole.ON_SURFACE_VARIANT)
+        surface = self.theme.color(ColorRole.SURFACE)
         children: list[Widget] = [
             Text(
                 content=self.time,
                 style=Style(
                     font_size=40.0,
                     font_weight=FontWeight.BOLD,
-                    color=ON_SURFACE,
+                    color=time_color,
                     text_align=TextAlign.CENTER,
                 ),
                 key="clock-time",
@@ -203,7 +249,7 @@ class Clock(Component):
                 Text(
                     content=self.label,
                     style=Style(
-                        font_size=14.0, color=ON_MUTED, text_align=TextAlign.CENTER
+                        font_size=14.0, color=muted, text_align=TextAlign.CENTER
                     ),
                     key="clock-label",
                 )
@@ -212,7 +258,7 @@ class Clock(Component):
             gap=4.0,
             padding=Edge.all(16.0),
             align=AlignItems.CENTER,
-            background=SURFACE,
+            background=surface,
         )
         return Column(
             key=self.key or "clock",

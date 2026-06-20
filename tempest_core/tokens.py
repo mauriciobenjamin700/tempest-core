@@ -32,7 +32,7 @@ from __future__ import annotations
 import colorsys
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from tempest_core.style import Color, Curve, FontWeight
 
@@ -856,12 +856,12 @@ class TokenSet(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     schemes: ColorSchemes
-    spacing: SpacingScale = SpacingScale()
-    shape: ShapeScale = ShapeScale()
-    typography: TypographyScale = TypographyScale()
-    elevation: ElevationScale = ElevationScale()
-    motion: MotionScale = MotionScale()
-    breakpoints: Breakpoints = Breakpoints()
+    spacing: SpacingScale = Field(default_factory=SpacingScale)
+    shape: ShapeScale = Field(default_factory=ShapeScale)
+    typography: TypographyScale = Field(default_factory=TypographyScale)
+    elevation: ElevationScale = Field(default_factory=ElevationScale)
+    motion: MotionScale = Field(default_factory=MotionScale)
+    breakpoints: Breakpoints = Field(default_factory=Breakpoints)
 
     @classmethod
     def from_seed(

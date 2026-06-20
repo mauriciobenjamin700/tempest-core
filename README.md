@@ -38,8 +38,8 @@ non-interactive, so there is no state table. The touch target is held ≥ 48dp a
 WCAG-AA contrast is preserved. An explicit `style=` is always merged on top.
 
 ```python
-from tempest_core import Alert, Badge, CardVariant, IconButton, Stat, Theme
-from tempest_core.components import Card, HStack, Surface, VStack
+from tempest_core import Alert, Badge, CardVariant, IconButton, Stat, Tabs, Theme
+from tempest_core.components import AppBar, Card, HStack, NavBar, SearchBar, Surface, VStack
 from tempest_core.widgets import Input, Spacer, Text
 from tempest_core.style import AlertVariant, BadgeVariant, FieldVariant
 
@@ -58,6 +58,12 @@ ok = Badge(label="LIVE", variant=BadgeVariant.SUBTLE, color_scheme="success")
 note = Alert(title="Saved", body="Your changes are live.",
              variant=AlertVariant.LEFT_ACCENT, color_scheme="success")
 metric = Stat(label="Active users", value="1.2k", delta="+12%", delta_up=True)
+
+# H5 styled navigation kit: themed bars + an active accent pill / underline tab.
+bar = AppBar(title="Inbox", color_scheme="primary", actions=[button])
+search = SearchBar(value="", on_change=lambda e: None, color_scheme="primary")
+nav = NavBar(items=["Home", "Search", "You"], active=0, on_select=lambda i: None)
+tabs = Tabs(tabs=["Overview", "Activity"], active=0, on_select=lambda i: None)
 ```
 
 The H3 surface kit (`CardVariant`, `resolve_surface_variant`, `Surface`,
@@ -76,6 +82,18 @@ resolvers/enums (`BadgeVariant`/`resolve_badge_variant`,
 saturated status role on white can fail WCAG-AA (e.g. success solid = 3.02), the
 subtle status surfaces use the tonal `*_container` / `on_*_container` pairing (AA-
 safe). Still **no new `Style` field** — status flows through `color_scheme`.
+
+The H5 navigation kit is a pure **skin pass** over the existing navigation
+components — **no new resolver, no new enum, no new `Style` field**. `AppBar` /
+`Footer` / `CollapsingAppBar` / `Sidebar` / `Drawer` resolve their bar/panel
+surface via `resolve_surface_variant` (variant / color_scheme / elevation);
+`NavBar` paints the active item as an accent pill (`resolve_badge_variant`) over a
+ghost inactive item (`resolve_variant`); the new **`Tabs`** strip gives the active
+tab an underline indicator (a bottom `SideBorder` in the accent role); `SearchBar`
+resolves its field via `resolve_field_variant` and its clear button as an
+`IconButton`; `Burger` lowers to an `IconButton` (the `menu` icon); `Header` and
+`Breadcrumb` migrate to theme roles. Every old call site and explicit `style=`
+keeps working.
 
 ## Install
 

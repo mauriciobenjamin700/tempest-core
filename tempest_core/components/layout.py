@@ -12,9 +12,11 @@ from __future__ import annotations
 
 from pydantic import Field
 
-from tempest_core.components.base import BACKGROUND, ON_SURFACE, SURFACE, merge_style
-from tempest_core.style import AlignItems, Edge, JustifyContent, Style
-from tempest_core.theme import Theme
+from tempest_core.components.base import merge_style
+from tempest_core.style import AlignItems, CardVariant, Edge, JustifyContent, Style
+from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.tokens import ColorRole
+from tempest_core.variants import merge_styles, resolve_surface_variant
 from tempest_core.widgets import Column, Component, Container, Row, ScrollView, Widget
 
 __all__ = ["Sidebar", "Scaffold", "Grid", "HStack", "VStack"]
@@ -32,9 +34,20 @@ def _no_widgets() -> list[Widget]:
 class Sidebar(Component):
     """A fixed-width lateral column of navigation/content widgets.
 
+    Themed (Trilho H5): the panel surface is resolved from ``variant`` /
+    ``color_scheme`` / ``elevation`` via
+    :func:`~tempest_core.variants.resolve_surface_variant`, mirroring a card; the
+    fixed width and padding are unchanged. Backward-compatible:
+    ``Sidebar(children=…)`` is an elevated neutral panel.
+
     Attributes:
         children: The widgets stacked top-to-bottom in the sidebar.
         width: The sidebar's fixed width in logical pixels.
+        variant: The surface treatment (elevated / filled / outlined).
+        color_scheme: The Material 3 role family to tint with.
+        elevation: An explicit M3 elevation level (0-5) overriding the default.
+        theme: The design-system theme whose tokens resolve the panel surface.
+        media: Optional viewport snapshot (accepted for parity; forwarded).
     """
 
     children: list[Widget] = Field(
@@ -44,19 +57,44 @@ class Sidebar(Component):
     width: float = Field(
         default=240.0, description="The sidebar's fixed width in logical pixels."
     )
+    variant: CardVariant = Field(
+        default=CardVariant.ELEVATED,
+        description="The surface treatment (elevated / filled / outlined).",
+    )
+    color_scheme: str = Field(
+        default="neutral", description="The Material 3 role family to tint with."
+    )
+    elevation: int | None = Field(
+        default=None,
+        description="An explicit M3 elevation level (0-5) overriding the default.",
+    )
+    theme: Theme = Field(
+        default_factory=Theme,
+        description="The design-system theme whose tokens resolve the panel surface.",
+    )
+    media: MediaQueryData | None = Field(
+        default=None,
+        description="Optional viewport snapshot (accepted for parity; forwarded).",
+    )
 
     def render(self) -> Widget:
         """Lower the sidebar into a fixed-width primitive column.
 
         Returns:
-            A ``Column`` carrying the sidebar's children.
+            A ``Column`` carrying the sidebar's children, with the resolved
+            surface style.
         """
-        default = Style(
-            width=self.width,
-            padding=Edge.all(16.0),
-            gap=10.0,
-            background=SURFACE,
-            color=ON_SURFACE,
+        surface = resolve_surface_variant(
+            variant=self.variant,
+            color_scheme=self.color_scheme,
+            theme=self.theme,
+            elevation=self.elevation,
+            padding_step="none",
+            media=self.media,
+        )
+        default = merge_styles(
+            surface,
+            Style(width=self.width, padding=Edge.all(16.0), gap=10.0),
         )
         return Column(
             key=self.key or "sidebar",
@@ -76,6 +114,7 @@ class Scaffold(Component):
             omitted when ``None``.
         scroll: When ``True``, the body is wrapped in a ``ScrollView`` (a Qt
             convenience; the Compose renderer scrolls natively post-Trilho-B).
+        theme: The design-system theme whose ``BACKGROUND`` role fills the frame.
     """
 
     app_bar: Widget | None = Field(
@@ -96,6 +135,11 @@ class Scaffold(Component):
         default=False,
         description="When ``True``, the body is wrapped in a ``ScrollView`` (a Qt "
         "convenience; the Compose renderer scrolls natively post-Trilho-B).",
+    )
+    theme: Theme = Field(
+        default_factory=Theme,
+        description="The design-system theme whose ``BACKGROUND`` role fills the "
+        "frame.",
     )
 
     def render(self) -> Widget:
@@ -118,7 +162,7 @@ class Scaffold(Component):
         children.append(body)
         if self.bottom_bar is not None:
             children.append(self.bottom_bar)
-        default = Style(gap=0.0, background=BACKGROUND)
+        default = Style(gap=0.0, background=self.theme.color(ColorRole.BACKGROUND))
         return Column(
             key=self.key or "scaffold",
             style=merge_style(default, self.style),

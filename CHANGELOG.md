@@ -6,6 +6,59 @@ versioning.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-06-20
+
+### Added
+
+- **H5 styled navigation kit** (Trilho H, phase H5) — the navigation half of the
+  design system. A pure **skin pass**: the navigation components migrate their
+  hard-coded `components/base.py` hexes (`SURFACE` / `ACCENT` / `MUTED` /
+  `ON_SURFACE` / …) to Material 3 theme tokens, reusing the **existing** variant
+  resolvers — **no new resolver, no new enum and no new `Style` field**
+  (`len(Style.model_fields)` stays 41; elevation rides the H3 elevation→`Shadow`
+  mapping). Fully additive and backward-compatible: every existing call site and
+  explicit `style=` keeps working.
+  - **`Tabs` (new component).** A tab strip whose active tab carries an
+    **underline indicator** — a thin bottom `SideBorder` in the accent role
+    (existing `Border` / `SideBorder` fields). The strip is a
+    `resolve_surface_variant` surface; each tab is a `resolve_variant` (GHOST)
+    text; the active tab takes the `color_scheme` role color. Mirrors `NavBar`'s
+    lowering and select-event shape. Re-exported from the package root and
+    `tempest_core.components`. It is a `Component` (lowers to primitives), so it
+    is **not** an IR leaf and stays out of `WIDGET_TYPES`.
+  - **`AppBar` / `Footer` / `CollapsingAppBar`** (`components/bars.py`) — gain
+    `variant` (CardVariant, default `ELEVATED`) / `color_scheme` (`"neutral"`) /
+    `elevation` / `theme` / `media`; the bar surface (background + elevation
+    shadow + tinted container) resolves via `resolve_surface_variant`, the title/
+    content color is the resolved surface content. `CollapsingAppBar` keeps its
+    height/font collapse derivation verbatim (only recolored) and its legacy
+    `background` escape hatch still wins.
+  - **`Header`** (`components/bars.py`) — tokens-only: the band fills with
+    `SURFACE_VARIANT`, the title/subtitle read `ON_SURFACE` / `ON_SURFACE_VARIANT`,
+    spacing/typography from the theme; an optional `color_scheme` tints the title.
+  - **`Sidebar` / `Drawer`** (`components/layout.py`, `components/menu.py`) — the
+    panel surface resolves via `resolve_surface_variant` (`color_scheme="neutral"`
+    default); width / open behavior unchanged.
+  - **`Scaffold`** (`components/layout.py`) — `background` ← `theme.color(BACKGROUND)`;
+    gains a `theme` input. Tokens-only.
+  - **`NavBar`** (`components/navigation.py`) — the bar is a
+    `resolve_surface_variant` surface; the active item is an accent pill via
+    `resolve_badge_variant` (SOLID, `color_scheme`); inactive items are a
+    `resolve_variant` (GHOST, neutral) treatment. Gains `color_scheme`
+    (`"primary"`) / `size` / `theme` / `media`; `on_select` / `active` wiring
+    unchanged.
+  - **`SearchBar`** (`components/fields.py`) — the inner `Input` style resolves
+    via `resolve_field_variant`; the outer pill via `resolve_surface_variant`; the
+    clear button lowers to an `IconButton` (the curated `Icons.X` glyph, GHOST).
+    Gains `field_variant` / `color_scheme` / `size` / `theme` / `media`.
+  - **`Breadcrumb`** (`components/navigation.py`) — migrates `ACCENT` / `ON_SURFACE`
+    / `ON_MUTED` to theme roles; the link crumb resolves a `resolve_variant` (LINK)
+    style. Gains `color_scheme` / `theme` / `media`.
+  - **`Burger`** (`components/menu.py`) — re-lowers to an `IconButton`
+    (`Icons.MENU`, GHOST, `color_scheme` / `theme`), reusing `resolve_variant` and
+    the icon system. The `glyph` prop is kept as a **deprecated** backward-compat
+    fallback.
+
 ## [0.6.0] - 2026-06-20
 
 ### Added

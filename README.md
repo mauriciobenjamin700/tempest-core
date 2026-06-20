@@ -64,6 +64,21 @@ bar = AppBar(title="Inbox", color_scheme="primary", actions=[button])
 search = SearchBar(value="", on_change=lambda e: None, color_scheme="primary")
 nav = NavBar(items=["Home", "Search", "You"], active=0, on_select=lambda i: None)
 tabs = Tabs(tabs=["Overview", "Activity"], active=0, on_select=lambda i: None)
+
+# H6 research kit: metric cards, charts (over the Canvas) and a detection overlay
+# for showing an ONNX / ort-vision-sdk result end to end.
+from tempest_core import (
+    BarChart, ChartSeries, ConfidenceBadge, DetectionBox, DetectionOverlay,
+    LineChart, MetricCard,
+)
+
+acc = MetricCard(label="Accuracy", value="92%", delta="+3%", delta_up=True)
+conf = ConfidenceBadge(confidence=0.92, label="cat")  # success pill "cat 92%"
+chart = LineChart(series=[ChartSeries(points=[0.1, 0.4, 0.35, 0.8], color_scheme="primary")])
+bars = BarChart(values=[3.0, 5.0, 2.0], labels=["a", "b", "c"])
+boxed = DetectionOverlay(image_src="photo.jpg", boxes=[
+    DetectionBox(x1=0.1, y1=0.2, x2=0.5, y2=0.6, name="cat", conf=0.93),
+])
 ```
 
 The H3 surface kit (`CardVariant`, `resolve_surface_variant`, `Surface`,
@@ -94,6 +109,23 @@ resolves its field via `resolve_field_variant` and its clear button as an
 `IconButton`; `Burger` lowers to an `IconButton` (the `menu` icon); `Header` and
 `Breadcrumb` migrate to theme roles. Every old call site and explicit `style=`
 keeps working.
+
+The H6 research / data-science kit (`tempest_core/components/research.py`) is the
+surface a researcher uses to show an ONNX / [`ort-vision-sdk`](https://github.com/mauriciobenjamin700/ort-vision-sdk)
+result end to end — **no new `Style` field, no new resolver, no new `Canvas` draw
+command**. `MetricCard` / `StatCard` compose the H3 `Card` around the H4 `Stat`;
+`ConfidenceBadge` colors a `Badge` by the `confidence_scheme` traffic-light helper
+(`success`/`warning`/`error`); `LineChart` / `BarChart` draw over the E7 `Canvas`
+using only the existing command vocabulary (a line is `MoveTo`+`LineTo`+`StrokeCmd`
+— there is no `DrawLine`; a bar is `DrawRect`+`FillCmd`; y-tick labels are
+right-aligned `DrawText`) and emit a **deterministic** command list;
+`DetectionOverlay` stacks an `Image` under a `Canvas` of confidence-colored
+bounding boxes (`DetectionBox` is normalized `[0, 1]` `xyxy`, multiplied by the
+canvas size at draw time — the engine takes no `ort-vision-sdk` dependency); and
+`ResultView` is the image-picker → result flow. `DataTable` gains app-driven sort
+(`sort_column`/`on_sort`) + pagination (`page`/`page_size`/`on_page`) and themed
+colors; `Calendar`/`Clock` migrate to theme tokens (the default look shifts from
+the legacy dark palette to M3 light).
 
 ## Install
 

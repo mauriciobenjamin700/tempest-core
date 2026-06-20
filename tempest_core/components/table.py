@@ -4,11 +4,24 @@ Both are :class:`Component`\s that lower to a primitive ``Column`` of ``Row``s o
 ``Container``/``Text`` cells, so they render identically in the Qt simulator and
 on the Compose device with zero renderer changes. ``Table`` is a static
 rows-by-columns grid built from typed :class:`TableRow`/:class:`TableCell`
-values; ``DataTable`` is a string-matrix convenience that adds a header row and
-an optional sortable affordance, both expressed purely as primitives.
+values.
+
+With Trilho H6, ``DataTable`` becomes a **styled, themed** data display: it reads
+its header / zebra / divider colors from the design-system :class:`~tempest_core.
+theme.Theme` tokens (no hard-coded hexes), and gains app-driven **sort** and
+**pagination** affordances. Following the E1 list pattern, the component owns **no
+state**: the application holds ``sort_column`` / ``sort_ascending`` / ``page`` and
+passes already-sorted ``rows``; the component projects the current page slice,
+draws the directional sort arrow on the active header, renders tappable header
+cells (emitting ``on_sort(col)``) and an optional pager row (emitting
+``on_page(page)``). Every existing ``DataTable(columns=…, rows=…)`` /
+``DataTable(sortable=True)`` call site keeps working — the H6 props are additive.
 """
 
 from __future__ import annotations
+
+from collections.abc import Callable
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -19,8 +32,18 @@ from tempest_core.components.base import (
     SURFACE,
     merge_style,
 )
-from tempest_core.style import Border, Edge, FontWeight, SideBorder, Style
-from tempest_core.widgets import Column, Component, Container, Row, Text, Widget
+from tempest_core.style import (
+    AlignItems,
+    Border,
+    Edge,
+    FontWeight,
+    SideBorder,
+    Style,
+    TextAlign,
+)
+from tempest_core.theme import Theme
+from tempest_core.tokens import ColorRole
+from tempest_core.widgets import Button, Column, Component, Container, Row, Text, Widget
 
 __all__ = ["TableCell", "TableRow", "Table", "DataTable"]
 
@@ -189,17 +212,45 @@ class Table(Component):
 
 
 class DataTable(Component):
-    """A string-matrix table with a header row and optional sort affordance.
+    """A themed string-matrix table with app-driven sort and pagination.
 
-    A convenience over :class:`Table` for the common case of a header plus a
-    matrix of string rows. ``sortable`` only annotates the header (an arrow glyph
-    is appended); the application performs the actual sort by reordering ``rows``
-    in its state — no renderer logic is involved.
+    A styled convenience over the common header-plus-string-matrix case. With
+    Trilho H6 it reads its colors from the :class:`~tempest_core.theme.Theme`
+    tokens (header fill ``SURFACE_VARIANT`` / ``ON_SURFACE``, body ``SURFACE`` /
+    ``ON_SURFACE`` with a subtle zebra stripe derived from ``SURFACE_VARIANT``,
+    row divider ``OUTLINE_VARIANT``) and offers sortable, tappable headers and an
+    optional pager.
+
+    The component owns **no state** (mirroring the E1 virtualized-list pattern):
+
+    * **Sort** — the application holds ``sort_column`` / ``sort_ascending``,
+      passes the rows already sorted, and the table only draws the directional
+      ▲/▼ arrow on the active header and emits ``on_sort(col)`` when a header is
+      tapped.
+    * **Paginate** — the application holds the current ``page``; when
+      ``page_size`` is set the table slices ``rows[page*page_size : …]`` for
+      display, renders a pager row (prev / next + ``"page X/Y"``), and emits
+      ``on_page(page)`` for prev/next.
+
+    Backward-compatible: ``DataTable(columns=…, rows=…)`` is a plain themed table;
+    ``DataTable(sortable=True)`` keeps the legacy "annotate every header with a
+    sort glyph" behavior when no ``on_sort`` is wired.
 
     Attributes:
         columns: The column header labels.
-        rows: The body rows as a matrix of string cells.
-        sortable: Whether to mark headers as sortable with an indicator glyph.
+        rows: The body rows as a matrix of string cells (the app pre-sorts them).
+        sortable: Whether headers carry a sort affordance (legacy glyph when no
+            ``on_sort`` is wired).
+        sort_column: The index of the column the rows are currently sorted by, or
+            ``None`` for no active sort.
+        sort_ascending: Whether the active sort is ascending (``▲``) or
+            descending (``▼``).
+        on_sort: Called with the tapped column index to request a sort change.
+        page: The current zero-based page index (used when ``page_size`` is set).
+        page_size: The number of rows shown per page; ``None`` shows every row
+            (no pager).
+        on_page: Called with the requested zero-based page index on prev/next.
+        theme: The design-system theme whose tokens supply the colors.
         style: An optional style overlaid on the table's default surface.
     """
 
@@ -212,24 +263,233 @@ class DataTable(Component):
     )
     sortable: bool = Field(
         default=False,
-        description="Whether to mark headers as sortable with an indicator glyph.",
+        description="Whether headers carry a sort affordance (legacy glyph when no "
+        "``on_sort`` is wired).",
+    )
+    sort_column: int | None = Field(
+        default=None,
+        description="The index of the column the rows are currently sorted by.",
+    )
+    sort_ascending: bool = Field(
+        default=True,
+        description="Whether the active sort is ascending (``▲``) or descending "
+        "(``▼``).",
+    )
+    on_sort: Callable[[int], Any] | None = Field(
+        default=None,
+        description="Called with the tapped column index to request a sort change.",
+    )
+    page: int = Field(default=0, description="The current zero-based page index.")
+    page_size: int | None = Field(
+        default=None,
+        description="The number of rows shown per page; ``None`` shows every row.",
+    )
+    on_page: Callable[[int], Any] | None = Field(
+        default=None,
+        description="Called with the requested zero-based page index on prev/next.",
+    )
+    theme: Theme = Field(
+        default_factory=Theme,
+        description="The design-system theme whose tokens supply the colors.",
     )
     style: Style | None = None
 
-    def render(self) -> Widget:
-        """Lower the data table into a :class:`Table` of typed rows.
+    def _header_label(self, index: int, label: str) -> str:
+        """Compute a header label with its sort indicator.
+
+        Args:
+            index: The column index.
+            label: The raw column label.
 
         Returns:
-            A :class:`Table` built from the column headers and string matrix.
+            The label suffixed with ``▲``/``▼`` when it is the active sort column,
+            a neutral ``↕`` when sortable-without-active-sort, the legacy ``▾``
+            for the no-``on_sort`` legacy mode, or the bare label.
         """
-        headers = [f"{label} ▾" if self.sortable else label for label in self.columns]
-        table_rows = [
-            TableRow(cells=[TableCell(content=value) for value in row])
-            for row in self.rows
-        ]
-        return Table(
+        if self.sort_column == index:
+            return f"{label} {'▲' if self.sort_ascending else '▼'}"
+        if self.on_sort is not None:
+            return f"{label} ↕"
+        if self.sortable:
+            return f"{label} ▾"
+        return label
+
+    def _header_cell(self, index: int, label: str) -> Widget:
+        """Build one header cell — a tappable button when ``on_sort`` is wired.
+
+        Args:
+            index: The column index.
+            label: The raw column label.
+
+        Returns:
+            A growing header ``Button`` (when sortable via ``on_sort``) or a plain
+            header ``Text`` cell.
+        """
+        text = self._header_label(index, label)
+        on_surface = self.theme.color(ColorRole.ON_SURFACE)
+        if self.on_sort is not None:
+            handler = self.on_sort
+            return Button(
+                label=text,
+                on_click=lambda col=index: handler(col),
+                key=f"dt-th-{index}",
+                style=Style(
+                    grow=1.0,
+                    padding=_CELL_PADDING,
+                    background=self.theme.color(ColorRole.SURFACE_VARIANT),
+                    color=on_surface,
+                    font_weight=FontWeight.BOLD,
+                    text_align=TextAlign.LEFT,
+                ),
+            )
+        return Container(
+            key=f"dt-th-{index}",
+            style=Style(grow=1.0, padding=_CELL_PADDING),
+            child=Text(
+                content=text,
+                style=Style(color=on_surface, font_weight=FontWeight.BOLD),
+            ),
+        )
+
+    def _body_cell(self, r_index: int, c_index: int, content: str) -> Widget:
+        """Build one body cell.
+
+        Args:
+            r_index: The displayed row index (for keying).
+            c_index: The column index (for keying).
+            content: The cell text.
+
+        Returns:
+            A growing ``Container`` wrapping the cell ``Text`` in ``ON_SURFACE``.
+        """
+        return Container(
+            key=f"dt-td-{r_index}-{c_index}",
+            style=Style(grow=1.0, padding=_CELL_PADDING),
+            child=Text(
+                content=content,
+                style=Style(color=self.theme.color(ColorRole.ON_SURFACE)),
+            ),
+        )
+
+    def _page_rows(self) -> list[list[str]]:
+        """Project the rows to the current page slice.
+
+        Returns:
+            ``rows[page*page_size : (page+1)*page_size]`` when ``page_size`` is
+            set, otherwise every row.
+        """
+        if self.page_size is None:
+            return self.rows
+        start = self.page * self.page_size
+        return self.rows[start : start + self.page_size]
+
+    def _page_count(self) -> int:
+        """Compute the total number of pages.
+
+        Returns:
+            The ceil-divided page count (at least ``1``), or ``1`` when
+            ``page_size`` is unset.
+        """
+        if self.page_size is None or self.page_size <= 0:
+            return 1
+        return max(1, (len(self.rows) + self.page_size - 1) // self.page_size)
+
+    def _pager(self) -> Widget:
+        """Build the prev/next pager row.
+
+        Returns:
+            A ``Row`` of a prev ``Button``, a centered ``"page X / Y"`` label and
+            a next ``Button``; prev/next emit ``on_page`` clamped to ``[0, last]``.
+        """
+        total = self._page_count()
+        on_page = self.on_page
+        current = self.page
+        prev_target = max(0, current - 1)
+        next_target = min(total - 1, current + 1)
+        muted = self.theme.color(ColorRole.ON_SURFACE_VARIANT)
+        return Row(
+            key="dt-pager",
+            style=Style(
+                gap=self.theme.space("sm"),
+                align=AlignItems.CENTER,
+                padding=Edge.symmetric(
+                    vertical=self.theme.space("xs"), horizontal=self.theme.space("md")
+                ),
+            ),
+            children=[
+                Button(
+                    label="‹ Prev",
+                    on_click=(lambda t=prev_target: on_page(t))
+                    if on_page is not None
+                    else None,
+                    key="dt-prev",
+                ),
+                Text(
+                    content=f"page {current + 1} / {total}",
+                    style=Style(grow=1.0, color=muted, text_align=TextAlign.CENTER),
+                    key="dt-page-label",
+                ),
+                Button(
+                    label="Next ›",
+                    on_click=(lambda t=next_target: on_page(t))
+                    if on_page is not None
+                    else None,
+                    key="dt-next",
+                ),
+            ],
+        )
+
+    def render(self) -> Widget:
+        """Lower the data table into a themed column of header + body rows.
+
+        Returns:
+            A ``Column`` of a header row, the current page's body rows (with a
+            zebra stripe and a bottom divider each) and, when paginated, a pager
+            row.
+        """
+        divider = SideBorder(
+            bottom=Border(width=1.0, color=self.theme.color(ColorRole.OUTLINE_VARIANT))
+        )
+        surface = self.theme.color(ColorRole.SURFACE)
+        # A subtle zebra stripe: SURFACE_VARIANT mixed halfway toward SURFACE,
+        # since the token model has no dedicated SURFACE_CONTAINER role and H6
+        # adds no new token. Deterministic, so the conformance suite pins it.
+        zebra = self.theme.color(ColorRole.SURFACE_VARIANT).blend(surface, 0.5)
+        body: list[Widget] = []
+        if self.columns:
+            body.append(
+                Row(
+                    key="dt-header",
+                    style=Style(
+                        border=divider,
+                        background=self.theme.color(ColorRole.SURFACE_VARIANT),
+                    ),
+                    children=[
+                        self._header_cell(index, label)
+                        for index, label in enumerate(self.columns)
+                    ],
+                )
+            )
+        row_offset = self.page * self.page_size if self.page_size else 0
+        for r_index, row in enumerate(self._page_rows()):
+            # Zebra parity follows the ABSOLUTE row index so stripes stay
+            # continuous across pages (not restarting each page slice).
+            stripe = zebra if (row_offset + r_index) % 2 == 1 else surface
+            body.append(
+                Row(
+                    key=f"dt-row-{r_index}",
+                    style=Style(border=divider, background=stripe),
+                    children=[
+                        self._body_cell(r_index, c_index, value)
+                        for c_index, value in enumerate(row)
+                    ],
+                )
+            )
+        if self.page_size is not None:
+            body.append(self._pager())
+        default = Style(background=surface)
+        return Column(
             key=self.key or "data-table",
-            headers=headers,
-            rows=table_rows,
-            style=self.style,
+            style=merge_style(default, self.style),
+            children=body,
         )

@@ -6,6 +6,63 @@ versioning.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-06-20
+
+### Added
+
+- **H6 research / data-science kit** (Trilho H, phase H6) — the components an
+  academic researcher needs to show an ONNX / `ort-vision-sdk` result end to end.
+  Every new component lowers to **existing** primitives (composition) or to a
+  `Canvas` draw-command list (charts / overlays) — **no new `Style` field**
+  (`len(Style.model_fields)` stays 41), **no new variant resolver** and **no new
+  `Canvas` draw command**. Fully additive and backward-compatible: every existing
+  call site and explicit `style=` keeps working. New module
+  `tempest_core/components/research.py`, re-exported from `tempest_core`.
+  - **`ChartSeries` / `DetectionBox` (value models).** `ChartSeries`
+    (`points` + `label` + optional `color_scheme`) is the chart data unit so a
+    chart can plot several named, individually-colored series; `DetectionBox`
+    (normalized `[0, 1]` `xyxy` + `name` + `conf`) is resolution-independent and
+    multiplied by the canvas size at draw time. The engine takes **no**
+    `ort-vision-sdk` dependency — a `Detection` → `DetectionBox` adapter lives on
+    the tempestroid side.
+  - **`confidence_scheme(conf, *, high=0.8, mid=0.5)`.** The traffic-light helper
+    mapping a confidence score to `"success"` / `"warning"` / `"error"`.
+  - **`MetricCard` / `StatCard`.** A dashboard metric — the H3 `Card` surface
+    wrapping the H4 `Stat` block, with an optional trailing slot. `StatCard` is a
+    compact (`filled`) preset of `MetricCard`.
+  - **`ConfidenceBadge`.** The H4 `Badge` colored by `confidence_scheme` and
+    labelled as a rounded percentage.
+  - **`LineChart` / `BarChart`.** Charts drawn over the E7 `Canvas`: a line series
+    is `MoveTo` + a run of `LineTo` + one `StrokeCmd` (there is no `DrawLine`); a
+    bar is a `DrawRect` + a `FillCmd`; axes/gridlines are strokes and y-tick
+    labels are right-aligned `DrawText` (the baseline-anchored command has no
+    align field, so the anchor is shifted left by an estimated text width). The
+    emitted command list is **deterministic** for fixed input (conformance-pinnable).
+    `BarChart` also accepts a plain `values: list[float]` (+ `labels`).
+  - **`DetectionOverlay`.** A `Stack` of a base `Image` (`fit=COVER`) and a
+    `Canvas` that draws each detection box (`DrawRect` + `StrokeCmd`, colored by
+    `confidence_scheme(box.conf)`) plus a filled-background `"{name} {conf:.0%}"`
+    caption.
+  - **`ResultView`.** The image-picker → result flow: an `ImagePicker` over an
+    optional `result` widget slot (the app owns inference + builds the result).
+
+### Changed
+
+- **`DataTable` skin** (H6) — reads its header / zebra / divider colors from the
+  theme tokens (no hard-coded hexes) and gains **app-driven** sort + pagination,
+  mirroring the E1 list pattern (the component owns no state): new
+  `sort_column` / `sort_ascending` / `on_sort`, `page` / `page_size` / `on_page`
+  + `theme` props. With `page_size` set the table projects the current page slice
+  and renders a prev/next pager; the active sort column shows a directional ▲/▼
+  arrow; with `on_sort` wired the header cells become tappable buttons. The legacy
+  `DataTable(columns=…, rows=…)` / `sortable=True` call sites still work.
+- **`Calendar` / `Clock` skin** (H6) — migrated their hard-coded
+  `components/base.py` hexes (`ACCENT` / `MUTED` / `ON_SURFACE` / `ON_MUTED` /
+  `SURFACE`) to `theme.color(ColorRole.*)`, adding a `theme` (+ optional
+  `color_scheme`) prop. Backward-compatible defaults — but the default look now
+  follows the **M3 light** theme rather than the previous restrained dark palette
+  (a visual shift for call sites that did not pass a `style`/`theme`).
+
 ## [0.7.0] - 2026-06-20
 
 ### Added

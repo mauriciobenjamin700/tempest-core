@@ -146,6 +146,109 @@ abas = Tabs(tabs=["Resumo", "Atividade"], active=0, on_select=lambda i: None)  #
     o sistema de ícones. O antigo prop `glyph` permanece como **fallback
     descontinuado** (retrocompatível), mas o botão sempre mostra o ícone real.
 
+## Componentes de pesquisa (H6) 🔬
+
+A última camada do design system é o kit **pesquisa / ciência de dados**: os
+componentes que um pesquisador acadêmico usa para mostrar o resultado de um modelo
+ONNX / [`ort-vision-sdk`](https://github.com/mauriciobenjamin700/ort-vision-sdk) de
+ponta a ponta. Tudo baixa para primitivas **já existentes** (composição) ou para
+uma lista de comandos do `Canvas` (gráficos / overlays) — **sem campo novo de
+`Style`, sem resolver novo e sem comando novo de desenho**.
+
+### Cartões de métrica e selo de confiança
+
+```python
+from tempest_core import ConfidenceBadge, MetricCard, StatCard
+
+# Card (H3) + Stat (H4) — rótulo, valor e uma tendência tingida (success/error).
+acuracia = MetricCard(label="Acurácia", value="92%", delta="+3%", delta_up=True)
+
+# Preset compacto (superfície "filled").
+total = StatCard(label="Imagens", value="1.024")
+
+# Badge (H4) colorido pela confiança: ≥80% = success, ≥50% = warning, < = error.
+confianca = ConfidenceBadge(confidence=0.92, label="gato")  # pílula "gato 92%"
+```
+
+!!! info "`confidence_scheme`"
+    O selo escolhe a família de cor com a função pura
+    `confidence_scheme(conf, *, high=0.8, mid=0.5)` → `"success"` / `"warning"` /
+    `"error"`. Use-a também para colorir suas próprias afordâncias de confiança.
+
+### Gráficos sobre o `Canvas`
+
+```python
+from tempest_core import BarChart, ChartSeries, LineChart
+
+linha = LineChart(series=[
+    ChartSeries(points=[0.1, 0.4, 0.35, 0.8], label="loss", color_scheme="primary"),
+])
+barras = BarChart(values=[3.0, 5.0, 2.0], labels=["a", "b", "c"])
+```
+
+Os dados de uma série são um `ChartSeries` congelado (`points` + `label` +
+`color_scheme` opcional), não uma lista crua, então um gráfico plota várias séries
+nomeadas. O `BarChart` também aceita uma `values: list[float]` simples para o caso
+de série única. Cada gráfico emite uma lista de comandos do `Canvas`
+**determinística** — a suíte de conformância fixa a sequência.
+
+!!! note "Vocabulário de desenho — sem `DrawLine`"
+    Uma linha é `MoveTo` + uma sequência de `LineTo` + um `StrokeCmd`; uma barra é
+    `DrawRect` + `FillCmd`; os rótulos do eixo Y são `DrawText` (ancorado na
+    baseline, sem campo de alinhamento → alinhados à direita estimando a largura do
+    texto). Nenhum comando de desenho novo foi introduzido.
+
+### Overlay de detecção
+
+```python
+from tempest_core import DetectionBox, DetectionOverlay
+
+overlay = DetectionOverlay(image_src="foto.jpg", boxes=[
+    DetectionBox(x1=0.1, y1=0.2, x2=0.5, y2=0.6, name="gato", conf=0.93),
+])
+```
+
+Um `DetectionBox` é `xyxy` **normalizado em `[0, 1]`** — independente de resolução,
+multiplicado pelo tamanho do canvas na hora de desenhar. O overlay é um `Stack` de
+uma `Image` (`fit=COVER`) sob um `Canvas` que desenha cada caixa
+(`DrawRect` + `StrokeCmd`, cor por `confidence_scheme(box.conf)`) com uma legenda
+`"{name} {conf:.0%}"`. O motor **não** depende do `ort-vision-sdk` — o adaptador
+`Detection` → `DetectionBox` mora no lado do tempestroid.
+
+### Fluxo selecionar imagem → resultado
+
+```python
+from tempest_core import ResultView
+
+view = ResultView(
+    label="Envie uma foto",
+    on_pick=lambda uri: app.set_state(...),  # roda a inferência
+    result=overlay,                          # o widget que você montou do resultado
+)
+```
+
+### `DataTable` com ordenação e paginação
+
+A `DataTable` ganhou cores temáticas e afordâncias **conduzidas pelo app** (o
+componente não guarda estado — espelha o padrão das listas do E1): o app mantém
+`sort_column` / `sort_ascending` / `page` e passa as linhas já ordenadas.
+
+```python
+from tempest_core.components import DataTable
+
+tabela = DataTable(
+    columns=["Classe", "Confiança"],
+    rows=linhas_ordenadas,            # o app ordena
+    sort_column=1, sort_ascending=False, on_sort=lambda col: app.ordenar(col),
+    page=0, page_size=10, on_page=lambda p: app.ir_para(p),
+)
+```
+
+A coluna ativa mostra a seta ▲/▼; com `on_sort` os cabeçalhos viram botões; com
+`page_size` a tabela projeta a fatia da página atual e desenha um paginador
+prev/next. `Calendar` / `Clock` também migraram para os tokens do tema (o visual
+padrão passa da paleta escura antiga para o M3 claro).
+
 ## Recapitulando
 
 - `variant` / `size` / `color_scheme` descrevem a intenção; o resolver puro produz
@@ -158,5 +261,10 @@ abas = Tabs(tabs=["Resumo", "Atividade"], active=0, on_select=lambda i: None)  #
 - Navegação (`AppBar` / `NavBar` / `Tabs` / `SearchBar`) é um skin pass: barras via
   resolver de superfície, item ativo via pílula de destaque, abas com sublinhado —
   sem resolver/enum/campo novo.
+- Pesquisa (`MetricCard` / `StatCard` / `ConfidenceBadge` / `LineChart` /
+  `BarChart` / `DetectionOverlay` / `ResultView`) compõe primitivas e desenha
+  gráficos/overlays via lista de comandos do `Canvas` — determinística, sem comando
+  de desenho novo; `confidence_scheme` mapeia confiança → status; a `DataTable`
+  ganha ordenação/paginação conduzidas pelo app.
 - `HStack` / `VStack` aceitam `gap` por passo de token; `Spacer` é um flex.
 - Um `style=` explícito sempre é mesclado por cima.

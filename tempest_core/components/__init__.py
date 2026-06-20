@@ -28,6 +28,13 @@ navigation building blocks:
   :class:`Chip`, :class:`Banner` / :class:`Alert`, :class:`Stat`,
   :class:`ProgressStepper` and :class:`EmptyState`, themed via the H4 status
   families (success / warning / info) and the badge/alert variant resolvers.
+* Research / data-science (Trilho H6) — :class:`MetricCard` / :class:`StatCard`,
+  :class:`ConfidenceBadge`, the Canvas-backed :class:`LineChart` /
+  :class:`BarChart`, the :class:`DetectionOverlay` (bounding boxes over an image)
+  and the :class:`ResultView` image-picker→result flow, plus the
+  :class:`ChartSeries` / :class:`DetectionBox` value models and the
+  :func:`confidence_scheme` helper — the kit for showing an ONNX /
+  ``ort-vision-sdk`` result end to end.
 
 The default theme tokens and :func:`merge_style` (used to overlay a caller's
 ``style`` onto a component default) are re-exported for building custom
@@ -85,6 +92,18 @@ from tempest_core.components.mediainputs import (
 )
 from tempest_core.components.menu import Burger, Drawer
 from tempest_core.components.navigation import Breadcrumb, NavBar, Tabs
+from tempest_core.components.research import (
+    BarChart,
+    ChartSeries,
+    ConfidenceBadge,
+    DetectionBox,
+    DetectionOverlay,
+    LineChart,
+    MetricCard,
+    ResultView,
+    StatCard,
+    confidence_scheme,
+)
 from tempest_core.components.selection import (
     Chip,
     RadioGroup,
@@ -145,6 +164,16 @@ __all__ = [
     "DataTable",
     "TableCell",
     "TableRow",
+    "ChartSeries",
+    "DetectionBox",
+    "confidence_scheme",
+    "MetricCard",
+    "StatCard",
+    "ConfidenceBadge",
+    "LineChart",
+    "BarChart",
+    "DetectionOverlay",
+    "ResultView",
     "merge_style",
     "BACKGROUND",
     "SURFACE",

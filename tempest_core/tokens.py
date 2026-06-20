@@ -32,7 +32,7 @@ from __future__ import annotations
 import colorsys
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from tempest_core.style import Color, Curve, FontWeight
 
@@ -85,6 +85,18 @@ class ColorRole(StrEnum):
         ON_ERROR: Content drawn on ``ERROR``.
         ERROR_CONTAINER: A tonal error fill.
         ON_ERROR_CONTAINER: Content drawn on ``ERROR_CONTAINER``.
+        SUCCESS: The role signalling success / positive confirmation (H4).
+        ON_SUCCESS: Content drawn on ``SUCCESS``.
+        SUCCESS_CONTAINER: A tonal success fill.
+        ON_SUCCESS_CONTAINER: Content drawn on ``SUCCESS_CONTAINER``.
+        WARNING: The role signalling caution / a non-blocking problem (H4).
+        ON_WARNING: Content drawn on ``WARNING``.
+        WARNING_CONTAINER: A tonal warning fill.
+        ON_WARNING_CONTAINER: Content drawn on ``WARNING_CONTAINER``.
+        INFO: The role signalling neutral information (H4).
+        ON_INFO: Content drawn on ``INFO``.
+        INFO_CONTAINER: A tonal info fill.
+        ON_INFO_CONTAINER: Content drawn on ``INFO_CONTAINER``.
         BACKGROUND: The screen background.
         ON_BACKGROUND: Content drawn on ``BACKGROUND``.
         SURFACE: The base surface of cards, sheets and menus.
@@ -114,6 +126,18 @@ class ColorRole(StrEnum):
     ON_ERROR = "on_error"
     ERROR_CONTAINER = "error_container"
     ON_ERROR_CONTAINER = "on_error_container"
+    SUCCESS = "success"
+    ON_SUCCESS = "on_success"
+    SUCCESS_CONTAINER = "success_container"
+    ON_SUCCESS_CONTAINER = "on_success_container"
+    WARNING = "warning"
+    ON_WARNING = "on_warning"
+    WARNING_CONTAINER = "warning_container"
+    ON_WARNING_CONTAINER = "on_warning_container"
+    INFO = "info"
+    ON_INFO = "on_info"
+    INFO_CONTAINER = "info_container"
+    ON_INFO_CONTAINER = "on_info_container"
     BACKGROUND = "background"
     ON_BACKGROUND = "on_background"
     SURFACE = "surface"
@@ -275,6 +299,18 @@ class ColorScheme(BaseModel):
         on_error: The ``ON_ERROR`` role color.
         error_container: The ``ERROR_CONTAINER`` role color.
         on_error_container: The ``ON_ERROR_CONTAINER`` role color.
+        success: The ``SUCCESS`` role color (H4 status family).
+        on_success: The ``ON_SUCCESS`` role color.
+        success_container: The ``SUCCESS_CONTAINER`` role color.
+        on_success_container: The ``ON_SUCCESS_CONTAINER`` role color.
+        warning: The ``WARNING`` role color (H4 status family).
+        on_warning: The ``ON_WARNING`` role color.
+        warning_container: The ``WARNING_CONTAINER`` role color.
+        on_warning_container: The ``ON_WARNING_CONTAINER`` role color.
+        info: The ``INFO`` role color (H4 status family).
+        on_info: The ``ON_INFO`` role color.
+        info_container: The ``INFO_CONTAINER`` role color.
+        on_info_container: The ``ON_INFO_CONTAINER`` role color.
         background: The ``BACKGROUND`` role color.
         on_background: The ``ON_BACKGROUND`` role color.
         surface: The ``SURFACE`` role color.
@@ -309,6 +345,22 @@ class ColorScheme(BaseModel):
     on_error: Color
     error_container: Color
     on_error_container: Color
+    # H4 status families. They default to ``None`` (not required) so every
+    # existing ``ColorScheme(...)`` constructor and any pinned scheme JSON keep
+    # validating; the ``model_validator`` below back-fills any left unset from
+    # the matching ``error`` role, so a scheme is always complete after build.
+    success: Color | None = None
+    on_success: Color | None = None
+    success_container: Color | None = None
+    on_success_container: Color | None = None
+    warning: Color | None = None
+    on_warning: Color | None = None
+    warning_container: Color | None = None
+    on_warning_container: Color | None = None
+    info: Color | None = None
+    on_info: Color | None = None
+    info_container: Color | None = None
+    on_info_container: Color | None = None
     background: Color
     on_background: Color
     surface: Color
@@ -320,6 +372,40 @@ class ColorScheme(BaseModel):
     inverse_surface: Color
     inverse_on_surface: Color
     inverse_primary: Color
+
+    @model_validator(mode="after")
+    def _backfill_status_roles(self) -> ColorScheme:
+        """Back-fill any unset H4 status role from the ``error`` family.
+
+        A scheme constructed before H4 (or hand-authored without the status
+        roles) leaves the twelve ``success``/``warning``/``info`` fields ``None``.
+        Rather than refuse such input — which would break every existing call
+        site — this fills each missing status role from the matching ``error``
+        role so the scheme is always complete and :meth:`role` never returns
+        ``None``. A scheme built by :func:`color_schemes_from_seed` already sets
+        all roles, so this is a no-op there.
+
+        Returns:
+            The scheme with every status role populated.
+        """
+        fallback: dict[str, Color] = {
+            "success": self.error,
+            "on_success": self.on_error,
+            "success_container": self.error_container,
+            "on_success_container": self.on_error_container,
+            "warning": self.error,
+            "on_warning": self.on_error,
+            "warning_container": self.error_container,
+            "on_warning_container": self.on_error_container,
+            "info": self.error,
+            "on_info": self.on_error,
+            "info_container": self.error_container,
+            "on_info_container": self.on_error_container,
+        }
+        for name, value in fallback.items():
+            if getattr(self, name) is None:
+                object.__setattr__(self, name, value)
+        return self
 
     def role(self, role: ColorRole) -> Color:
         """Read the color for a given Material 3 color role.
@@ -369,12 +455,17 @@ def _scheme_from_palettes(
     tertiary: TonalPalette,
     neutral: TonalPalette,
     error: TonalPalette,
+    success: TonalPalette,
+    warning: TonalPalette,
+    info: TonalPalette,
     is_dark: bool,
 ) -> ColorScheme:
     """Assemble one :class:`ColorScheme` from tonal palettes for a mode.
 
     The tone each role reads follows the Material 3 light/dark mapping (e.g.
-    primary is tone 40 light / 80 dark, surface is tone 99 light / 10 dark).
+    primary is tone 40 light / 80 dark, surface is tone 99 light / 10 dark). The
+    H4 status families (success / warning / info) follow the same tone mapping as
+    the ``error`` family.
 
     Args:
         primary: The primary tonal palette.
@@ -382,6 +473,9 @@ def _scheme_from_palettes(
         tertiary: The tertiary tonal palette.
         neutral: The neutral tonal palette (surfaces, background, outline).
         error: The error tonal palette.
+        success: The success status tonal palette (H4).
+        warning: The warning status tonal palette (H4).
+        info: The info status tonal palette (H4).
         is_dark: Whether to assemble the dark scheme.
 
     Returns:
@@ -405,6 +499,18 @@ def _scheme_from_palettes(
             on_error=error.tone(20),
             error_container=error.tone(30),
             on_error_container=error.tone(90),
+            success=success.tone(80),
+            on_success=success.tone(20),
+            success_container=success.tone(30),
+            on_success_container=success.tone(90),
+            warning=warning.tone(80),
+            on_warning=warning.tone(20),
+            warning_container=warning.tone(30),
+            on_warning_container=warning.tone(90),
+            info=info.tone(80),
+            on_info=info.tone(20),
+            info_container=info.tone(30),
+            on_info_container=info.tone(90),
             background=neutral.tone(10),
             on_background=neutral.tone(90),
             surface=neutral.tone(10),
@@ -434,6 +540,18 @@ def _scheme_from_palettes(
         on_error=error.tone(100),
         error_container=error.tone(90),
         on_error_container=error.tone(10),
+        success=success.tone(40),
+        on_success=success.tone(100),
+        success_container=success.tone(90),
+        on_success_container=success.tone(10),
+        warning=warning.tone(40),
+        on_warning=warning.tone(100),
+        warning_container=warning.tone(90),
+        on_warning_container=warning.tone(10),
+        info=info.tone(40),
+        on_info=info.tone(100),
+        info_container=info.tone(90),
+        on_info_container=info.tone(10),
         background=neutral.tone(99),
         on_background=neutral.tone(10),
         surface=neutral.tone(99),
@@ -450,6 +568,18 @@ def _scheme_from_palettes(
 
 #: The default Material 3 error key color (M3 baseline red).
 _DEFAULT_ERROR_SEED: Color = Color(r=179, g=38, b=30, a=1.0)
+
+#: The default H4 success key color (a balanced green, ``#16a34a``). Overridable
+#: like :data:`_DEFAULT_ERROR_SEED` via ``success_seed``.
+_DEFAULT_SUCCESS_SEED: Color = Color(r=22, g=163, b=74, a=1.0)
+
+#: The default H4 warning key color (an amber, ``#d97706``). Overridable via
+#: ``warning_seed``.
+_DEFAULT_WARNING_SEED: Color = Color(r=217, g=119, b=6, a=1.0)
+
+#: The default H4 info key color (a blue, ``#2563eb``). Overridable via
+#: ``info_seed``.
+_DEFAULT_INFO_SEED: Color = Color(r=37, g=99, b=235, a=1.0)
 
 
 def _rotate_hue(seed: Color, degrees: float, *, desaturate: float = 1.0) -> Color:
@@ -480,13 +610,19 @@ def color_schemes_from_seed(
     secondary_seed: Color | None = None,
     tertiary_seed: Color | None = None,
     error_seed: Color | None = None,
+    success_seed: Color | None = None,
+    warning_seed: Color | None = None,
+    info_seed: Color | None = None,
 ) -> ColorSchemes:
     """Generate the light + dark Material 3 schemes from a brand seed color.
 
     By default the secondary and tertiary key colors are derived by rotating the
     seed hue (M3 derives related palettes from one seed); a researcher can
     override any of them to hand-pick a brand accent. The neutral palette is the
-    desaturated seed so surfaces carry a hint of the brand tint, as M3 does.
+    desaturated seed so surfaces carry a hint of the brand tint, as M3 does. The
+    H4 status families (success / warning / info) use fixed semantic seeds
+    (green / amber / blue) so a "success" surface reads green regardless of the
+    brand hue, and are overridable like the error seed.
 
     Args:
         seed: The primary brand/key color.
@@ -496,6 +632,12 @@ def color_schemes_from_seed(
             the seed hue rotated ``+60°``.
         error_seed: Override key color for the error palette; defaults to the
             Material 3 baseline red.
+        success_seed: Override key color for the success palette (H4); defaults
+            to :data:`_DEFAULT_SUCCESS_SEED` (green).
+        warning_seed: Override key color for the warning palette (H4); defaults
+            to :data:`_DEFAULT_WARNING_SEED` (amber).
+        info_seed: Override key color for the info palette (H4); defaults to
+            :data:`_DEFAULT_INFO_SEED` (blue).
 
     Returns:
         The light/dark scheme pair derived from the seed.
@@ -511,6 +653,15 @@ def color_schemes_from_seed(
     error = tonal_palette_from_seed(
         error_seed if error_seed is not None else _DEFAULT_ERROR_SEED
     )
+    success = tonal_palette_from_seed(
+        success_seed if success_seed is not None else _DEFAULT_SUCCESS_SEED
+    )
+    warning = tonal_palette_from_seed(
+        warning_seed if warning_seed is not None else _DEFAULT_WARNING_SEED
+    )
+    info = tonal_palette_from_seed(
+        info_seed if info_seed is not None else _DEFAULT_INFO_SEED
+    )
     return ColorSchemes(
         light=_scheme_from_palettes(
             primary=primary,
@@ -518,6 +669,9 @@ def color_schemes_from_seed(
             tertiary=tertiary,
             neutral=neutral,
             error=error,
+            success=success,
+            warning=warning,
+            info=info,
             is_dark=False,
         ),
         dark=_scheme_from_palettes(
@@ -526,6 +680,9 @@ def color_schemes_from_seed(
             tertiary=tertiary,
             neutral=neutral,
             error=error,
+            success=success,
+            warning=warning,
+            info=info,
             is_dark=True,
         ),
     )
@@ -871,6 +1028,9 @@ class TokenSet(BaseModel):
         secondary_seed: Color | None = None,
         tertiary_seed: Color | None = None,
         error_seed: Color | None = None,
+        success_seed: Color | None = None,
+        warning_seed: Color | None = None,
+        info_seed: Color | None = None,
     ) -> TokenSet:
         """Build a token set from a brand seed color with M3 default scales.
 
@@ -879,6 +1039,9 @@ class TokenSet(BaseModel):
             secondary_seed: Override key color for the secondary palette.
             tertiary_seed: Override key color for the tertiary palette.
             error_seed: Override key color for the error palette.
+            success_seed: Override key color for the success status palette (H4).
+            warning_seed: Override key color for the warning status palette (H4).
+            info_seed: Override key color for the info status palette (H4).
 
         Returns:
             A token set with schemes derived from the seed and default M3
@@ -890,6 +1053,9 @@ class TokenSet(BaseModel):
                 secondary_seed=secondary_seed,
                 tertiary_seed=tertiary_seed,
                 error_seed=error_seed,
+                success_seed=success_seed,
+                warning_seed=warning_seed,
+                info_seed=info_seed,
             )
         )
 

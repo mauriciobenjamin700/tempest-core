@@ -22,6 +22,10 @@ class ProgressBar(Widget):
             ``indeterminate`` is set).
         indeterminate: When ``True``, render a looping bar with no fixed value
             (work of unknown duration).
+        color_scheme: The Material 3 role family the renderer paints the bar's
+            accent (the filled track) with — one of the design-system color
+            schemes. The engine carries the prop; the renderer resolves the
+            accent against the active theme (H4).
     """
 
     value: float = Field(
@@ -36,6 +40,11 @@ class ProgressBar(Widget):
         description="When ``True``, render a looping bar with no fixed value (work of "
         "unknown duration).",
     )
+    color_scheme: str = Field(
+        default="primary",
+        description="The Material 3 role family the renderer paints the bar's accent "
+        "with.",
+    )
 
 
 class Spinner(Widget):
@@ -44,10 +53,19 @@ class Spinner(Widget):
     Attributes:
         size: The indicator's diameter in logical pixels, or ``None`` for the
             renderer default.
+        color_scheme: The Material 3 role family the renderer paints the spinner's
+            accent with — one of the design-system color schemes. The engine
+            carries the prop; the renderer resolves the accent against the active
+            theme (H4).
     """
 
     size: float | None = Field(
         default=None,
         description="The indicator's diameter in logical pixels, or ``None`` for the "
         "renderer default.",
+    )
+    color_scheme: str = Field(
+        default="primary",
+        description="The Material 3 role family the renderer paints the spinner's "
+        "accent with.",
     )

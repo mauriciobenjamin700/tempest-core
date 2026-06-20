@@ -6,6 +6,71 @@ versioning.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-06-20
+
+### Added
+
+- **H4 styled data-display & feedback kit** (Trilho H, phase H4) — the
+  data-display/feedback half of the design system. Fully additive and
+  backward-compatible; **no new `Style` field** (`len(Style.model_fields)` stays
+  41) — status flows through `color_scheme`, not a `Style` field.
+  - **Status color families (H4a).** Three new Material 3 role *families* —
+    `success` / `warning` / `info` — added to the token model:
+    - 12 new `ColorRole` members (`SUCCESS`/`ON_SUCCESS`/`SUCCESS_CONTAINER`/
+      `ON_SUCCESS_CONTAINER`, same for `WARNING` and `INFO`).
+    - 16 new `ColorScheme` fields for those roles. They default to `None` and a
+      `model_validator` back-fills any left unset from the matching `error` role,
+      so every pre-H4 `ColorScheme(...)` constructor and pinned scheme JSON keeps
+      validating.
+    - Fixed semantic seeds beside `_DEFAULT_ERROR_SEED`: `_DEFAULT_SUCCESS_SEED`
+      (`#16a34a` green), `_DEFAULT_WARNING_SEED` (`#d97706` amber),
+      `_DEFAULT_INFO_SEED` (`#2563eb` blue), threaded through
+      `color_schemes_from_seed` / `_scheme_from_palettes` (light + dark) and
+      overridable via `success_seed` / `warning_seed` / `info_seed` on
+      `color_schemes_from_seed` / `TokenSet.from_seed` / `Theme.from_seed`.
+    - **A1 contrast fix.** A saturated status role on white can fail WCAG-AA
+      (verified: success solid = 3.02, warning = 4.0). The subtle status surfaces
+      therefore use the **container** treatment (`*_container` / `on_*_container`,
+      ~13.7 contrast), not the raw role on white. Tests assert AA on the pairs the
+      resolvers actually emit for every status scheme, in light and dark.
+  - **Resolvers (H4b).** New pure sibling resolvers in `variants.py`, reusing the
+    H1 helpers (`_scheme_roles`, `_CONTAINER_ON_ROLE`, `_apply_state`,
+    `resolve_size`):
+    - `BadgeVariant` enum (`SOLID`/`SUBTLE`/`OUTLINE`) +
+      `resolve_badge_variant(*, variant, size, color_scheme, theme, state,
+      platform_dark_mode, media) -> Style` + `resolve_badge_variant_states` +
+      `BADGE_DENSITY`. Solid → role + on-role; subtle → container + on-container
+      (AA-safe); outline → transparent + role border. Pill radius, compact
+      padding, label-scale font.
+    - `AlertVariant` enum (`SUBTLE`/`SOLID`/`LEFT_ACCENT`/`TOP_ACCENT`) +
+      `resolve_alert_variant(*, variant, color_scheme="info", theme, padding_step,
+      radius_step, platform_dark_mode, media) -> Style` (stateless, like a
+      surface). Subtle (default) → container pair; solid → role pair; left/top
+      accent → subtle fill + a 4px directional `SideBorder` in the saturated role
+      (the renderers mirror the physical side under RTL).
+    - ProgressBar/Spinner reuse the slider-track look; SegmentedControl reuses
+      `resolve_variant` (active = solid, rest = ghost); Rating reads the role
+      directly — no new resolvers added for those.
+    - `VALID_COLOR_SCHEMES` widened to include `success` / `warning` / `info`.
+  - **Components (H4c).**
+    - New `Alert` (icon glyph + title + body + optional dismiss; the block
+      sibling of `Banner`, via `resolve_alert_variant`), `Stat` (label + value +
+      status-tinted up/down delta), `ProgressStepper` (wizard/progress stepper
+      with active/done/pending step colors from tokens — named to avoid colliding
+      with the numeric `Stepper`), and `Tag` (a closed, non-selectable `Chip`
+      preset using the subtle badge).
+    - Re-themed (dropped hard-coded hexes, resolve from theme): `Badge`
+      (`resolve_badge_variant` + `variant`/`size`/`color_scheme`; legacy `tone`
+      mapped onto `color_scheme`), `Banner` (`resolve_alert_variant` + legacy
+      `tone`), `Avatar` (`color_scheme` → container pair), `EmptyState` (muted
+      tokens + theme spacing), `SegmentedControl` (`resolve_variant`), `Rating`
+      (`color_scheme` → star role), `Chip` (`resolve_badge_variant`).
+    - `color_scheme` prop added to `ProgressBar` / `Spinner` / `Tooltip` /
+      `Skeleton` (the renderers paint the accent; the engine carries the prop).
+  - New public surface re-exported from `style.py`, `variants.py`,
+    `components/__init__.py` and the package root `tempest_core/__init__.py`
+    (+ `__all__`).
+
 ## [0.5.0] - 2026-06-20
 
 ### Added

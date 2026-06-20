@@ -49,6 +49,8 @@ Transversais baked into the resolution:
 from __future__ import annotations
 
 from tempest_core.style import (
+    AlertVariant,
+    BadgeVariant,
     Border,
     CardVariant,
     Color,
@@ -88,6 +90,10 @@ __all__ = [
     "resolve_slider_variant",
     "resolve_slider_variant_states",
     "resolve_surface_variant",
+    "BADGE_DENSITY",
+    "resolve_badge_variant",
+    "resolve_badge_variant_states",
+    "resolve_alert_variant",
 ]
 
 #: The ``color_scheme`` names a styled component accepts. Each names a Material 3
@@ -95,7 +101,16 @@ __all__ = [
 #: (surface / on-surface / outline) so a low-chroma, neutral treatment is
 #: available without inventing a role.
 VALID_COLOR_SCHEMES: frozenset[str] = frozenset(
-    {"primary", "secondary", "tertiary", "error", "neutral"}
+    {
+        "primary",
+        "secondary",
+        "tertiary",
+        "error",
+        "neutral",
+        "success",
+        "warning",
+        "info",
+    }
 )
 
 #: The Material 3 minimum touch-target size in logical pixels. Every resolved
@@ -183,6 +198,12 @@ def _scheme_roles(color_scheme: str) -> tuple[ColorRole, ColorRole, ColorRole]:
         return ColorRole.TERTIARY, ColorRole.ON_TERTIARY, ColorRole.TERTIARY_CONTAINER
     if color_scheme == "error":
         return ColorRole.ERROR, ColorRole.ON_ERROR, ColorRole.ERROR_CONTAINER
+    if color_scheme == "success":
+        return ColorRole.SUCCESS, ColorRole.ON_SUCCESS, ColorRole.SUCCESS_CONTAINER
+    if color_scheme == "warning":
+        return ColorRole.WARNING, ColorRole.ON_WARNING, ColorRole.WARNING_CONTAINER
+    if color_scheme == "info":
+        return ColorRole.INFO, ColorRole.ON_INFO, ColorRole.INFO_CONTAINER
     # "neutral" — the surface roles give a low-chroma treatment without a
     # dedicated neutral role family.
     return ColorRole.ON_SURFACE, ColorRole.SURFACE, ColorRole.SURFACE_VARIANT
@@ -1185,6 +1206,9 @@ _CONTAINER_ON_ROLE: dict[ColorRole, ColorRole] = {
     ColorRole.SECONDARY_CONTAINER: ColorRole.ON_SECONDARY_CONTAINER,
     ColorRole.TERTIARY_CONTAINER: ColorRole.ON_TERTIARY_CONTAINER,
     ColorRole.ERROR_CONTAINER: ColorRole.ON_ERROR_CONTAINER,
+    ColorRole.SUCCESS_CONTAINER: ColorRole.ON_SUCCESS_CONTAINER,
+    ColorRole.WARNING_CONTAINER: ColorRole.ON_WARNING_CONTAINER,
+    ColorRole.INFO_CONTAINER: ColorRole.ON_INFO_CONTAINER,
 }
 
 
@@ -1285,4 +1309,298 @@ def resolve_surface_variant(
         radius=radius,
         padding=padding,
         shadow=_elevation_shadow(level),
+    )
+
+
+# --------------------------------------------------------------------------- #
+# H4 — status families (badge / tag / chip) + (alert / banner)
+# --------------------------------------------------------------------------- #
+
+
+#: Per-``size`` density for a badge / tag / chip: ``(vertical_padding,
+#: horizontal_padding, typography_role)`` in logical pixels. A badge is a compact
+#: pill — far smaller padding than a button — and reads a label-scale type role.
+BADGE_DENSITY: dict[Size, tuple[float, float, str]] = {
+    Size.XS: (1.0, 6.0, "label_small"),
+    Size.SM: (2.0, 8.0, "label_small"),
+    Size.MD: (3.0, 10.0, "label_medium"),
+    Size.LG: (4.0, 12.0, "label_large"),
+}
+
+
+def _status_container_pair(
+    *,
+    color_scheme: str,
+    scheme: ColorScheme,
+) -> tuple[Color, Color]:
+    """Resolve the ``(container, on_container)`` colors for a status family.
+
+    This is the WCAG-AA-safe pairing the subtle badge/alert treatments paint
+    with (H4a): a saturated status role on white can fail AA (verified: success
+    ``role40`` on white = 3.02), so the subtle look uses the tonal ``*_container``
+    fill with its legible ``on_*_container`` content, which clears AA by
+    construction in the M3 tonal palette. ``"neutral"`` uses the surface roles.
+
+    Args:
+        color_scheme: A validated color-scheme name.
+        scheme: The resolved :class:`~tempest_core.tokens.ColorScheme`.
+
+    Returns:
+        The ``(container_fill, on_container_content)`` colors.
+    """
+    if color_scheme == "neutral":
+        return scheme.role(ColorRole.SURFACE_VARIANT), scheme.role(ColorRole.ON_SURFACE)
+    _role, _on_role, container = _scheme_roles(color_scheme)
+    on_container = _CONTAINER_ON_ROLE[container]
+    return scheme.role(container), scheme.role(on_container)
+
+
+def resolve_badge_variant(
+    *,
+    variant: BadgeVariant,
+    size: ResponsiveSize,
+    color_scheme: str,
+    theme: Theme,
+    state: ComponentState = ComponentState.DEFAULT,
+    platform_dark_mode: bool = False,
+    media: MediaQueryData | None = None,
+) -> Style:
+    """Resolve a badge / tag / chip's props into a Material 3 ``Style``.
+
+    The H4 sibling of :func:`resolve_variant` for the **badge family** (badge,
+    tag, chip). A badge is a compact, pill-shaped status label:
+
+    * ``solid`` fills with the role color and its legible ``on_*`` content;
+    * ``subtle`` fills with the tonal ``*_container`` role and its
+      ``on_*_container`` content — the WCAG-AA-safe subtle look (a saturated
+      status role on white can fail AA, see :func:`_status_container_pair`);
+    * ``outline`` is a transparent background with the role color as both content
+      and a same-color border.
+
+    Padding is compact (:data:`BADGE_DENSITY`), the radius is the M3 ``full`` pill
+    sentinel, and the font comes from a label-scale typography role. An optional
+    interaction ``state`` layers a Material 3 state layer (for a tappable chip);
+    a presentational badge resolves at ``DEFAULT``. Pure and deterministic, like
+    every resolver.
+
+    Args:
+        variant: The badge treatment (solid / subtle / outline).
+        size: The density size — a single :class:`~tempest_core.style.Size` or a
+            per-breakpoint map resolved against the theme + ``media``.
+        color_scheme: The Material 3 role family to paint with — one of
+            :data:`VALID_COLOR_SCHEMES` (incl. the H4 status families
+            ``"success"`` / ``"warning"`` / ``"info"``).
+        theme: The theme whose tokens supply colors, spacing, shape and type.
+        state: The interaction state to resolve for (default
+            :attr:`~tempest_core.style.ComponentState.DEFAULT`).
+        platform_dark_mode: The OS dark-mode flag, used to resolve the scheme.
+        media: The current viewport snapshot for a responsive ``size``.
+
+    Returns:
+        The resolved, frozen ``Style`` for the requested badge combination.
+
+    Raises:
+        ValueError: If ``color_scheme`` is unknown or the ``size`` map is
+            malformed.
+    """
+    if color_scheme not in VALID_COLOR_SCHEMES:
+        raise ValueError(
+            f"unknown color_scheme: {color_scheme!r}; "
+            f"expected one of {sorted(VALID_COLOR_SCHEMES)}"
+        )
+
+    concrete_size = resolve_size(size, theme, media=media)
+    scheme = theme.scheme(platform_dark_mode=platform_dark_mode)
+    role, on_role, _container = _scheme_roles(color_scheme)
+    role_color = scheme.role(role)
+    on_role_color = scheme.role(on_role)
+    container, on_container = _status_container_pair(
+        color_scheme=color_scheme, scheme=scheme
+    )
+    surface_color = scheme.role(ColorRole.SURFACE)
+
+    vpad, hpad, font_role = BADGE_DENSITY[concrete_size]
+    typography = theme.typography(font_role)
+    padding = Edge.symmetric(vertical=vpad, horizontal=hpad)
+    radius = theme.radius("full")
+
+    if variant is BadgeVariant.SOLID:
+        base = Style(
+            background=role_color,
+            color=on_role_color,
+            padding=padding,
+            radius=radius,
+            font_size=typography.font_size,
+            font_weight=typography.font_weight,
+        )
+    elif variant is BadgeVariant.SUBTLE:
+        base = Style(
+            background=container,
+            color=on_container,
+            padding=padding,
+            radius=radius,
+            font_size=typography.font_size,
+            font_weight=typography.font_weight,
+        )
+    else:  # OUTLINE
+        base = Style(
+            background=surface_color,
+            color=role_color,
+            border=Border(width=1.0, color=role_color),
+            padding=padding,
+            radius=radius,
+            font_size=typography.font_size,
+            font_weight=typography.font_weight,
+        )
+
+    return _apply_state(
+        base,
+        state=state,
+        role_color=role_color,
+        on_role_color=on_role_color,
+        surface_color=surface_color,
+    )
+
+
+def resolve_badge_variant_states(
+    *,
+    variant: BadgeVariant,
+    size: ResponsiveSize,
+    color_scheme: str,
+    theme: Theme,
+    platform_dark_mode: bool = False,
+    media: MediaQueryData | None = None,
+) -> dict[ComponentState, Style]:
+    """Resolve the full per-state style table for a badge variant + size + scheme.
+
+    The H4 badge-family counterpart of :func:`resolve_variant_states` — the seam
+    a tappable chip's renderer consumes to apply the matching state layer on real
+    pointer/focus events.
+
+    Args:
+        variant: The badge treatment (solid / subtle / outline).
+        size: The density size (single or responsive map).
+        color_scheme: The Material 3 role family — one of
+            :data:`VALID_COLOR_SCHEMES`.
+        theme: The theme whose tokens supply the values.
+        platform_dark_mode: The OS dark-mode flag.
+        media: The current viewport snapshot for a responsive ``size``.
+
+    Returns:
+        A mapping of every :class:`~tempest_core.style.ComponentState` to its
+        resolved ``Style``.
+
+    Raises:
+        ValueError: If ``color_scheme`` is unknown or the ``size`` map is
+            malformed.
+    """
+    return {
+        state: resolve_badge_variant(
+            variant=variant,
+            size=size,
+            color_scheme=color_scheme,
+            theme=theme,
+            state=state,
+            platform_dark_mode=platform_dark_mode,
+            media=media,
+        )
+        for state in ComponentState
+    }
+
+
+def resolve_alert_variant(
+    *,
+    variant: AlertVariant,
+    color_scheme: str = "info",
+    theme: Theme,
+    padding_step: str = "md",
+    radius_step: str = "sm",
+    platform_dark_mode: bool = False,
+    media: MediaQueryData | None = None,
+) -> Style:
+    """Resolve an alert / banner's props into a Material 3 ``Style``.
+
+    The H4 sibling of :func:`resolve_surface_variant` for the **alert family**
+    (alert, banner). An alert is a **non-interactive** block-level status surface
+    — there is no ``state`` parameter and no per-state table (like a surface):
+
+    * ``subtle`` fills with the tonal ``*_container`` role and its
+      ``on_*_container`` content — the WCAG-AA-safe default;
+    * ``solid`` fills with the saturated role color and its ``on_*`` content;
+    * ``left_accent`` / ``top_accent`` are a subtle fill plus a thick directional
+      :class:`~tempest_core.style.SideBorder` (4px) in the saturated role on the
+      leading / top edge respectively. The renderers mirror the start/end side
+      under RTL via their existing ``rtl`` flag (the same idiom as the field
+      ``flushed`` bottom border).
+
+    Padding and radius come from the spacing / shape scales via the
+    ``padding_step`` / ``radius_step`` token-step names. Pure and deterministic.
+
+    Args:
+        variant: The alert treatment (subtle / solid / left_accent / top_accent).
+        color_scheme: The Material 3 role family to tint with — one of
+            :data:`VALID_COLOR_SCHEMES` (default ``"info"``; the H4 status
+            families ``"success"`` / ``"warning"`` / ``"info"`` are the typical
+            choices).
+        theme: The theme whose tokens supply colors, spacing and shape.
+        padding_step: The spacing-scale step name for the alert padding (default
+            ``"md"``).
+        radius_step: The shape-scale step name for the corner radius (default
+            ``"sm"``).
+        platform_dark_mode: The OS dark-mode flag, used to resolve the scheme.
+        media: The current viewport snapshot (accepted for signature parity; an
+            alert has no responsive size).
+
+    Returns:
+        The resolved, frozen ``Style`` for the requested alert combination.
+
+    Raises:
+        ValueError: If ``color_scheme`` is unknown.
+    """
+    if color_scheme not in VALID_COLOR_SCHEMES:
+        raise ValueError(
+            f"unknown color_scheme: {color_scheme!r}; "
+            f"expected one of {sorted(VALID_COLOR_SCHEMES)}"
+        )
+
+    scheme = theme.scheme(platform_dark_mode=platform_dark_mode)
+    role, on_role, _container = _scheme_roles(color_scheme)
+    role_color = scheme.role(role)
+    on_role_color = scheme.role(on_role)
+    container, on_container = _status_container_pair(
+        color_scheme=color_scheme, scheme=scheme
+    )
+    padding = Edge.all(theme.space(padding_step))
+    radius = theme.radius(radius_step)
+
+    if variant is AlertVariant.SOLID:
+        return Style(
+            background=role_color,
+            color=on_role_color,
+            padding=padding,
+            radius=radius,
+        )
+    if variant is AlertVariant.SUBTLE:
+        return Style(
+            background=container,
+            color=on_container,
+            padding=padding,
+            radius=radius,
+        )
+    # LEFT_ACCENT / TOP_ACCENT — subtle fill + a thick directional rule in the
+    # saturated role. ``left`` is the leading edge in LTR; the renderers mirror
+    # the physical left/right side under RTL via their existing ``rtl`` flag (the
+    # same start/end mirroring they apply to the field FLUSHED bottom border and
+    # to padding/margin sides).
+    accent_border = Border(width=4.0, color=role_color)
+    if variant is AlertVariant.LEFT_ACCENT:
+        side = SideBorder(left=accent_border)
+    else:  # TOP_ACCENT
+        side = SideBorder(top=accent_border)
+    return Style(
+        background=container,
+        color=on_container,
+        border=side,
+        padding=padding,
+        radius=radius,
     )

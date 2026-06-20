@@ -168,6 +168,10 @@ class Tooltip(Widget):
     Attributes:
         message: The hint text.
         child: Optional widget the tooltip annotates.
+        color_scheme: The Material 3 role family the renderer paints the tooltip
+            surface with — one of the design-system color schemes. The engine
+            carries the prop; the renderer resolves the accent against the active
+            theme (H4).
     """
 
     child_field_names: ClassVar[frozenset[str]] = frozenset({"child"})
@@ -176,6 +180,11 @@ class Tooltip(Widget):
     message: str = Field(description="The hint text.")
     child: Widget | None = Field(
         default=None, description="Optional widget the tooltip annotates."
+    )
+    color_scheme: str = Field(
+        default="neutral",
+        description="The Material 3 role family the renderer paints the tooltip "
+        "surface with.",
     )
 
     def child_nodes(self) -> list[Widget]:

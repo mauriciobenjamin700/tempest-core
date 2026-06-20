@@ -13,9 +13,17 @@ vendoring a copy.
 
 from tempest_core.animation import AnimationController
 from tempest_core.components import (
+    Alert,
+    Badge,
+    Banner,
+    Chip,
+    EmptyState,
     HStack,
+    ProgressStepper,
+    Stat,
     StyledContainer,
     Surface,
+    Tag,
     VStack,
 )
 from tempest_core.core import (
@@ -41,6 +49,8 @@ from tempest_core.core import (
 from tempest_core.i18n import Locale, t, translate
 from tempest_core.navigation import NavStack, Route, routes_from_path
 from tempest_core.style import (
+    AlertVariant,
+    BadgeVariant,
     CardVariant,
     ComponentState,
     FieldVariant,
@@ -68,9 +78,13 @@ from tempest_core.tokens import (
     tonal_palette_from_seed,
 )
 from tempest_core.variants import (
+    BADGE_DENSITY,
     SELECTION_SIZE,
     SLIDER_SIZE,
     ResponsiveSize,
+    resolve_alert_variant,
+    resolve_badge_variant,
+    resolve_badge_variant_states,
     resolve_field_variant,
     resolve_field_variant_states,
     resolve_selection_variant,
@@ -95,11 +109,18 @@ from tempest_core.widgets import (
 )
 
 __all__ = [
+    "Alert",
+    "AlertVariant",
     "AnimationController",
     "App",
+    "BADGE_DENSITY",
+    "Badge",
+    "BadgeVariant",
+    "Banner",
     "Breakpoints",
     "Button",
     "CardVariant",
+    "Chip",
     "Column",
     "ColorRole",
     "ColorScheme",
@@ -108,6 +129,7 @@ __all__ = [
     "ComponentState",
     "Container",
     "ElevationScale",
+    "EmptyState",
     "FieldVariant",
     "HStack",
     "IconButton",
@@ -120,6 +142,7 @@ __all__ = [
     "OverlayEntry",
     "Patch",
     "Path",
+    "ProgressStepper",
     "Remove",
     "Reorder",
     "Replace",
@@ -133,9 +156,11 @@ __all__ = [
     "Size",
     "Spacer",
     "SpacingScale",
+    "Stat",
     "Style",
     "StyledContainer",
     "Surface",
+    "Tag",
     "Text",
     "Theme",
     "ThemeMode",
@@ -156,6 +181,9 @@ __all__ = [
     "diff_scene",
     "event_catalog",
     "introspect",
+    "resolve_alert_variant",
+    "resolve_badge_variant",
+    "resolve_badge_variant_states",
     "resolve_field_variant",
     "resolve_field_variant_states",
     "resolve_selection_variant",

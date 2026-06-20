@@ -61,11 +61,56 @@ card = Card(                                  # (1)!
     (`elevation=0..5`) — **nenhum campo novo de `Style`** foi adicionado. Por isso
     `len(Style.model_fields)` permanece o mesmo.
 
+## Exibição de dados e feedback (H4)
+
+A camada de **feedback** adiciona três famílias de cor de status do Material 3 —
+`success` / `warning` / `info` — e dois novos resolvers: `resolve_badge_variant`
+(badge / tag / chip) e `resolve_alert_variant` (alert / banner). Alertas, como
+superfícies, são **não interativos** (sem tabela de estados).
+
+```python
+from tempest_core import Alert, Badge, Stat
+from tempest_core.style import AlertVariant, BadgeVariant
+
+ok = Badge(label="LIVE", variant=BadgeVariant.SUBTLE, color_scheme="success")  # (1)!
+note = Alert(                                  # (2)!
+    title="Salvo",
+    body="Suas alterações estão no ar.",
+    variant=AlertVariant.LEFT_ACCENT,
+    color_scheme="success",
+)
+metric = Stat(label="Usuários ativos", value="1.2k", delta="+12%", delta_up=True)  # (3)!
+```
+
+1. Badge: `SOLID` (papel + on-papel), `SUBTLE` (par `*_container` / `on_*_container`,
+   seguro para AA) ou `OUTLINE` (transparente + borda no papel).
+2. Alert: `SUBTLE` (padrão), `SOLID`, `LEFT_ACCENT` / `TOP_ACCENT` (preenchimento
+   sutil + uma borda direcional grossa no papel saturado; os renderizadores
+   espelham o lado físico sob RTL).
+3. `Stat` tinge o delta com o papel `success` (alta) ou `error` (baixa).
+
+!!! warning "Contraste: por que `SUBTLE` usa o par `*_container`"
+    Um papel de status saturado sobre branco pode **falhar no WCAG-AA** (medido:
+    `success` sólido = 3.02). Por isso as superfícies de status sutis usam o par
+    tonal `*_container` / `on_*_container` (≈13.7 de contraste), que passa no AA.
+    As famílias de status são geradas de sementes semânticas fixas (verde / âmbar /
+    azul) e continuam **aditivas + retrocompatíveis** — nenhum campo novo de
+    `Style`.
+
+`Alert` / `Stat` / `ProgressStepper` são novos componentes; `Tag` é um preset
+estático (não selecionável) de `Chip`. `Badge` / `Banner` / `Avatar` /
+`EmptyState` / `SegmentedControl` / `Rating` / `Chip` foram re-tematizados sobre os
+tokens, e os call sites antigos continuam funcionando (o `tone` legado mapeia para
+`color_scheme`).
+
 ## Recapitulando
 
 - `variant` / `size` / `color_scheme` descrevem a intenção; o resolver puro produz
   o `Style`.
 - Superfícies (`Card` / `Surface` / `resolve_surface_variant`) são não
   interativas: elevação, preenchimento tonal ou borda.
+- Feedback (`Badge` / `Alert` / `Stat` / `resolve_badge_variant` /
+  `resolve_alert_variant`) traz as famílias de status `success` / `warning` /
+  `info` — subtle usa o par `*_container` para AA.
 - `HStack` / `VStack` aceitam `gap` por passo de token; `Spacer` é um flex.
 - Um `style=` explícito sempre é mesclado por cima.

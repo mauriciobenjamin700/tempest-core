@@ -16,6 +16,10 @@ navigation building blocks:
   :class:`AddressInput` (pair them with :mod:`tempestroid.validators`).
 * Media pickers — :class:`ImagePicker`, :class:`DocumentPicker` and the circular
   :class:`ImagePicture` profile-photo picker.
+* Data display & feedback (Trilho H4) — :class:`Badge` / :class:`Tag` /
+  :class:`Chip`, :class:`Banner` / :class:`Alert`, :class:`Stat`,
+  :class:`ProgressStepper` and :class:`EmptyState`, themed via the H4 status
+  families (success / warning / info) and the badge/alert variant resolvers.
 
 The default theme tokens and :func:`merge_style` (used to overlay a caller's
 ``style`` onto a component default) are re-exported for building custom
@@ -50,7 +54,14 @@ from tempest_core.components.brforms import (
 from tempest_core.components.cards import Avatar, Card, Divider, ListTile
 from tempest_core.components.dates import Calendar, Clock
 from tempest_core.components.disclosure import Accordion
-from tempest_core.components.feedback import Badge, Banner, EmptyState
+from tempest_core.components.feedback import (
+    Alert,
+    Badge,
+    Banner,
+    EmptyState,
+    ProgressStepper,
+    Stat,
+)
 from tempest_core.components.fields import SearchBar, Stepper
 from tempest_core.components.layout import (
     Grid,
@@ -71,6 +82,7 @@ from tempest_core.components.selection import (
     RadioGroup,
     Rating,
     SegmentedControl,
+    Tag,
 )
 from tempest_core.components.surface import StyledContainer, Surface
 from tempest_core.components.table import DataTable, Table, TableCell, TableRow
@@ -100,6 +112,7 @@ __all__ = [
     "SegmentedControl",
     "RadioGroup",
     "Chip",
+    "Tag",
     "Rating",
     "Stepper",
     "SearchBar",
@@ -114,8 +127,11 @@ __all__ = [
     "ImagePicture",
     "Accordion",
     "Banner",
+    "Alert",
     "EmptyState",
     "Badge",
+    "Stat",
+    "ProgressStepper",
     "Table",
     "DataTable",
     "TableCell",

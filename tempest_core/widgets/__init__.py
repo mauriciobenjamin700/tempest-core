@@ -130,6 +130,7 @@ from tempest_core.widgets.layout import (
     SafeArea,
     SafeAreaEdge,
     ScrollView,
+    Spacer,
     Stack,
     Wrap,
 )
@@ -230,6 +231,7 @@ __all__ = [
     "ScrollView",
     "SafeArea",
     "SafeAreaEdge",
+    "Spacer",
     "Stack",
     "Wrap",
     "PageView",

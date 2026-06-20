@@ -111,4 +111,5 @@ nav:
       - "Tutorial — build & diff": tutorial/index.md
       - "1. State and rebuilds": tutorial/state.md
       - "2. Styling": tutorial/style.md
+      - "3. Design system": tutorial/design-system.md
   - API reference: reference.md

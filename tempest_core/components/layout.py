@@ -1,9 +1,11 @@
-"""Page-structure components: ``Sidebar``, ``Scaffold`` and ``Grid``.
+"""Page-structure components: ``Sidebar``, ``Scaffold``, ``Grid``, stacks.
 
 ``Sidebar`` is a fixed-width lateral column; ``Scaffold`` is the page frame that
 stacks an app bar, a growing body and an optional bottom bar; ``Grid`` lays
-children out in a fixed number of equal-width columns. All lower to primitive
-``Column``/``Row``/``Container`` trees.
+children out in a fixed number of equal-width columns; ``HStack``/``VStack`` are
+thin SwiftUI-style stacks over ``Row``/``Column`` with a token-step ``gap`` and
+alignment ergonomics. All lower to primitive ``Column``/``Row``/``Container``
+trees.
 """
 
 from __future__ import annotations
@@ -11,10 +13,11 @@ from __future__ import annotations
 from pydantic import Field
 
 from tempest_core.components.base import BACKGROUND, ON_SURFACE, SURFACE, merge_style
-from tempest_core.style import Edge, Style
+from tempest_core.style import AlignItems, Edge, JustifyContent, Style
+from tempest_core.theme import Theme
 from tempest_core.widgets import Column, Component, Container, Row, ScrollView, Widget
 
-__all__ = ["Sidebar", "Scaffold", "Grid"]
+__all__ = ["Sidebar", "Scaffold", "Grid", "HStack", "VStack"]
 
 
 def _no_widgets() -> list[Widget]:
@@ -139,9 +142,14 @@ class Grid(Component):
     columns: int = Field(
         default=2, description="The number of columns per row (clamped to at least 1)."
     )
-    gap: float = Field(
+    gap: float | str = Field(
         default=8.0,
-        description="The spacing between cells, both horizontally and vertically.",
+        description='The spacing between cells — a token-step name (``"md"``) or a '
+        "float in logical pixels.",
+    )
+    theme: Theme = Field(
+        default_factory=Theme,
+        description="The design-system theme whose spacing scale resolves a step name.",
     )
 
     def render(self) -> Widget:
@@ -153,6 +161,7 @@ class Grid(Component):
             with empty cells to keep alignment.
         """
         columns = max(1, self.columns)
+        gap = self.theme.space(self.gap) if isinstance(self.gap, str) else self.gap
         rows: list[Widget] = []
         for start in range(0, len(self.children), columns):
             chunk = self.children[start : start + columns]
@@ -169,11 +178,122 @@ class Grid(Component):
                     Container(style=Style(grow=1.0), key=f"cell-pad-{start}-{pad}")
                 )
             rows.append(
-                Row(style=Style(gap=self.gap), children=cells, key=f"grid-row-{start}")
+                Row(style=Style(gap=gap), children=cells, key=f"grid-row-{start}")
             )
-        default = Style(gap=self.gap)
+        default = Style(gap=gap)
         return Column(
             key=self.key or "grid",
             style=merge_style(default, self.style),
             children=rows,
+        )
+
+
+class HStack(Component):
+    """A horizontal stack: children laid left-to-right with a token-step gap.
+
+    A thin, SwiftUI-style ergonomic wrapper over the primitive
+    :class:`~tempest_core.widgets.Row`. The ``gap`` is a **token-step** name
+    (``"md"`` / ``"lg"``) resolved against the theme's spacing scale, or a raw
+    float for backward-compatibility; ``align`` (cross-axis) and ``justify``
+    (main-axis) are surfaced directly so the common layout is one call. An
+    explicit ``style`` is merged on top of the resolved defaults.
+
+    Attributes:
+        children: The ordered child widgets, laid left-to-right.
+        gap: The spacing between children — a token-step name (``"md"``) or a
+            float in logical pixels.
+        align: The cross-axis (vertical) alignment of the children.
+        justify: The main-axis (horizontal) distribution of the children.
+        theme: The design-system theme whose spacing scale resolves the gap.
+    """
+
+    children: list[Widget] = Field(
+        description="The ordered child widgets, laid left-to-right.",
+        default_factory=_no_widgets,
+    )
+    gap: float | str = Field(
+        default="md",
+        description="Spacing between children — a token-step name or a float.",
+    )
+    align: AlignItems | None = Field(
+        default=AlignItems.CENTER,
+        description="The cross-axis (vertical) alignment of the children.",
+    )
+    justify: JustifyContent | None = Field(
+        default=None,
+        description="The main-axis (horizontal) distribution of the children.",
+    )
+    theme: Theme = Field(
+        default_factory=Theme,
+        description="The design-system theme whose spacing scale resolves the gap.",
+    )
+
+    def render(self) -> Widget:
+        """Lower the horizontal stack into a primitive ``Row``.
+
+        Returns:
+            A ``Row`` carrying the resolved gap/align/justify, with any explicit
+            ``style`` merged on top.
+        """
+        gap = self.theme.space(self.gap) if isinstance(self.gap, str) else self.gap
+        default = Style(gap=gap, align=self.align, justify=self.justify)
+        return Row(
+            key=self.key or "hstack",
+            style=merge_style(default, self.style),
+            children=self.children,
+        )
+
+
+class VStack(Component):
+    """A vertical stack: children laid top-to-bottom with a token-step gap.
+
+    The vertical sibling of :class:`HStack` over the primitive
+    :class:`~tempest_core.widgets.Column`. The ``gap`` is a **token-step** name
+    resolved against the theme's spacing scale (or a raw float); ``align``
+    (cross-axis, horizontal) and ``justify`` (main-axis, vertical) are surfaced
+    directly. An explicit ``style`` is merged on top.
+
+    Attributes:
+        children: The ordered child widgets, laid top-to-bottom.
+        gap: The spacing between children — a token-step name (``"md"``) or a
+            float in logical pixels.
+        align: The cross-axis (horizontal) alignment of the children.
+        justify: The main-axis (vertical) distribution of the children.
+        theme: The design-system theme whose spacing scale resolves the gap.
+    """
+
+    children: list[Widget] = Field(
+        description="The ordered child widgets, laid top-to-bottom.",
+        default_factory=_no_widgets,
+    )
+    gap: float | str = Field(
+        default="md",
+        description="Spacing between children — a token-step name or a float.",
+    )
+    align: AlignItems | None = Field(
+        default=None,
+        description="The cross-axis (horizontal) alignment of the children.",
+    )
+    justify: JustifyContent | None = Field(
+        default=None,
+        description="The main-axis (vertical) distribution of the children.",
+    )
+    theme: Theme = Field(
+        default_factory=Theme,
+        description="The design-system theme whose spacing scale resolves the gap.",
+    )
+
+    def render(self) -> Widget:
+        """Lower the vertical stack into a primitive ``Column``.
+
+        Returns:
+            A ``Column`` carrying the resolved gap/align/justify, with any
+            explicit ``style`` merged on top.
+        """
+        gap = self.theme.space(self.gap) if isinstance(self.gap, str) else self.gap
+        default = Style(gap=gap, align=self.align, justify=self.justify)
+        return Column(
+            key=self.key or "vstack",
+            style=merge_style(default, self.style),
+            children=self.children,
         )

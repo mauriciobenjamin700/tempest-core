@@ -6,6 +6,45 @@ versioning.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-06-20
+
+### Added
+
+- **H3 styled surface & layout kit** (Trilho H, phase H3) — the surface/layout
+  half of the design system, anchored on a new pure resolver and a new variant
+  enum, fully additive and backward-compatible:
+  - `CardVariant` enum (`style.py`): `ELEVATED` (surface bg + elevation shadow,
+    no border), `FILLED` (surface-variant bg, no shadow/border), `OUTLINED`
+    (surface bg + outline border, no shadow).
+  - `resolve_surface_variant(*, variant, color_scheme="neutral", theme,
+    elevation=None, padding_step="md", radius_step="md", platform_dark_mode,
+    media) -> Style` (`variants.py`) — the H3 sibling of `resolve_variant` for
+    the **surface family** (card / surface / panel / accordion header). A surface
+    is non-interactive, so there is **no** `state` param and **no** `*_states`
+    sibling. `"neutral"` paints with the plain `SURFACE`/`ON_SURFACE` roles; a
+    role family (`"primary"`, …) tints with the tonal `*_container` /
+    `on_*_container` roles. Padding/radius come from the named token steps.
+  - **Elevation → `Shadow`** — Material 3 elevation is realized as a `Shadow`
+    mapped from the level (`_ELEVATION_SHADOW`, levels 0–5 → blur/offset, painted
+    in `ELEVATION_SHADOW_COLOR`), **not** a new `Style` field. `elevation=`
+    overrides the per-variant default level.
+  - New components: `Surface` (un-padded themed box the cards build on) and
+    `StyledContainer` (token-step padding over the IR `Container`, keeping the
+    primitive pure) in `components/surface.py`; `HStack`/`VStack` (SwiftUI-style
+    stacks over `Row`/`Column` with a token-step `gap`) in `components/layout.py`.
+  - New leaf widget: `Spacer` (a flex spacer baking `grow` into its style;
+    registered in `WIDGET_TYPES`/introspection).
+- **Themed content components** — `Card` (now `variant`/`color_scheme`/
+  `elevation` via `resolve_surface_variant`), `Divider` (M3 `OUTLINE_VARIANT`
+  color, token-step thickness), `ListTile` (on-surface theme roles, token
+  spacing, Semantics preserved), `Accordion` (themed header surface) and `Grid`
+  (token-step `gap`). Every existing call site still works.
+
+### Notes
+
+- **No new `Style` field** — `len(Style.model_fields)` stays `41` (pinned by the
+  H1/H2/H3 sentinel + the tempestroid conformance suite).
+
 ## [0.4.0] - 2026-06-20
 
 ### Added

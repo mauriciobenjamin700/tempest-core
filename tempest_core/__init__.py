@@ -23,6 +23,7 @@ from tempest_core.components import (
     Stat,
     StyledContainer,
     Surface,
+    Tabs,
     Tag,
     VStack,
 )
@@ -160,6 +161,7 @@ __all__ = [
     "Style",
     "StyledContainer",
     "Surface",
+    "Tabs",
     "Tag",
     "Text",
     "Theme",

@@ -11,6 +11,14 @@ navigation building blocks:
 * :class:`Sidebar` — fixed-width lateral column.
 * :class:`Scaffold` — page frame stacking app bar, body and bottom bar.
 * :class:`NavBar` — selectable navigation/tab bar with an active index.
+* :class:`Tabs` — a tab strip whose active tab carries an underline indicator
+  (Trilho H5).
+* Navigation skin (Trilho H5) — :class:`AppBar` / :class:`Footer` /
+  :class:`Sidebar` / :class:`Drawer` resolve their bar/panel surface via the H3
+  surface resolver; :class:`NavBar` / :class:`Tabs` paint the active item with the
+  H4 badge resolver (accent pill) and the H1 variant resolver (ghost); ``Burger``
+  lowers to an :class:`IconButton`; :class:`SearchBar` resolves its field via the
+  H2 field resolver — all themed via tokens, no new ``Style`` field.
 * Brazilian form inputs — :class:`EmailInput`, :class:`PasswordInput`,
   :class:`PhoneInput`, :class:`CPFInput`, :class:`CNPJInput` and the grouped
   :class:`AddressInput` (pair them with :mod:`tempestroid.validators`).
@@ -76,7 +84,7 @@ from tempest_core.components.mediainputs import (
     ImagePicture,
 )
 from tempest_core.components.menu import Burger, Drawer
-from tempest_core.components.navigation import Breadcrumb, NavBar
+from tempest_core.components.navigation import Breadcrumb, NavBar, Tabs
 from tempest_core.components.selection import (
     Chip,
     RadioGroup,
@@ -100,6 +108,7 @@ __all__ = [
     "Surface",
     "StyledContainer",
     "NavBar",
+    "Tabs",
     "Breadcrumb",
     "Burger",
     "Drawer",

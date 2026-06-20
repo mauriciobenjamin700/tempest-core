@@ -12,16 +12,32 @@ from typing import Any
 from pydantic import Field
 
 from tempest_core.components.base import (
-    BACKGROUND,
     MUTED,
     ON_SURFACE,
-    SURFACE,
     merge_style,
 )
-from tempest_core.style import AlignItems, Edge, FontWeight, Style
+from tempest_core.icons import Icons
+from tempest_core.style import (
+    AlignItems,
+    CardVariant,
+    Edge,
+    FieldVariant,
+    FontWeight,
+    Size,
+    Style,
+    Variant,
+)
+from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.variants import (
+    ResponsiveSize,
+    merge_styles,
+    resolve_field_variant,
+    resolve_surface_variant,
+)
 from tempest_core.widgets import (
     Button,
     Component,
+    IconButton,
     Input,
     Row,
     Text,
@@ -136,12 +152,28 @@ class Stepper(Component):
 class SearchBar(Component):
     """A search field: a controlled text ``Input`` with an optional clear button.
 
+    Themed (Trilho H5): the inner ``Input`` style is resolved from the Chakra-style
+    ``field_variant`` / ``color_scheme`` / ``size`` props via
+    :func:`~tempest_core.variants.resolve_field_variant`; the outer pill carries a
+    surface treatment from :func:`~tempest_core.variants.resolve_surface_variant`;
+    and the clear button lowers to an :class:`~tempest_core.widgets.IconButton`
+    (the curated :data:`~tempest_core.icons.Icons.X` glyph, ``GHOST`` variant).
+    Backward-compatible: ``SearchBar(value=…, on_change=…)`` is a filled neutral
+    search pill.
+
     Attributes:
         value: The current query text (controlled).
         placeholder: The empty-field hint.
         on_change: Called with the validated ``TextChangeEvent`` on each edit.
         on_clear: Optional handler for the clear button; the button shows only
             when set and the field is non-empty.
+        field_variant: The inner input's field treatment (outline / filled /
+            flushed).
+        color_scheme: The Material 3 role family the focus tint paints with.
+        size: The density size — a single :class:`~tempest_core.style.Size` or a
+            per-breakpoint map.
+        theme: The design-system theme whose tokens resolve the field and pill.
+        media: Optional viewport snapshot used to resolve a responsive ``size``.
     """
 
     value: str = Field(default="", description="The current query text (controlled).")
@@ -154,48 +186,82 @@ class SearchBar(Component):
         description="Optional handler for the clear button; the button shows only when "
         "set and the field is non-empty.",
     )
+    field_variant: FieldVariant = Field(
+        default=FieldVariant.FILLED,
+        description="The inner input's field treatment (outline / filled / flushed).",
+    )
+    color_scheme: str = Field(
+        default="neutral",
+        description="The Material 3 role family the focus tint paints with.",
+    )
+    size: ResponsiveSize = Field(
+        default=Size.MD,
+        description="The density size — a single ``Size`` or a per-breakpoint map.",
+    )
+    theme: Theme = Field(
+        default_factory=Theme,
+        description="The design-system theme whose tokens resolve the field and pill.",
+    )
+    media: MediaQueryData | None = Field(
+        default=None,
+        description="Optional viewport snapshot for a responsive ``size``.",
+    )
 
     def render(self) -> Widget:
         """Lower the search bar into a primitive row.
 
         Returns:
-            A ``Row`` of the input and, when applicable, a clear button.
+            A ``Row`` of the input and, when applicable, a clear icon button,
+            carrying the resolved surface pill style.
         """
+        field_style = merge_styles(
+            resolve_field_variant(
+                variant=self.field_variant,
+                size=self.size,
+                color_scheme=self.color_scheme,
+                theme=self.theme,
+                media=self.media,
+            ),
+            Style(grow=1.0),
+        )
         children: list[Widget] = [
             Input(
                 value=self.value,
                 placeholder=self.placeholder,
                 on_change=self.on_change,
                 key="search-input",
-                style=Style(
-                    grow=1.0,
-                    padding=Edge.symmetric(vertical=10.0, horizontal=14.0),
-                    radius=8.0,
-                    background=BACKGROUND,
-                    color=ON_SURFACE,
-                ),
+                style=field_style,
             )
         ]
         if self.on_clear is not None and self.value:
             children.append(
-                Button(
-                    label="✕",
+                IconButton(
+                    icon=Icons.X,
                     on_click=self.on_clear,
+                    variant=Variant.GHOST,
+                    color_scheme=self.color_scheme,
+                    size=self.size,
+                    label="clear",
+                    theme=self.theme,
+                    media=self.media,
                     key="search-clear",
-                    style=Style(
-                        padding=Edge.symmetric(vertical=10.0, horizontal=14.0),
-                        radius=8.0,
-                        background=MUTED,
-                        color=ON_SURFACE,
-                    ),
                 )
             )
-        default = Style(
-            gap=8.0,
-            align=AlignItems.CENTER,
-            padding=Edge.all(8.0),
-            radius=10.0,
-            background=SURFACE,
+        surface = resolve_surface_variant(
+            variant=CardVariant.FILLED,
+            color_scheme=self.color_scheme,
+            theme=self.theme,
+            padding_step="none",
+            radius_step="lg",
+            media=self.media,
+        )
+        default = merge_styles(
+            surface,
+            Style(
+                gap=8.0,
+                align=AlignItems.CENTER,
+                padding=Edge.all(8.0),
+            ),
         )
         return Row(
             key=self.key or "searchbar",

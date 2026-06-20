@@ -103,6 +103,49 @@ estático (não selecionável) de `Chip`. `Badge` / `Banner` / `Avatar` /
 tokens, e os call sites antigos continuam funcionando (o `tone` legado mapeia para
 `color_scheme`).
 
+## Navegação (H5)
+
+Barras, painéis e abas também são **temáticos** — e sem nenhum resolver, enum ou
+campo de `Style` novo: a fase H5 é um **skin pass** que reaproveita os resolvers
+que você já conhece. As barras (`AppBar` / `Footer` / `Sidebar` / `Drawer`) usam o
+resolver de superfície do H3; o item ativo da `NavBar` é uma pílula de destaque
+(resolver de badge do H4) e os inativos são *ghost* (resolver de variante do H1).
+
+```python
+from tempest_core import Tabs
+from tempest_core.components import AppBar, NavBar, SearchBar
+
+bar = AppBar(title="Caixa de entrada", color_scheme="primary")  # (1)!
+busca = SearchBar(value="", on_change=lambda e: None, color_scheme="primary")  # (2)!
+nav = NavBar(items=["Início", "Busca", "Você"], active=0, on_select=lambda i: None)  # (3)!
+abas = Tabs(tabs=["Resumo", "Atividade"], active=0, on_select=lambda i: None)  # (4)!
+```
+
+1. `AppBar` / `Footer` / `CollapsingAppBar` resolvem a superfície (fundo + sombra
+   de elevação + container tingido) via `resolve_surface_variant`; a cor do título
+   é o conteúdo legível da superfície. O `variant` (`ELEVATED` / `FILLED` /
+   `OUTLINED`) e o `color_scheme` valem aqui também.
+2. `SearchBar` resolve o `Input` interno com `resolve_field_variant` (campo
+   conduzido pelo foco), a pílula externa com `resolve_surface_variant` e o botão
+   de limpar vira um `IconButton` (o ícone `x`).
+3. `NavBar`: o item ativo é uma **pílula de destaque** (`resolve_badge_variant`
+   `SOLID`) no papel do `color_scheme`; os inativos são `resolve_variant` `GHOST`
+   (neutro). `on_select` recebe o índice tocado.
+4. `Tabs` (componente novo): cada aba é um texto `GHOST`; a aba ativa toma a cor do
+   papel **mais um indicador de sublinhado** — uma fina `SideBorder` inferior no
+   papel de destaque (apenas campos existentes de `Border` / `SideBorder`).
+
+!!! tip "Ergonomia idêntica à dos botões"
+    Todo componente de navegação aceita `color_scheme` / `size` / `theme` / `media`
+    e um `style=` explícito por cima — a mesma API do `Button`. Os call sites
+    antigos (`AppBar(title=…)`, `NavBar(items=…, …)`, `Burger(on_click=…)`)
+    continuam funcionando sem mudança: os props do H5 são aditivos.
+
+!!! note "`Burger` agora é um `IconButton`"
+    `Burger` baixa para um `IconButton` com o ícone `menu` (`GHOST`), reaproveitando
+    o sistema de ícones. O antigo prop `glyph` permanece como **fallback
+    descontinuado** (retrocompatível), mas o botão sempre mostra o ícone real.
+
 ## Recapitulando
 
 - `variant` / `size` / `color_scheme` descrevem a intenção; o resolver puro produz
@@ -112,5 +155,8 @@ tokens, e os call sites antigos continuam funcionando (o `tone` legado mapeia pa
 - Feedback (`Badge` / `Alert` / `Stat` / `resolve_badge_variant` /
   `resolve_alert_variant`) traz as famílias de status `success` / `warning` /
   `info` — subtle usa o par `*_container` para AA.
+- Navegação (`AppBar` / `NavBar` / `Tabs` / `SearchBar`) é um skin pass: barras via
+  resolver de superfície, item ativo via pílula de destaque, abas com sublinhado —
+  sem resolver/enum/campo novo.
 - `HStack` / `VStack` aceitam `gap` por passo de token; `Spacer` é um flex.
 - Um `style=` explícito sempre é mesclado por cima.

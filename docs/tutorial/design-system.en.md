@@ -99,6 +99,49 @@ metric = Stat(label="Active users", value="1.2k", delta="+12%", delta_up=True)  
 `SegmentedControl` / `Rating` / `Chip` are re-themed off the tokens, and the old
 call sites keep working (the legacy `tone` maps onto `color_scheme`).
 
+## Navigation (H5)
+
+Bars, panels and tabs are **themed** too — and with no new resolver, enum or
+`Style` field: phase H5 is a **skin pass** that reuses the resolvers you already
+know. The bars (`AppBar` / `Footer` / `Sidebar` / `Drawer`) use the H3 surface
+resolver; the active `NavBar` item is an accent pill (the H4 badge resolver) and
+the inactive ones are *ghost* (the H1 variant resolver).
+
+```python
+from tempest_core import Tabs
+from tempest_core.components import AppBar, NavBar, SearchBar
+
+bar = AppBar(title="Inbox", color_scheme="primary")  # (1)!
+search = SearchBar(value="", on_change=lambda e: None, color_scheme="primary")  # (2)!
+nav = NavBar(items=["Home", "Search", "You"], active=0, on_select=lambda i: None)  # (3)!
+tabs = Tabs(tabs=["Overview", "Activity"], active=0, on_select=lambda i: None)  # (4)!
+```
+
+1. `AppBar` / `Footer` / `CollapsingAppBar` resolve the surface (background +
+   elevation shadow + tinted container) via `resolve_surface_variant`; the title
+   color is the legible surface content. `variant` (`ELEVATED` / `FILLED` /
+   `OUTLINED`) and `color_scheme` apply here too.
+2. `SearchBar` resolves the inner `Input` with `resolve_field_variant` (a
+   focus-led field), the outer pill with `resolve_surface_variant`, and the clear
+   button lowers to an `IconButton` (the `x` icon).
+3. `NavBar`: the active item is an **accent pill** (`resolve_badge_variant`
+   `SOLID`) in the `color_scheme` role; the inactive ones are `resolve_variant`
+   `GHOST` (neutral). `on_select` receives the tapped index.
+4. `Tabs` (new component): each tab is a `GHOST` text; the active tab takes the
+   role color **plus an underline indicator** — a thin bottom `SideBorder` in the
+   accent role (existing `Border` / `SideBorder` fields only).
+
+!!! tip "Same ergonomics as buttons"
+    Every navigation component accepts `color_scheme` / `size` / `theme` / `media`
+    and an explicit `style=` on top — the same API as `Button`. The old call sites
+    (`AppBar(title=…)`, `NavBar(items=…, …)`, `Burger(on_click=…)`) keep working
+    unchanged: the H5 props are additive.
+
+!!! note "`Burger` is now an `IconButton`"
+    `Burger` lowers to an `IconButton` with the `menu` icon (`GHOST`), reusing the
+    icon system. The old `glyph` prop stays as a **deprecated** backward-compat
+    fallback, but the button always shows the real icon.
+
 ## Recap
 
 - `variant` / `size` / `color_scheme` describe the intent; the pure resolver
@@ -108,5 +151,8 @@ call sites keep working (the legacy `tone` maps onto `color_scheme`).
 - Feedback (`Badge` / `Alert` / `Stat` / `resolve_badge_variant` /
   `resolve_alert_variant`) brings the `success` / `warning` / `info` status
   families — subtle uses the `*_container` pair for AA.
+- Navigation (`AppBar` / `NavBar` / `Tabs` / `SearchBar`) is a skin pass: bars via
+  the surface resolver, active item via the accent pill, tabs with an underline —
+  no new resolver/enum/field.
 - `HStack` / `VStack` accept a token-step `gap`; `Spacer` is a flex.
 - An explicit `style=` is always merged on top.

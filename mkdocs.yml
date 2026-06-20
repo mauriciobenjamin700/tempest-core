@@ -9,6 +9,11 @@ repo_name: mauriciobenjamin700/tempest-core
 edit_uri: edit/main/docs/
 copyright: Copyright &copy; 2026 Mauricio Benjamin — MIT License
 
+# Build hooks (core MkDocs, no extra dependency). llms_txt generates
+# llms.txt + llms-full.txt at the site root (llmstxt.org convention) for AIs/LLMs.
+hooks:
+  - docs/hooks/llms_txt.py
+
 theme:
   name: material
   language: pt-BR

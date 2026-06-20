@@ -34,7 +34,7 @@ from tempest_core.core import (
 )
 from tempest_core.i18n import Locale, t, translate
 from tempest_core.navigation import NavStack, Route, routes_from_path
-from tempest_core.style import Style
+from tempest_core.style import ComponentState, Size, Style, Variant
 from tempest_core.theme import MediaQueryData, Theme, ThemeMode
 from tempest_core.tokens import (
     Breakpoints,
@@ -53,6 +53,12 @@ from tempest_core.tokens import (
     color_schemes_from_seed,
     default_tokens,
     tonal_palette_from_seed,
+)
+from tempest_core.variants import (
+    ResponsiveSize,
+    resolve_size,
+    resolve_variant,
+    resolve_variant_states,
 )
 from tempest_core.widgets import (
     Button,
@@ -74,6 +80,7 @@ __all__ = [
     "ColorScheme",
     "ColorSchemes",
     "Component",
+    "ComponentState",
     "Container",
     "ElevationScale",
     "Insert",
@@ -88,10 +95,12 @@ __all__ = [
     "Remove",
     "Reorder",
     "Replace",
+    "ResponsiveSize",
     "Route",
     "Row",
     "Scene",
     "ShapeScale",
+    "Size",
     "SpacingScale",
     "Style",
     "Text",
@@ -103,6 +112,7 @@ __all__ = [
     "TypographyScale",
     "TypographyToken",
     "Update",
+    "Variant",
     "Widget",
     "build",
     "build_scene",
@@ -112,6 +122,9 @@ __all__ = [
     "diff_scene",
     "event_catalog",
     "introspect",
+    "resolve_size",
+    "resolve_variant",
+    "resolve_variant_states",
     "routes_from_path",
     "t",
     "tonal_palette_from_seed",

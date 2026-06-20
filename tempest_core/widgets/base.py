@@ -322,6 +322,15 @@ class Widget(BaseModel):
     #: without inspecting concrete field types. Leaf widgets keep it empty.
     child_field_names: ClassVar[frozenset[str]] = frozenset()
 
+    #: Names of fields that are build-time-only inputs and must NOT become IR
+    #: props — e.g. a styled widget's ``theme``/``media``, which are consumed at
+    #: build time to bake the resolved ``style`` and would otherwise bloat every
+    #: node (and the serialized bridge payload) with the full token set. The
+    #: reconciler skips these when constructing :class:`~tempest_core.core.ir.Node`
+    #: props; the resolved ``style`` already captures their effect (so the diff
+    #: still reacts correctly to a theme change via the style prop).
+    prop_exclude_names: ClassVar[frozenset[str]] = frozenset()
+
     #: Maps a handler prop name to the event type its payload is validated into
     #: at the boundary. Used by introspection to publish each widget's event
     #: contract. Widgets that emit events override this.

@@ -6,6 +6,36 @@ versioning.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-19
+
+### Added
+
+- **Chakra-style variant API** (Trilho H, phase H1) — a new `variants.py` module
+  with `resolve_variant(*, variant, size, color_scheme, theme, state, …) -> Style`,
+  the pure, renderer-agnostic resolution that maps the Chakra-ergonomics props
+  onto a concrete Material 3 `Style` against the H0 tokens. `resolve_variant_states`
+  returns the full per-state style table (default/hover/pressed/disabled/focus) —
+  the seam the Qt/Compose renderers consume to apply M3 state layers on real
+  pointer/focus events. `resolve_size` resolves a responsive `size` map
+  (`{"base": Size.SM, "md": Size.LG}`) against the theme breakpoints + an optional
+  `MediaQueryData`. `merge_styles` is a re-validating `Style` merge that keeps
+  nested value objects typed.
+- **New style enums** in `style.py` — `Variant` (solid/outline/ghost/link),
+  `Size` (xs/sm/md/lg) and `ComponentState` (default/hover/pressed/disabled/focus).
+- **`Color.blend`/`Color.overlay`/`Color.with_alpha`** — alpha-composite helpers so
+  M3 state layers (hover @ 8%, pressed @ 12%, focus, disabled @ 38% content) can be
+  computed purely.
+- **Styled `Button`** — now accepts `variant` (default `SOLID`), `size` (default
+  `MD`, single or responsive map), `color_scheme` (default `"primary"`), plus a
+  `theme`/`media`; it resolves its base `Style` via `resolve_variant` (an explicit
+  `style` is merged on top) and exposes `state_styles()`. Backward-compatible:
+  `Button(label=...)` and a plain `style=` keep working; `Semantics`/`focusable`/
+  `focus_order` are preserved. Touch target is held ≥ 48dp for every size; WCAG-AA
+  contrast on solid/outline content-vs-fill is preserved by the tokens.
+- Re-exported the new public surface from `tempest_core` (`Variant`, `Size`,
+  `ComponentState`, `ResponsiveSize`, `resolve_variant`, `resolve_variant_states`,
+  `resolve_size`).
+
 ## [0.2.0] - 2026-06-19
 
 ### Added

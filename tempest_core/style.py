@@ -30,6 +30,9 @@ __all__ = [
     "Curve",
     "Position",
     "StackAlign",
+    "Variant",
+    "Size",
+    "ComponentState",
     "Color",
     "Edge",
     "Border",
@@ -335,6 +338,81 @@ class StackAlign(StrEnum):
     BOTTOM_END = "bottom-end"
 
 
+class Variant(StrEnum):
+    """The visual variant of a styled component (Chakra-style ``variant``).
+
+    Picks the emphasis/treatment a component renders with, mapped to a Material 3
+    container/outline/text treatment by the H1 variant resolver
+    (:func:`~tempest_core.variants.resolve_variant`). The ``color_scheme`` then
+    chooses *which* color family the treatment paints with.
+
+    Attributes:
+        SOLID: A filled treatment — the role color as the background with its
+            legible ``on_*`` content (M3 *filled* button).
+        OUTLINE: A transparent background with the role color as both the
+            content and a same-color border (M3 *outlined* button).
+        GHOST: A transparent background with the role color as the content and
+            no border — the lowest-emphasis tappable treatment (M3 *text*
+            button without underline).
+        LINK: A transparent, inline text treatment — the role color as the
+            content with an underline, no padding-heavy hit area styling
+            beyond the enforced touch target.
+    """
+
+    SOLID = "solid"
+    OUTLINE = "outline"
+    GHOST = "ghost"
+    LINK = "link"
+
+
+class Size(StrEnum):
+    """The density size of a styled component (Chakra-style ``size``).
+
+    Picks the padding/typography density the H1 variant resolver
+    (:func:`~tempest_core.variants.resolve_variant`) applies. The hit target is
+    **always** kept at or above the Material 3 minimum (48dp) regardless of size
+    — a smaller ``size`` reduces visual density (padding, font) but never the
+    accessible touch area.
+
+    Attributes:
+        XS: The most compact density.
+        SM: A compact density.
+        MD: The default, comfortable density.
+        LG: A spacious, high-emphasis density.
+    """
+
+    XS = "xs"
+    SM = "sm"
+    MD = "md"
+    LG = "lg"
+
+
+class ComponentState(StrEnum):
+    """The interaction state a component is resolved for (M3 state layers).
+
+    The H1 variant resolver (:func:`~tempest_core.variants.resolve_variant`)
+    layers a Material 3 *state layer* over the base style for the non-default
+    states: ``HOVER`` and ``PRESSED`` overlay the content color at the M3 state
+    opacities, ``FOCUS`` adds a focus indicator, and ``DISABLED`` drops content
+    to the M3 disabled opacity. The renderers apply the per-state styles in
+    response to real pointer/focus events.
+
+    Attributes:
+        DEFAULT: The resting state, with no state layer applied.
+        HOVER: The pointer-hover state (M3 hover state layer, ~8% overlay).
+        PRESSED: The pressed/active state (M3 pressed state layer, ~12% overlay).
+        DISABLED: The disabled state (M3 disabled content/container opacities).
+        FOCUS: The keyboard/accessibility focus state (focus indicator + the M3
+            focus state layer).
+    """
+
+    DEFAULT = "default"
+    HOVER = "hover"
+    PRESSED = "pressed"
+    DISABLED = "disabled"
+    FOCUS = "focus"
+
+
 class Color(BaseModel):
     """An RGBA color.
 
@@ -353,6 +431,10 @@ class Color(BaseModel):
         rgba: Build a color from explicit channel values (classmethod).
         to_hex: Render the color as ``#RRGGBB`` (or ``#RRGGBBAA`` when translucent).
         to_rgba_string: Render the color as a CSS-style ``rgba(...)`` string.
+        with_alpha: Return a copy with a replaced alpha channel.
+        blend: Linearly interpolate toward another color by a factor.
+        overlay: Composite a translucent color on top of this one (M3 state
+            layers).
     """
 
     model_config = ConfigDict(frozen=True)
@@ -455,6 +537,71 @@ class Color(BaseModel):
             The ``rgba(r, g, b, a)`` representation.
         """
         return f"rgba({self.r}, {self.g}, {self.b}, {self.a})"
+
+    def with_alpha(self, alpha: float) -> Color:
+        """Return a copy of this color with a replaced alpha channel.
+
+        Args:
+            alpha: The new alpha, 0.0 (transparent) to 1.0 (opaque). Clamped
+                into range.
+
+        Returns:
+            A new color with the same RGB channels and the given alpha.
+        """
+        clamped = min(1.0, max(0.0, alpha))
+        return Color(r=self.r, g=self.g, b=self.b, a=clamped)
+
+    def blend(self, other: Color, t: float) -> Color:
+        """Linearly interpolate from this color toward ``other`` by ``t``.
+
+        Interpolates every channel — RGB and alpha — by the factor ``t``: at
+        ``t=0.0`` the result equals ``self``, at ``t=1.0`` it equals ``other``,
+        and intermediate values mix the two proportionally. ``t`` is clamped into
+        ``[0.0, 1.0]``.
+
+        Args:
+            other: The color to interpolate toward.
+            t: The interpolation factor, 0.0 (this color) to 1.0 (``other``).
+
+        Returns:
+            The interpolated color.
+        """
+        factor = min(1.0, max(0.0, t))
+
+        def _mix(a: int, b: int) -> int:
+            return round(a + (b - a) * factor)
+
+        return Color(
+            r=_mix(self.r, other.r),
+            g=_mix(self.g, other.g),
+            b=_mix(self.b, other.b),
+            a=self.a + (other.a - self.a) * factor,
+        )
+
+    def overlay(self, on: Color, opacity: float) -> Color:
+        """Alpha-composite this color over ``on`` at a given opacity.
+
+        Computes the *source-over* compositing of ``self`` (taken at ``opacity``)
+        on top of the opaque ``on`` color — the operation a Material 3 **state
+        layer** uses: a hover layer is the content color overlaid on the
+        background at ~8% opacity, pressed at ~12%, etc. The result is opaque
+        (the backdrop ``on`` is treated as fully opaque).
+
+        Args:
+            on: The backdrop color the state layer sits on (treated as opaque).
+            opacity: The state-layer opacity, 0.0 (no change) to 1.0 (fully
+                ``self``). Clamped into range.
+
+        Returns:
+            The composited, opaque color.
+        """
+        # ``on`` is the backdrop, ``self`` the layer at ``opacity``: the
+        # source-over result is simply a linear blend of the two RGB channels by
+        # the layer opacity, kept opaque.
+        clamped = min(1.0, max(0.0, opacity))
+        layer = self.with_alpha(1.0)
+        blended = on.with_alpha(1.0).blend(layer, clamped)
+        return blended.with_alpha(1.0)
 
 
 class Edge(BaseModel):

@@ -52,7 +52,13 @@ from tempest_core.components.dates import Calendar, Clock
 from tempest_core.components.disclosure import Accordion
 from tempest_core.components.feedback import Badge, Banner, EmptyState
 from tempest_core.components.fields import SearchBar, Stepper
-from tempest_core.components.layout import Grid, Scaffold, Sidebar
+from tempest_core.components.layout import (
+    Grid,
+    HStack,
+    Scaffold,
+    Sidebar,
+    VStack,
+)
 from tempest_core.components.mediainputs import (
     DocumentPicker,
     ImagePicker,
@@ -66,6 +72,7 @@ from tempest_core.components.selection import (
     Rating,
     SegmentedControl,
 )
+from tempest_core.components.surface import StyledContainer, Surface
 from tempest_core.components.table import DataTable, Table, TableCell, TableRow
 
 __all__ = [
@@ -76,6 +83,10 @@ __all__ = [
     "Sidebar",
     "Scaffold",
     "Grid",
+    "HStack",
+    "VStack",
+    "Surface",
+    "StyledContainer",
     "NavBar",
     "Breadcrumb",
     "Burger",

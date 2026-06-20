@@ -29,19 +29,34 @@ Components take Chakra-ergonomics props (`variant`/`size`/`color_scheme`) and a
 `theme`, and resolve a concrete Material 3 `Style` via pure resolvers in
 `variants.py` — `resolve_variant` (buttons), `resolve_field_variant` (text
 inputs / select / masked / autocomplete / pin), `resolve_selection_variant`
-(checkbox / switch) and `resolve_slider_variant` (sliders). Each ships a
-`*_states` sibling returning the per-state table (default/hover/pressed/disabled/
-focus) the renderers apply on real events. The touch target is held ≥ 48dp and
-WCAG-AA contrast is preserved. An explicit `style=` is always merged on top.
+(checkbox / switch), `resolve_slider_variant` (sliders) and `resolve_surface_variant`
+(cards / surfaces — H3). The interactive resolvers each ship a `*_states` sibling
+returning the per-state table (default/hover/pressed/disabled/focus) the renderers
+apply on real events; surfaces are non-interactive, so there is no state table. The
+touch target is held ≥ 48dp and WCAG-AA contrast is preserved. An explicit `style=`
+is always merged on top.
 
 ```python
-from tempest_core import IconButton, Theme
-from tempest_core.widgets import Input
+from tempest_core import CardVariant, IconButton, Theme
+from tempest_core.components import Card, HStack, Surface, VStack
+from tempest_core.widgets import Input, Spacer, Text
 from tempest_core.style import FieldVariant
 
 field = Input(value="", field_variant=FieldVariant.FILLED, color_scheme="primary")
 button = IconButton(icon="settings", color_scheme="primary", label="Open settings")
+
+# H3 styled surface & layout kit: cards/surfaces (elevated/filled/outlined) +
+# SwiftUI-style stacks with token-step gaps + a flex Spacer.
+card = Card(variant=CardVariant.OUTLINED, color_scheme="primary", children=[
+    HStack(gap="md", children=[Text(content="Title"), Spacer(), Text(content="42")]),
+])
 ```
+
+The H3 surface kit (`CardVariant`, `resolve_surface_variant`, `Surface`,
+`StyledContainer`, `HStack`/`VStack`, `Spacer`) realizes Material 3 elevation as a
+`Shadow` mapped from the M3 level (`elevation=0..5`) — **no new `Style` field**.
+`Card`/`Divider`/`ListTile`/`Accordion`/`Grid` are themed off the tokens, and the
+old call sites stay backward-compatible.
 
 ## Install
 

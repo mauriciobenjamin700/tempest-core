@@ -12,6 +12,12 @@ vendoring a copy.
 """
 
 from tempest_core.animation import AnimationController
+from tempest_core.components import (
+    HStack,
+    StyledContainer,
+    Surface,
+    VStack,
+)
 from tempest_core.core import (
     App,
     Insert,
@@ -34,7 +40,14 @@ from tempest_core.core import (
 )
 from tempest_core.i18n import Locale, t, translate
 from tempest_core.navigation import NavStack, Route, routes_from_path
-from tempest_core.style import ComponentState, FieldVariant, Size, Style, Variant
+from tempest_core.style import (
+    CardVariant,
+    ComponentState,
+    FieldVariant,
+    Size,
+    Style,
+    Variant,
+)
 from tempest_core.theme import MediaQueryData, Theme, ThemeMode
 from tempest_core.tokens import (
     Breakpoints,
@@ -65,6 +78,7 @@ from tempest_core.variants import (
     resolve_size,
     resolve_slider_variant,
     resolve_slider_variant_states,
+    resolve_surface_variant,
     resolve_variant,
     resolve_variant_states,
 )
@@ -75,6 +89,7 @@ from tempest_core.widgets import (
     Container,
     IconButton,
     Row,
+    Spacer,
     Text,
     Widget,
 )
@@ -84,6 +99,7 @@ __all__ = [
     "App",
     "Breakpoints",
     "Button",
+    "CardVariant",
     "Column",
     "ColorRole",
     "ColorScheme",
@@ -93,6 +109,7 @@ __all__ = [
     "Container",
     "ElevationScale",
     "FieldVariant",
+    "HStack",
     "IconButton",
     "Insert",
     "Locale",
@@ -114,11 +131,15 @@ __all__ = [
     "Scene",
     "ShapeScale",
     "Size",
+    "Spacer",
     "SpacingScale",
     "Style",
+    "StyledContainer",
+    "Surface",
     "Text",
     "Theme",
     "ThemeMode",
+    "VStack",
     "TokenRef",
     "TokenSet",
     "TonalPalette",
@@ -142,6 +163,7 @@ __all__ = [
     "resolve_size",
     "resolve_slider_variant",
     "resolve_slider_variant_states",
+    "resolve_surface_variant",
     "resolve_variant",
     "resolve_variant_states",
     "routes_from_path",

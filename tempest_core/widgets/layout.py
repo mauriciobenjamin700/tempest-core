@@ -5,8 +5,9 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import ClassVar
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
+from tempest_core.style import Style
 from tempest_core.widgets.base import PageChangeHandler, Widget
 from tempest_core.widgets.events import Event, PageChangeEvent
 
@@ -17,6 +18,7 @@ __all__ = [
     "ScrollView",
     "SafeArea",
     "SafeAreaEdge",
+    "Spacer",
     "Stack",
     "Wrap",
     "PageView",
@@ -129,6 +131,50 @@ class Container(Widget):
             A one-element list with the child, or an empty list.
         """
         return [self.child] if self.child is not None else []
+
+
+class Spacer(Widget):
+    """A flexible empty box that consumes free space along its parent's main axis.
+
+    The layout primitive for pushing siblings apart: dropped between two children
+    of a :class:`Row`/:class:`Column` (or an :class:`HStack`/:class:`VStack`), it
+    expands to fill the remaining space so the children are pushed to the ends.
+    It is a leaf with no children and renders nothing visible — only its
+    :attr:`~tempest_core.widgets.base.Widget.style` ``grow`` matters. When the
+    caller leaves ``grow`` unset, the spacer defaults to ``grow == 1.0`` (its
+    whole purpose); an explicit ``style`` with a different ``grow`` wins, so a
+    weighted spacer (``Style(grow=2.0)``) still works. The renderers realize it
+    as a stretchable empty box (Qt ``addStretch`` / a growing ``QWidget``; Compose
+    ``Modifier.weight``), using only the existing ``grow`` style field — no new
+    field is added.
+
+    Attributes:
+        flex: The flex weight the spacer grows by (defaults to ``1.0``); baked
+            into the node's ``style.grow`` unless an explicit ``style.grow`` is
+            already set.
+    """
+
+    flex: float = Field(
+        default=1.0,
+        gt=0.0,
+        description="The flex weight the spacer grows by (baked into ``style.grow``).",
+    )
+
+    @model_validator(mode="after")
+    def _bake_grow(self) -> Spacer:
+        """Bake the spacer's flex weight into ``style.grow`` when unset.
+
+        Mirrors the ``Wrap``/``Button`` baking idiom: the resolved ``style`` the
+        renderers consume always carries a ``grow`` so a ``Spacer`` stretches even
+        when the caller passes no ``style``. An explicit ``style.grow`` wins.
+
+        Returns:
+            The spacer with its ``style.grow`` resolved.
+        """
+        current = self.style if self.style is not None else Style()
+        if current.grow is None:
+            object.__setattr__(self, "style", current.merge(Style(grow=self.flex)))
+        return self
 
 
 class ScrollView(Widget):

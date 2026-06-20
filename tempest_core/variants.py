@@ -50,10 +50,12 @@ from __future__ import annotations
 
 from tempest_core.style import (
     Border,
+    CardVariant,
     Color,
     ComponentState,
     Edge,
     FieldVariant,
+    Shadow,
     SideBorder,
     Size,
     Style,
@@ -61,7 +63,7 @@ from tempest_core.style import (
     Variant,
 )
 from tempest_core.theme import MediaQueryData, Theme
-from tempest_core.tokens import ColorRole
+from tempest_core.tokens import ColorRole, ColorScheme
 
 __all__ = [
     "VALID_COLOR_SCHEMES",
@@ -73,6 +75,7 @@ __all__ = [
     "DISABLED_CONTAINER_OPACITY",
     "SELECTION_SIZE",
     "SLIDER_SIZE",
+    "ELEVATION_SHADOW_COLOR",
     "ResponsiveSize",
     "merge_styles",
     "resolve_size",
@@ -84,6 +87,7 @@ __all__ = [
     "resolve_selection_variant_states",
     "resolve_slider_variant",
     "resolve_slider_variant_states",
+    "resolve_surface_variant",
 ]
 
 #: The ``color_scheme`` names a styled component accepts. Each names a Material 3
@@ -1084,3 +1088,201 @@ def resolve_slider_variant_states(
         )
         for state in ComponentState
     }
+
+
+# --------------------------------------------------------------------------- #
+# H3 — surface family (card / surface / panel)
+# --------------------------------------------------------------------------- #
+
+
+#: The color a Material 3 elevation shadow is painted in — opaque black at a low
+#: alpha (M3 ambient/key shadows are a soft, near-black umbra). Renderers map the
+#: resulting :class:`~tempest_core.style.Shadow` to native elevation (Compose
+#: ``Modifier.shadow`` / Qt ``QGraphicsDropShadowEffect``).
+ELEVATION_SHADOW_COLOR: Color = Color(r=0, g=0, b=0, a=0.30)
+
+#: Maps a Material 3 elevation level (0-5) to the ``(blur, offset_y)`` of the
+#: :class:`~tempest_core.style.Shadow` that realizes it (D1: elevation is a
+#: ``Shadow`` mapped from the level, **not** a new ``Style`` field). Level ``0``
+#: emits no shadow; higher levels grow the blur and the downward offset, tracking
+#: the M3 elevation dp scale (0/1/3/6/8/12 dp).
+_ELEVATION_SHADOW: dict[int, tuple[float, float]] = {
+    0: (0.0, 0.0),
+    1: (3.0, 1.0),
+    2: (6.0, 2.0),
+    3: (8.0, 4.0),
+    4: (10.0, 6.0),
+    5: (12.0, 8.0),
+}
+
+#: The default elevation level per surface variant. ``elevated`` raises to level 1
+#: by default; ``filled``/``outlined`` are flush (level 0). An explicit
+#: ``elevation`` argument overrides this.
+_SURFACE_DEFAULT_ELEVATION: dict[CardVariant, int] = {
+    CardVariant.ELEVATED: 1,
+    CardVariant.FILLED: 0,
+    CardVariant.OUTLINED: 0,
+}
+
+
+def _elevation_shadow(level: int) -> Shadow | None:
+    """Build the :class:`~tempest_core.style.Shadow` for an M3 elevation level.
+
+    Realizes D1: an elevation level is mapped to a ``Shadow`` (blur + downward
+    offset in :data:`ELEVATION_SHADOW_COLOR`) rather than a new ``Style`` field.
+    Level ``0`` casts no shadow and returns ``None`` so the resolved style leaves
+    ``shadow`` unset.
+
+    Args:
+        level: The Material 3 elevation level, 0-5.
+
+    Returns:
+        The shadow for that level, or ``None`` for level ``0`` (no shadow).
+
+    Raises:
+        ValueError: If ``level`` is outside the 0-5 range.
+    """
+    if level not in _ELEVATION_SHADOW:
+        raise ValueError(f"unknown elevation level: {level!r}; expected an integer 0-5")
+    if level == 0:
+        return None
+    blur, offset_y = _ELEVATION_SHADOW[level]
+    return Shadow(color=ELEVATION_SHADOW_COLOR, blur=blur, offset_y=offset_y)
+
+
+def _surface_colors(
+    *,
+    color_scheme: str,
+    scheme: ColorScheme,
+) -> tuple[Color, Color]:
+    """Resolve the ``(background, content)`` colors for a surface.
+
+    A ``"neutral"`` surface uses the plain surface roles (``SURFACE`` /
+    ``ON_SURFACE``); a tinted ``color_scheme`` uses the tonal ``*_container`` role
+    as the fill and its legible ``on_*_container`` role as the content (D2).
+
+    Args:
+        color_scheme: A validated color-scheme name.
+        scheme: The resolved :class:`~tempest_core.tokens.ColorScheme`.
+
+    Returns:
+        The ``(background, content)`` colors for the surface.
+    """
+    if color_scheme == "neutral":
+        return scheme.role(ColorRole.SURFACE), scheme.role(ColorRole.ON_SURFACE)
+    # Tinted container surface — the third element of ``_scheme_roles`` is the
+    # ``*_container`` role; its matching ``on_*_container`` is the content.
+    _role, _on_role, container = _scheme_roles(color_scheme)
+    on_container = _CONTAINER_ON_ROLE[container]
+    return scheme.role(container), scheme.role(on_container)
+
+
+#: Maps a ``*_container`` role to its legible ``on_*_container`` content role, so a
+#: tinted surface pairs the container fill with the right foreground (WCAG-AA by
+#: construction in the M3 tonal palette).
+_CONTAINER_ON_ROLE: dict[ColorRole, ColorRole] = {
+    ColorRole.PRIMARY_CONTAINER: ColorRole.ON_PRIMARY_CONTAINER,
+    ColorRole.SECONDARY_CONTAINER: ColorRole.ON_SECONDARY_CONTAINER,
+    ColorRole.TERTIARY_CONTAINER: ColorRole.ON_TERTIARY_CONTAINER,
+    ColorRole.ERROR_CONTAINER: ColorRole.ON_ERROR_CONTAINER,
+}
+
+
+def resolve_surface_variant(
+    *,
+    variant: CardVariant,
+    color_scheme: str = "neutral",
+    theme: Theme,
+    elevation: int | None = None,
+    padding_step: str = "md",
+    radius_step: str = "md",
+    platform_dark_mode: bool = False,
+    media: MediaQueryData | None = None,
+) -> Style:
+    """Resolve a surface/card's Chakra-style props into a Material 3 ``Style``.
+
+    The H3 sibling of :func:`resolve_variant` for the **surface family** (card,
+    surface, panel, accordion header). A surface is **non-interactive** — there is
+    no ``state`` parameter and no per-state table (D5): it simply chooses how the
+    box is filled and whether it carries an elevation shadow (``elevated``), a
+    tonal fill (``filled``) or a hairline outline (``outlined``). Every treatment
+    paints onto **existing** :class:`~tempest_core.style.Style` fields, so no new
+    field is introduced (D1): elevation is realized as a
+    :class:`~tempest_core.style.Shadow` mapped from the M3 level, never an
+    ``elevation`` style field.
+
+    The ``color_scheme`` tints the surface (D2): ``"neutral"`` uses the plain
+    ``SURFACE`` / ``ON_SURFACE`` roles; a role family (``"primary"``, …) uses the
+    tonal ``*_container`` role as the background and its ``on_*_container`` role as
+    the content. Padding and radius come from the spacing/shape scales via the
+    ``padding_step`` / ``radius_step`` token-step names (D6). Pure and
+    deterministic, like every resolver.
+
+    Args:
+        variant: The surface treatment (elevated / filled / outlined).
+        color_scheme: The Material 3 role family to tint with — one of
+            :data:`VALID_COLOR_SCHEMES` (default ``"neutral"``).
+        theme: The theme whose tokens supply colors, spacing, shape and elevation.
+        elevation: An explicit Material 3 elevation level (0-5) overriding the
+            variant default; ``None`` uses the per-variant default (``elevated``
+            → level 1, ``filled``/``outlined`` → level 0).
+        padding_step: The spacing-scale step name for the surface padding (default
+            ``"md"``).
+        radius_step: The shape-scale step name for the surface corner radius
+            (default ``"md"``).
+        platform_dark_mode: The OS dark-mode flag, used to resolve the scheme.
+        media: The current viewport snapshot (accepted for signature parity with
+            the other resolvers; unused here as a surface has no responsive size).
+
+    Returns:
+        The resolved, frozen ``Style`` for the requested surface combination.
+
+    Raises:
+        ValueError: If ``color_scheme`` is unknown or ``elevation`` is outside
+            the 0-5 range.
+    """
+    if color_scheme not in VALID_COLOR_SCHEMES:
+        raise ValueError(
+            f"unknown color_scheme: {color_scheme!r}; "
+            f"expected one of {sorted(VALID_COLOR_SCHEMES)}"
+        )
+
+    scheme = theme.scheme(platform_dark_mode=platform_dark_mode)
+    background, content = _surface_colors(color_scheme=color_scheme, scheme=scheme)
+    outline = scheme.role(ColorRole.OUTLINE)
+    padding = Edge.all(theme.space(padding_step))
+    radius = theme.radius(radius_step)
+
+    level = elevation if elevation is not None else _SURFACE_DEFAULT_ELEVATION[variant]
+
+    if variant is CardVariant.ELEVATED:
+        shadow = _elevation_shadow(level)
+        return Style(
+            background=background,
+            color=content,
+            radius=radius,
+            padding=padding,
+            shadow=shadow,
+        )
+    if variant is CardVariant.FILLED:
+        # FILLED is a flat tonal fill: SURFACE_VARIANT for neutral, the tinted
+        # container otherwise. Elevation may still be requested explicitly.
+        if color_scheme == "neutral":
+            background = scheme.role(ColorRole.SURFACE_VARIANT)
+            content = scheme.role(ColorRole.ON_SURFACE)
+        return Style(
+            background=background,
+            color=content,
+            radius=radius,
+            padding=padding,
+            shadow=_elevation_shadow(level),
+        )
+    # OUTLINED — a hairline OUTLINE border, no shadow by default.
+    return Style(
+        background=background,
+        color=content,
+        border=Border(width=1.0, color=outline),
+        radius=radius,
+        padding=padding,
+        shadow=_elevation_shadow(level),
+    )

@@ -32,6 +32,7 @@ __all__ = [
     "StackAlign",
     "Variant",
     "FieldVariant",
+    "CardVariant",
     "Size",
     "ComponentState",
     "Color",
@@ -388,6 +389,33 @@ class FieldVariant(StrEnum):
     OUTLINE = "outline"
     FILLED = "filled"
     FLUSHED = "flushed"
+
+
+class CardVariant(StrEnum):
+    """The visual variant of a surface/card (Chakra-style ``variant``).
+
+    Picks the treatment a non-interactive surface (card, panel, container) renders
+    with, mapped to a Material 3 surface appearance by the H3 surface resolver
+    (:func:`~tempest_core.variants.resolve_surface_variant`). Distinct from
+    :class:`Variant` (the *button* treatment) and :class:`FieldVariant` (the
+    *text-field* treatment): a surface is non-interactive, so it has no state layer
+    — it simply chooses how the box is filled and whether it casts an elevation
+    shadow or carries an outline. The ``color_scheme`` then chooses *which* color
+    family the surface tints with (``"neutral"`` uses the plain surface roles; a
+    role family uses the tonal ``*_container`` roles).
+
+    Attributes:
+        ELEVATED: A ``surface`` background that casts a Material 3 elevation
+            shadow and carries no border — the default raised card.
+        FILLED: A low-emphasis ``surface_variant`` tonal fill with no shadow and
+            no border (the M3 *filled* card).
+        OUTLINED: A ``surface`` background with a hairline ``outline`` border and
+            no shadow (the M3 *outlined* card).
+    """
+
+    ELEVATED = "elevated"
+    FILLED = "filled"
+    OUTLINED = "outlined"
 
 
 class Size(StrEnum):

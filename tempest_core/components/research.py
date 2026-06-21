@@ -42,6 +42,7 @@ from tempest_core.components.feedback import Badge, Stat
 from tempest_core.components.mediainputs import ImagePicker
 from tempest_core.style import (
     AlignItems,
+    BadgeVariant,
     CardVariant,
     Color,
     Style,
@@ -386,6 +387,10 @@ class ConfidenceBadge(Component):
             key=self.key or "confidence-badge",
             label=text,
             color_scheme=scheme,
+            # SUBTLE uses the tonal container pair (WCAG-AA safe), unlike SOLID
+            # which paints white on the saturated status role (success ~3.02,
+            # warning ~4.0 — both fail AA). Consistency with the H4 A1 decision.
+            variant=BadgeVariant.SUBTLE,
             theme=self.theme,
             style=self.style,
         )

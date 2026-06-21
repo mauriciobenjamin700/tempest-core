@@ -6,6 +6,15 @@ versioning.
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-06-20
+
+### Fixed
+
+- **`ConfidenceBadge` now uses the `SUBTLE` badge variant** (tonal container pair)
+  instead of `SOLID`, so a high/medium-confidence pill clears WCAG-AA — the
+  `SOLID` white-on-saturated-status treatment failed AA (success ~3.02,
+  warning ~4.0). Consistency with the H4 A1 status-color decision.
+
 ## [0.8.0] - 2026-06-20
 
 ### Added

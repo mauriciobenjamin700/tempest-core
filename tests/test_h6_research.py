@@ -210,15 +210,17 @@ def test_confidence_badge_high_is_success_pill() -> None:
     """A high-confidence badge is a success pill labelled with the percentage."""
     node = build(ConfidenceBadge(confidence=0.92))
     assert "92%" in _collect_texts(node)
-    success = THEME.color("success")
-    assert _find_background(node, success)
+    # SUBTLE pill → the tonal success CONTAINER (WCAG-AA safe), not the saturated
+    # success role (white-on-success would fail AA at ~3.02).
+    success_container = THEME.color(ColorRole.SUCCESS_CONTAINER)
+    assert _find_background(node, success_container)
 
 
 def test_confidence_badge_low_is_error_pill() -> None:
     """A low-confidence badge is an error pill."""
     node = build(ConfidenceBadge(confidence=0.2))
-    error = THEME.color("error")
-    assert _find_background(node, error)
+    error_container = THEME.color(ColorRole.ERROR_CONTAINER)
+    assert _find_background(node, error_container)
 
 
 def test_confidence_badge_label_prefix() -> None:

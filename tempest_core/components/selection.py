@@ -411,11 +411,19 @@ class Rating(Component):
         glyph = "★" if index < self.value else "☆"
         star_style = Style(font_size=24.0, color=color)
         if self.on_rate is not None:
+            # A clickable star is an icon-forward GHOST button with an explicitly
+            # transparent fill, so the glyph reads as a bare star instead of a
+            # filled pill (the SOLID default would paint the role color over it).
             return Button(
                 label=glyph,
                 on_click=self._handler(index + 1),
                 key=f"star-{index}",
-                style=star_style,
+                variant=Variant.GHOST,
+                style=Style(
+                    font_size=24.0,
+                    color=color,
+                    background=Color(r=0, g=0, b=0, a=0.0),
+                ),
             )
         return Text(content=glyph, key=f"star-{index}", style=star_style)
 

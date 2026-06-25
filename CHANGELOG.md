@@ -6,6 +6,17 @@ versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A clickable `Rating` now renders bare stars instead of filled pills.** Each
+  tappable star lowered to a `Button` with no explicit variant, inheriting the
+  `SOLID` default — so a renderer that paints the variant fill (e.g. the web
+  Material 3 base) drew the role color over the ★/☆ glyph, turning the stars into
+  solid pills. The clickable star is now an icon-forward `GHOST` button with an
+  explicitly transparent fill, so the glyph reads as a bare star on every
+  renderer. Display-only `Rating` (no `on_rate`) was already a plain `Text` glyph
+  and is unchanged.
+
 ## [0.8.1] - 2026-06-20
 
 ### Fixed

@@ -28,6 +28,7 @@ from tempest_core import (
     Style,
     Tag,
     Theme,
+    Variant,
     build,
     resolve_alert_variant,
     resolve_badge_variant,
@@ -487,6 +488,20 @@ def test_rating_star_uses_scheme_role() -> None:
     node = build(Rating(value=3, max_stars=5, color_scheme="warning"))
     star = node.children[0]
     assert star.props["style"].color == THEME.color(ColorRole.WARNING)
+
+
+def test_clickable_rating_star_is_a_transparent_ghost_button() -> None:
+    """A clickable ``Rating`` lowers each star to a borderless, unfilled button.
+
+    Without an explicit transparent fill the star would inherit the SOLID default,
+    painting the role color over the ★ glyph (a filled pill instead of a star).
+    """
+    node = build(Rating(value=3, max_stars=5, on_rate=lambda _stars: None))
+    star = node.children[0]
+    assert star.type == "Button"
+    assert star.props["variant"] is Variant.GHOST
+    background = star.props["style"].background
+    assert isinstance(background, Color) and background.a == 0.0
 
 
 def test_empty_state_uses_muted_tokens() -> None:

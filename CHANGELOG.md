@@ -4,7 +4,7 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
-## [Unreleased]
+## [0.8.2] - 2026-06-25
 
 ### Fixed
 

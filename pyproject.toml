@@ -1,6 +1,6 @@
 [project]
 name = "tempest-core"
-version = "0.8.1"
+version = "0.8.2"
 description = "Renderer-agnostic UI core (IR, reconciler, state, style, widgets) shared by tempestroid and tempestweb."
 readme = "README.md"
 requires-python = ">=3.11"

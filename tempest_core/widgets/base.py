@@ -313,6 +313,13 @@ class Widget(BaseModel):
             natural focusability (e.g. a button is focusable, a label is not).
         focus_order: The node's explicit focus/tab order; ``None`` uses the
             natural traversal order.
+        tag: Semantic HTML tag override honored by the HTML/SSR renderer
+            (e.g. ``"nav"``, ``"section"``, ``"article"``, ``"h1"``); ``None``
+            lets the renderer pick its default element, and non-web renderers
+            ignore it.
+        attrs: Arbitrary HTML attributes (``hx-*``, ``id``, ``class``,
+            ``data-*``, ``aria-*``) honored by the HTML/SSR renderer; empty by
+            default and ignored by non-web renderers.
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -341,6 +348,16 @@ class Widget(BaseModel):
     semantics: Semantics | None = None
     focusable: bool | None = None
     focus_order: int | None = None
+    tag: str | None = Field(
+        default=None,
+        description="Semantic HTML tag override honored by the HTML/SSR renderer "
+        "(e.g. 'nav', 'section', 'article', 'h1'); ignored by non-web renderers.",
+    )
+    attrs: dict[str, str] = Field(
+        default_factory=dict,
+        description="Arbitrary HTML attributes (hx-*, id, class, data-*, aria-*) "
+        "honored by the HTML/SSR renderer; ignored by non-web renderers.",
+    )
 
     @property
     def widget_type(self) -> str:

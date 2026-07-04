@@ -4,6 +4,23 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.9.0] - 2026-07-04
+
+### Added
+
+- **HTML/SSR escape-hatch fields on the `Widget` base — `tag` and `attrs`.** Every
+  widget now carries two optional renderer-hint fields for the upcoming HTML/SSR
+  leaf renderer (`tempestweb`): `tag: str | None` overrides the semantic HTML
+  element emitted (e.g. `"nav"`, `"section"`, `"article"`, `"h1"`), and
+  `attrs: dict[str, str]` supplies arbitrary HTML attributes (`hx-*`, `id`,
+  `class`, `data-*`, `aria-*`). They follow the existing
+  `semantics`/`focusable`/`focus_order` precedent: honored by the web renderer,
+  ignored by the native renderers (Qt/Compose). Both flow through `build()` into
+  the IR node `props` automatically (no reconciler special-casing), so `diff()`
+  reacts to `tag`/`attrs` changes like any other prop. Fully additive and
+  backward-compatible: `tag` defaults to `None` and `attrs` to an empty dict, so
+  every existing widget and IR node is unchanged in behavior.
+
 ## [0.8.2] - 2026-06-25
 
 ### Fixed

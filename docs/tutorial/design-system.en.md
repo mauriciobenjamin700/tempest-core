@@ -1,4 +1,4 @@
-# 4. Design system (variants → Material 3)
+# 3. Design system (variants → Material 3)
 
 `tempest-core` ships a **design system** with **Chakra-style API ergonomics**
 (`variant` / `size` / `color_scheme`) anchored in **Material 3**. Instead of

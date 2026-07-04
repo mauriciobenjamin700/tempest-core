@@ -1,4 +1,4 @@
-# 3. Styling
+# 2. Styling
 
 Styling is **inline and typed** — no stylesheets, no cascade, no specificity. A
 `Style` is a Pydantic object each renderer translates to its target (CSS on the

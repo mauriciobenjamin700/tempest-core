@@ -146,6 +146,6 @@ its full Qt↔Compose conformance suite green — is the next phase.
 ```bash
 uv sync --extra dev
 ruff check . && ruff format --check .
-mypy tempest_core
+mypy tempest_core && pyright tempest_core
 pytest -q
 ```

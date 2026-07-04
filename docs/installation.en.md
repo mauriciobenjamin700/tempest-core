@@ -22,7 +22,7 @@ python -c "from tempest_core import App, Column, Text, build, diff; print('OK')"
 ```bash
 uv sync --extra dev
 ruff check . && ruff format --check .
-pyright tempest_core
+mypy tempest_core && pyright tempest_core
 pytest -q
 ```
 

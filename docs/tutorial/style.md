@@ -1,4 +1,4 @@
-# 3. Estilo
+# 2. Estilo
 
 O estilo é **inline e tipado** — sem folhas de estilo, sem cascata, sem
 especificidade. Um `Style` é um objeto Pydantic que cada renderizador traduz para

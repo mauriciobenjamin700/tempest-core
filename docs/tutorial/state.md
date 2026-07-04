@@ -1,4 +1,4 @@
-# 2. Estado e rebuilds
+# 1. Estado e rebuilds
 
 Uma UI viva = estado + uma função do estado para a árvore. O **`App`** segura o
 estado, roda sua `view(app)` e, quando o estado muda, reconstrói e diffa — emitindo
@@ -39,13 +39,15 @@ app.set_state(lambda s: setattr(s, "valor", 1))  # (3)!
 
 ## Navegação também é estado
 
-O `App` tem uma `NavStack` (`app.nav`): `push` / `pop` / `replace` / `reset`
-mudam a rota no topo e agendam rebuild — a `view` lê `app.nav.top` e desenha a
-tela. Sem nó de IR novo: trocar de rota é a view produzindo uma árvore diferente.
+A navegação vive no próprio `App`: `app.push(route)` / `app.pop()` /
+`app.replace(route)` / `app.reset(stack)` mudam a rota no topo da pilha e agendam
+rebuild. O `app.nav` é a `NavStack` só de leitura — a `view` lê `app.nav.top`
+(e `app.nav.can_pop`) e desenha a tela. Sem nó de IR novo: trocar de rota é a view
+produzindo uma árvore diferente.
 
 ## Recapitulando
 
 - `App(state, view, apply_patches)` + `start()` inicia a UI.
 - `set_state(mutator)` agenda um rebuild coalescido → diff → patches.
-- `app.nav` (`push`/`pop`/`reset`) é navegação como estado.
+- `app.push` / `app.pop` / `app.reset` é navegação como estado (rota lida em `app.nav.top`).
 - Próximo: [estilo](style.md).

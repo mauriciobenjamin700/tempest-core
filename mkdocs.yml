@@ -68,6 +68,7 @@ plugins:
             "Tutorial — build & diff": "Tutorial — build & diff"
             "1. State and rebuilds": "1. Estado e rebuilds"
             "2. Styling": "2. Estilo"
+            "3. Design system": "3. Design system"
             "API reference": "Referência da API"
         - locale: en
           name: English (US)

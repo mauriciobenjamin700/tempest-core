@@ -1,4 +1,4 @@
-# 2. State and rebuilds
+# 1. State and rebuilds
 
 A live UI = state + a function from state to tree. The **`App`** holds the state,
 runs your `view(app)`, and on a state change rebuilds and diffs — emitting patches
@@ -39,14 +39,15 @@ app.set_state(lambda s: setattr(s, "value", 1))  # (3)!
 
 ## Navigation is state too
 
-The `App` owns a `NavStack` (`app.nav`): `push` / `pop` / `replace` / `reset`
-change the top route and schedule a rebuild — the `view` reads `app.nav.top` and
-draws the screen. No new IR node: changing routes is just the view producing a
-different tree.
+Navigation lives on the `App` itself: `app.push(route)` / `app.pop()` /
+`app.replace(route)` / `app.reset(stack)` change the top route and schedule a
+rebuild. `app.nav` is the read-only `NavStack` — the `view` reads `app.nav.top`
+(and `app.nav.can_pop`) and draws the screen. No new IR node: changing routes is
+just the view producing a different tree.
 
 ## Recap
 
 - `App(state, view, apply_patches)` + `start()` starts the UI.
 - `set_state(mutator)` schedules a coalesced rebuild → diff → patches.
-- `app.nav` (`push`/`pop`/`reset`) is navigation as state.
+- `app.push` / `app.pop` / `app.reset` is navigation as state (route read at `app.nav.top`).
 - Next: [styling](style.md).

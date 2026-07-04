@@ -1,4 +1,4 @@
-# tempest-core
+# Tempest Core
 
 📚 **Documentation:** [Português (Brasil)](https://mauriciobenjamin700.github.io/tempest-core/)
 · [English (US)](https://mauriciobenjamin700.github.io/tempest-core/en/) — bilingual, on GitHub Pages.

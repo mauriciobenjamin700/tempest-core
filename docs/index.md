@@ -25,6 +25,7 @@ diff(antiga, nova)
 | **IR + reconciliador** | `build` / `diff` (e `build_scene` / `diff_scene` para overlays), o modelo `Node` / `Patch`, e o `App` com loop de rebuild coalescido |
 | **Estilo tipado** | `Style`, `Color`, `Edge`, gradientes, sombras, bordas, transições — sem cascata CSS, inline e tipado |
 | **Widgets & componentes** | layout (Column/Row/Container/Stack), texto, botão, inputs, checkbox, listas (LazyColumn/Row/Grid), overlays, gestos, mídia, + componentes compostos (cards, forms, campos, tabelas, inputs BR…) |
+| **Design system** | ergonomia Chakra (`variant`/`size`/`color_scheme`) → `Style` Material 3 via resolvers puros (`variants.py`): botões/campos/seleção, superfícies, feedback (`success`/`warning`/`info`), navegação e kit de pesquisa/ciência de dados |
 | **Transversais** | animação, i18n, navegação (`Route`/`NavStack`), tema, validadores (CPF/CNPJ/email/telefone), ícones |
 
 !!! tip "Sem código acoplado a plataforma"

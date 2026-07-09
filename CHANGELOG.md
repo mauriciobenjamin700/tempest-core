@@ -4,6 +4,16 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.10.0] - 2026-07-09
+
+### Added
+
+- **`button_label` on `ImagePicker` / `DocumentPicker`.** The picker button's
+  caption was hardcoded (`"Choose image"` / `"Choose document"`), so a
+  non-English app could not localise it. A new `button_label` field (defaulting
+  to the previous English text, so existing apps are unchanged) feeds the inner
+  `FilePicker` label — e.g. `ImagePicker(button_label="Selecionar da galeria")`.
+
 ## [0.9.1] - 2026-07-08
 
 ### Fixed

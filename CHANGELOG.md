@@ -4,6 +4,22 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.9.1] - 2026-07-08
+
+### Fixed
+
+- **Image/Document/Result pickers now run an `async` `on_pick`.** The internal
+  `_on_uri` adapter that bridges a picker's typed `on_select` to the caller's
+  `on_pick(uri)` **discarded the handler's return value**. When `on_pick`
+  returned a coroutine (an `async def`, the common case for "load the picked
+  file then do work"), the event dispatcher — which awaits a handler's returned
+  coroutine (`iscoroutine(result) → await`) — received `None`, so the coroutine
+  was never awaited: the picker fired, the callback ran, but the awaited work
+  (e.g. loading + analyzing the picked image) silently never happened and no
+  error surfaced. The adapter now **returns** `handler(event.uri)`, so a
+  coroutine propagates and is awaited. Affects `ImagePicker`, `DocumentPicker`,
+  and `ResultView`. (A synchronous `on_pick` is unaffected.)
+
 ## [0.9.0] - 2026-07-04
 
 ### Added

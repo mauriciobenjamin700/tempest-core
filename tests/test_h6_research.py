@@ -426,6 +426,33 @@ def test_result_view_with_result() -> None:
     assert "RESULT" in _collect_texts(node)
 
 
+def test_on_uri_adapter_returns_sync_handler_value() -> None:
+    """The picker adapter forwards the URI and RETURNS the handler's value."""
+    from tempest_core.components.mediainputs import _on_uri
+    from tempest_core.widgets import FileSelectEvent
+
+    adapter = _on_uri(lambda uri: f"got:{uri}")
+    assert adapter(FileSelectEvent(uri="file:///a.jpg")) == "got:file:///a.jpg"
+
+
+def test_on_uri_adapter_propagates_coroutine_for_async_handler() -> None:
+    """An ``async`` ``on_pick`` must have its coroutine RETURNED (so the event
+    dispatcher awaits it) — dropping it silently stranded the picked-image work.
+    """
+    import inspect
+
+    from tempest_core.components.mediainputs import _on_uri
+    from tempest_core.widgets import FileSelectEvent
+
+    async def on_pick(uri: str) -> str:
+        return uri
+
+    adapter = _on_uri(on_pick)
+    result = adapter(FileSelectEvent(uri="content://x/1"))
+    assert inspect.iscoroutine(result)
+    result.close()  # we only assert propagation; avoid an un-awaited warning
+
+
 # --------------------------------------------------------------------------- #
 # DataTable skin — app-held sort + pagination
 # --------------------------------------------------------------------------- #

@@ -39,7 +39,7 @@ __all__ = [
 ]
 
 
-def _on_uri(handler: Callable[[str], Any]) -> Callable[[FileSelectEvent], None]:
+def _on_uri(handler: Callable[[str], Any]) -> Callable[[FileSelectEvent], Any]:
     """Adapt a URI handler to the picker's typed ``on_select``.
 
     Args:
@@ -47,11 +47,16 @@ def _on_uri(handler: Callable[[str], Any]) -> Callable[[FileSelectEvent], None]:
 
     Returns:
         A handler taking a :class:`~tempestroid.widgets.FileSelectEvent` and
-        forwarding its ``uri`` to ``handler``.
+        forwarding its ``uri`` to ``handler``, **returning whatever ``handler``
+        returns** so an ``async def`` / coroutine-returning ``on_pick`` is
+        awaited by the event dispatcher. Dropping the return here silently
+        stranded the coroutine — the picker fired, the callback ran, but the
+        awaited work (e.g. loading + analyzing the picked image) never executed
+        and no error surfaced.
     """
 
-    def adapter(event: FileSelectEvent) -> None:
-        handler(event.uri)
+    def adapter(event: FileSelectEvent) -> object:
+        return handler(event.uri)
 
     return adapter
 

@@ -76,6 +76,10 @@ class ImagePicker(Component):
     label: str = Field(
         default="", description="An optional heading shown above the picker."
     )
+    button_label: str = Field(
+        default="Choose image",
+        description="The picker button's caption (localise it per app locale).",
+    )
     on_pick: Callable[[str], Any] = Field(
         description="Called with the picked image URI on selection."
     )
@@ -110,7 +114,7 @@ class ImagePicker(Component):
             )
         children.append(
             FilePicker(
-                label="Choose image",
+                label=self.button_label,
                 value=self.value,
                 on_select=_on_uri(self.on_pick),
                 key="image-picker-button",
@@ -140,6 +144,10 @@ class DocumentPicker(Component):
     label: str = Field(
         default="", description="An optional heading shown above the picker."
     )
+    button_label: str = Field(
+        default="Choose document",
+        description="The picker button's caption (localise it per app locale).",
+    )
     on_pick: Callable[[str], Any] = Field(
         description="Called with the picked document URI on selection."
     )
@@ -164,7 +172,7 @@ class DocumentPicker(Component):
             )
         children.append(
             FilePicker(
-                label="Choose document",
+                label=self.button_label,
                 value=self.value,
                 on_select=_on_uri(self.on_pick),
                 key="document-picker-button",

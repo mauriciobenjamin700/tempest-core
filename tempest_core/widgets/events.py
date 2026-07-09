@@ -46,6 +46,7 @@ __all__ = [
     "ValidationEvent",
     "PageChangeEvent",
     "QrScanEvent",
+    "CameraFrameEvent",
     "AppState",
     "LifecycleEvent",
     "SensorType",
@@ -510,6 +511,31 @@ class QrScanEvent(Event):
     data: str = Field(description="The decoded code contents.")
     format: str = Field(
         default="QR_CODE", description='The barcode symbology (e.g. ``"QR_CODE"``).'
+    )
+
+
+class CameraFrameEvent(Event):
+    """One decoded RGB frame from a live camera preview.
+
+    Emitted by ``CameraPreview`` (when ``on_frame`` is wired) at most every
+    ``frame_interval_ms``, so an app can run on-device inference on the live feed.
+    The frame crosses the boundary as base64 of the raw ``width × height × 3``
+    row-major RGB bytes; ``rotation`` is the clockwise degrees the sensor reports
+    (apply it before display). Rebuild the array with
+    ``tempestroid.vision.frame_array(event)``.
+
+    Attributes:
+        width: Frame width in pixels.
+        height: Frame height in pixels.
+        data: Base64 of the raw ``H × W × 3`` uint8 RGB buffer.
+        rotation: Clockwise rotation the sensor reports, in degrees (0/90/180/270).
+    """
+
+    width: int = Field(description="Frame width in pixels.")
+    height: int = Field(description="Frame height in pixels.")
+    data: str = Field(description="Base64 of the raw H×W×3 uint8 RGB buffer.")
+    rotation: int = Field(
+        default=0, description="Clockwise sensor rotation in degrees (0/90/180/270)."
     )
 
 

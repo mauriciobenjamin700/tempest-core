@@ -4,6 +4,17 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.11.0] - 2026-07-09
+
+### Added
+
+- **`CameraPreview` streams frames** — a new `on_frame` handler + `frame_interval_ms`
+  throttle. When wired, the device attaches a CameraX `ImageAnalysis` stage and
+  invokes the handler with a `CameraFrameEvent` (`width`/`height`/`data` base64 RGB
+  /`rotation`) at most every `frame_interval_ms`, so an app can run on-device
+  inference on the live feed (rebuild the array with `tempestroid.vision.frame_array`).
+  `CameraFrameEvent` is a new exported event.
+
 ## [0.10.0] - 2026-07-09
 
 ### Added

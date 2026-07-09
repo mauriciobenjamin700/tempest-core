@@ -22,7 +22,7 @@ from typing import Annotated, Any, ClassVar, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from tempest_core.widgets.base import EventHandler, Widget
-from tempest_core.widgets.events import Event, QrScanEvent
+from tempest_core.widgets.events import CameraFrameEvent, Event, QrScanEvent
 
 __all__ = [
     "ImageFit",
@@ -451,15 +451,35 @@ class Svg(Widget):
 
 
 class CameraPreview(Widget):
-    """A live camera preview surface.
+    """A live camera preview surface, optionally streaming frames to the app.
+
+    Wire ``on_frame`` to run on-device inference on the live feed: the device
+    attaches a CameraX ``ImageAnalysis`` stage (keeping only the latest frame) and
+    invokes the handler with a :class:`CameraFrameEvent` at most every
+    ``frame_interval_ms`` — throttled because inference is far slower than the
+    camera's frame rate. With no ``on_frame`` it is a plain preview.
 
     Attributes:
         facing: Which camera to use (``"front"`` or ``"back"``).
+        on_frame: Handler invoked with a :class:`CameraFrameEvent` per (throttled)
+            frame; rebuild the array with ``tempestroid.vision.frame_array``.
+        frame_interval_ms: Minimum gap between emitted frames, in milliseconds
+            (ignored when ``on_frame`` is unset).
     """
 
-    event_schemas: ClassVar[dict[str, type[Event]]] = {}
+    event_schemas: ClassVar[dict[str, type[Event]]] = {"on_frame": CameraFrameEvent}
     facing: str = Field(
         default="back", description='Which camera to use (``"front"`` or ``"back"``).'
+    )
+    on_frame: EventHandler | None = Field(
+        default=None,
+        description="Handler invoked with a :class:`CameraFrameEvent` per throttled "
+        "frame (the typed event is the widget's contract; the device wires the "
+        "ImageAnalysis stage directly to this handler's token).",
+    )
+    frame_interval_ms: int = Field(
+        default=300,
+        description="Minimum gap between emitted frames, in ms (on_frame only).",
     )
 
 

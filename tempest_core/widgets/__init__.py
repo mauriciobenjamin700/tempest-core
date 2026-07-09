@@ -44,6 +44,7 @@ from tempest_core.widgets.base import (
 from tempest_core.widgets.button import Button, IconButton
 from tempest_core.widgets.events import (
     AppState,
+    CameraFrameEvent,
     ConnectivityEvent,
     ConnectivityState,
     DateChangeEvent,
@@ -341,6 +342,7 @@ __all__ = [
     "ValidationEvent",
     "PageChangeEvent",
     "QrScanEvent",
+    "CameraFrameEvent",
     "AppState",
     "LifecycleEvent",
     "SensorType",

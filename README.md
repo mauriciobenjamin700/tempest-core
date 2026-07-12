@@ -2,6 +2,7 @@
 
 📚 **Documentation:** [Português (Brasil)](https://mauriciobenjamin700.github.io/tempest-core/)
 · [English (US)](https://mauriciobenjamin700.github.io/tempest-core/en/) — bilingual, on GitHub Pages.
+Includes an in-depth **[component gallery](https://mauriciobenjamin700.github.io/tempest-core/gallery/buttons/)** — every widget and component with its props, variants, states and nuances.
 
 **Renderer-agnostic UI core** shared across the tempest stack — the engine behind
 both [tempestroid](https://github.com/mauriciobenjamin700/tempestroid) (native

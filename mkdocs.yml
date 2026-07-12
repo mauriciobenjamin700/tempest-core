@@ -69,6 +69,25 @@ plugins:
             "1. State and rebuilds": "1. Estado e rebuilds"
             "2. Styling": "2. Estilo"
             "3. Design system": "3. Design system"
+            "Component gallery": "Galeria de componentes"
+            "Text": "Texto"
+            "Buttons": "Botões"
+            "Layout & structure": "Layout e estrutura"
+            "Inputs": "Inputs"
+            "Forms": "Formulários"
+            "Selection": "Seleção"
+            "Media & Canvas": "Mídia & Canvas"
+            "Indicators & lists": "Indicadores & listas"
+            "Overlays": "Overlays"
+            "Animation & gestures": "Animação & gestos"
+            "Navigation": "Navegação"
+            "Surfaces & cards": "Superfícies & cards"
+            "Feedback": "Feedback"
+            "Dates & disclosure": "Datas & disclosure"
+            "Tables": "Tabelas"
+            "BR forms & pickers": "Formulários BR & seletores"
+            "Research": "Pesquisa"
+            "Events & handlers": "Eventos & handlers"
             "API reference": "Referência da API"
         - locale: en
           name: English (US)
@@ -118,4 +137,23 @@ nav:
       - "1. State and rebuilds": tutorial/state.md
       - "2. Styling": tutorial/style.md
       - "3. Design system": tutorial/design-system.md
+  - Component gallery:
+      - "Text": gallery/text.md
+      - "Buttons": gallery/buttons.md
+      - "Layout & structure": gallery/layout.md
+      - "Inputs": gallery/inputs.md
+      - "Forms": gallery/forms.md
+      - "Selection": gallery/selection.md
+      - "Media & Canvas": gallery/media.md
+      - "Indicators & lists": gallery/indicators-lists.md
+      - "Overlays": gallery/overlays.md
+      - "Animation & gestures": gallery/animation-gestures.md
+      - "Navigation": gallery/navigation.md
+      - "Surfaces & cards": gallery/surfaces-cards.md
+      - "Feedback": gallery/feedback.md
+      - "Dates & disclosure": gallery/dates-disclosure.md
+      - "Tables": gallery/tables.md
+      - "BR forms & pickers": gallery/br-forms-pickers.md
+      - "Research": gallery/research.md
+      - "Events & handlers": gallery/events.md
   - API reference: reference.md

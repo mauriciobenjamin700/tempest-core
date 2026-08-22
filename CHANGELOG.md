@@ -4,6 +4,42 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.13.0] - 2026-08-22
+
+### Added
+
+- **The root re-exports the whole public surface.** `tempest_core.__all__`
+  carried 101 names while the facades declared far more: `from tempest_core
+  import Menu` raised `ImportError` and only `from tempest_core.widgets import
+  Menu` worked. Consumers then imported from submodules against the
+  import-from-the-root convention — 50 files in tempestweb did exactly that.
+
+  The root now carries `tempest_core.widgets` (158 names) and
+  `tempest_core.components` (66) whole: **293 names**, up from 101. `Menu`,
+  `MenuItem`, `Dialog`, `Input`, `Image`, `Checkbox`, `Icon`, `Stack`, `Slider`,
+  `Switch`, `Form`, `Canvas`, `ProgressBar`, `Spinner`, `Card`, `DataTable`,
+  `Scaffold`, `AppBar`, `Grid` and `Drawer` are reachable from the root.
+
+### Changed
+
+- **Every re-export is declared, not incidental.** The `__init__` used
+  `from x import Y`, which re-exports at runtime but is not a *declared*
+  re-export: basedpyright and Pylance in strict mode report the name as an
+  unknown import symbol in the consumer even though the import works. Each name
+  is now written twice — `from x import Y as Y` (PEP 484) **and** `__all__`.
+
+  Measured on a strict consumer importing eight names from the root:
+  **7 errors before, 0 after** (`basedpyright`).
+
+- `__all__` is annotated `list[str]`.
+
+### Fixed
+
+- `tests/test_reexport_surface.py` pins all three properties — the `as` form,
+  every `__all__` name resolving, and each facade being carried whole. Neither
+  the missing surface nor the plain form was visible to `mypy` or to any test
+  that merely imports the package, which is how both survived.
+
 ## [0.12.0] - 2026-08-21
 
 ### Added

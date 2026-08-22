@@ -144,3 +144,30 @@ def test_action_sheet_can_be_dismissed() -> None:
         assert "on_dismiss" in modal.event_schemas, (
             f"{modal.__name__} declares no event"
         )
+
+
+def test_a_widget_refuses_a_field_it_does_not_declare() -> None:
+    """An unknown keyword must raise, not vanish.
+
+    The default (`extra="ignore"`) drops what it does not recognize, and for a
+    widget tree that silence is expensive: ``Container(on_click=handler)`` built
+    without complaint and the handler ceased to exist, so the click read as a
+    renderer bug and the investigation started in the client's event delegation.
+    A typo is the same failure with a worse disguise — ``Text(contnet="hi")``
+    rendered an empty label.
+    """
+    import pytest
+    from pydantic import ValidationError
+
+    from tempest_core import Container, Text
+
+    # Container declares no on_click; a clickable card wants Button or
+    # GestureDetector, and the error is what says so.
+    with pytest.raises(ValidationError, match="on_click"):
+        Container(key="card", child=Text(content="x"), on_click=lambda: None)
+
+    with pytest.raises(ValidationError, match="contnet"):
+        Text(contnet="hi")
+
+    # What a widget *does* declare still works, unchanged.
+    assert Text(content="hi").content == "hi"

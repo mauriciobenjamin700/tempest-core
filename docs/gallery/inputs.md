@@ -61,7 +61,7 @@ preenchimento em repouso. O `field_variant` escolhe esse tratamento de repouso:
 
 ```python
 from tempest_core import Input
-from tempest_core.style import FieldVariant
+from tempest_core import FieldVariant
 
 outlined = Input(placeholder="E-mail", field_variant=FieldVariant.OUTLINE)
 filled = Input(placeholder="E-mail", field_variant=FieldVariant.FILLED)
@@ -82,7 +82,7 @@ para cada `ComponentState`, já com o override do chamador mesclado por cima:
 
 ```python
 from tempest_core import Input
-from tempest_core.style import ComponentState
+from tempest_core import ComponentState
 
 campo = Input(placeholder="Nome", color_scheme="primary")
 estados = campo.state_styles()
@@ -141,7 +141,7 @@ Passe um `on_change` para reagir a cada edição; o handler recebe um
 
 ```python
 from tempest_core import Input, KeyboardType
-from tempest_core.style import FieldVariant
+from tempest_core import FieldVariant
 
 email = Input(
     value="",

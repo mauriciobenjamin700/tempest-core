@@ -40,9 +40,9 @@ the begin/end styles; the renderer just mounts the child already at this frame's
 target.
 
 ```python
-from tempest_core.widgets import Animated, Container, Text
-from tempest_core.animation import AnimationController
-from tempest_core.style import Curve, Style
+from tempest_core import Animated, Container, Text
+from tempest_core import AnimationController
+from tempest_core import Curve, Style
 
 # The controller ramps from 0.0 to 1.0 in 0.3s with a symmetric ease.
 controller = AnimationController(duration_s=0.3, curve=Curve.EASE_IN_OUT)
@@ -90,8 +90,8 @@ the children out like a `Column`/`Row`, but on a structural change (an
 appearing/disappearing instantly.
 
 ```python
-from tempest_core.widgets import AnimatedList, Container, Text
-from tempest_core.style import Curve, FlexDirection
+from tempest_core import AnimatedList, Container, Text
+from tempest_core import Curve, FlexDirection
 
 lst = AnimatedList(
     direction=FlexDirection.COLUMN,
@@ -131,7 +131,7 @@ of a `Navigator` each hold a `Hero` with the same `hero_tag`, the renderer
 interpolates the tagged subtree's geometry across the route transition.
 
 ```python
-from tempest_core.widgets import Hero, Image
+from tempest_core import Hero, Image
 
 # On the list screen: the thumbnail.
 thumb = Hero(hero_tag="photo-42", child=Image(src="photo-42-thumb.jpg"))
@@ -161,8 +161,8 @@ a child (usually a skeleton layout) and animates a diagonal band from
 is loading" shimmer.
 
 ```python
-from tempest_core.widgets import Shimmer, Column, Skeleton
-from tempest_core.style import Color
+from tempest_core import Shimmer, Column, Skeleton
+from tempest_core import Color
 
 loading = Shimmer(
     child=Column(
@@ -199,7 +199,7 @@ gradient, used to stand in for a text line or an avatar while the real content
 loads.
 
 ```python
-from tempest_core.widgets import Skeleton
+from tempest_core import Skeleton
 
 # A fixed-width text line.
 line = Skeleton(width=200.0, height=16.0, radius=4.0)
@@ -247,7 +247,7 @@ The base detector: reports tap, double-tap, long-press and directional swipe ove
 its child. Each handler is optional and may be sync or `async`.
 
 ```python
-from tempest_core.widgets import GestureDetector, Container, Text
+from tempest_core import GestureDetector, Container, Text
 
 card = GestureDetector(
     child=Container(child=Text(content="Tap, hold or swipe")),
@@ -277,7 +277,7 @@ Reports a **continuous pan**: as the pointer drags over the child, the renderer
 delivers per-frame deltas and, at release, the fling velocity, as a `PanEvent`.
 
 ```python
-from tempest_core.widgets import PanHandler, Container, Text
+from tempest_core import PanHandler, Container, Text
 
 draggable = PanHandler(
     child=Container(child=Text(content="Drag me")),
@@ -310,7 +310,7 @@ Reports **pinch** (scale + rotation) and a double-tap. `on_scale` receives a
 is the common pairing to reset the zoom.
 
 ```python
-from tempest_core.widgets import ScaleHandler, Image
+from tempest_core import ScaleHandler, Image
 
 photo = ScaleHandler(
     child=Image(src="map.png"),
@@ -333,7 +333,7 @@ The leanest case: just a **double tap**. Handy for "double-tap to like" or a zoo
 shortcut without the cost of the pinch.
 
 ```python
-from tempest_core.widgets import DoubleTapHandler, Image
+from tempest_core import DoubleTapHandler, Image
 
 likeable = DoubleTapHandler(
     child=Image(src="post.jpg"),
@@ -355,7 +355,7 @@ is an opaque label carried to the drop target via `DragEvent.data`, so the targe
 can identify what landed on it.
 
 ```python
-from tempest_core.widgets import Draggable, Container, Text
+from tempest_core import Draggable, Container, Text
 
 card = Draggable(
     child=Container(child=Text(content="King of Spades")),
@@ -381,7 +381,7 @@ A child that **accepts** a dropped `Draggable`. `on_drop` fires when a draggable
 is released over the target, receiving the `DragEvent` with the item's data.
 
 ```python
-from tempest_core.widgets import DragTarget, Container, Text
+from tempest_core import DragTarget, Container, Text
 
 pile = DragTarget(
     child=Container(child=Text(content="Drop cards here")),
@@ -406,7 +406,7 @@ sets the swipe direction that triggers the dismiss; `on_dismiss` fires once the
 swipe passes the threshold.
 
 ```python
-from tempest_core.widgets import Dismissible, Container, Text, SwipeDirection
+from tempest_core import Dismissible, Container, Text, SwipeDirection
 
 item = Dismissible(
     child=Container(child=Text(content="Swipe to delete")),
@@ -434,7 +434,7 @@ typically mutates its backing list (`items.insert(to_index, items.pop(from_index
 and re-renders; a keyed child list then diffs to a `Reorder` patch.
 
 ```python
-from tempest_core.widgets import ReorderableList, Container, Text
+from tempest_core import ReorderableList, Container, Text
 
 
 def reorder(e):
@@ -473,7 +473,7 @@ between `min_scale` and `max_scale`. `on_interaction` fires as the view
 transforms, with the current scale, focal point and rotation.
 
 ```python
-from tempest_core.widgets import InteractiveViewer, Image
+from tempest_core import InteractiveViewer, Image
 
 viewer = InteractiveViewer(
     child=Image(src="floor-plan.png"),

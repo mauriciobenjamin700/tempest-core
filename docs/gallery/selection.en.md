@@ -30,7 +30,7 @@ and receives the new value back through the handler (`on_select`, `on_rate`). Th
 component only **draws** the state you gave it.
 
 ```python
-from tempest_core.components import SegmentedControl
+from tempest_core import SegmentedControl
 
 
 # The app owns the choice; the component only reflects `selected` and reports taps.
@@ -69,7 +69,7 @@ is active. It lowers to a `Row` of `Button`s, with the active segment resolved a
 `SOLID` and the rest as `GHOST`.
 
 ```python
-from tempest_core.components import SegmentedControl
+from tempest_core import SegmentedControl
 
 period = SegmentedControl(
     options=["Day", "Week", "Month"],
@@ -107,7 +107,7 @@ A **vertical** single-choice list with radio markers (◉ / ○). It lowers to a
 the theme accent.
 
 ```python
-from tempest_core.components import RadioGroup
+from tempest_core import RadioGroup
 
 shipping = RadioGroup(
     options=["Standard", "Express", "Pickup"],
@@ -153,7 +153,7 @@ flexible selection component: depending on its props, it lowers to different
 things.
 
 ```python
-from tempest_core.components import Chip
+from tempest_core import Chip
 
 # Selectable filter chip — the app owns `selected`.
 filter_chip = Chip(
@@ -205,7 +205,7 @@ tappable. Use it for **read-only** category/status labels, where a `Chip`'s
 interactivity would be wrong.
 
 ```python
-from tempest_core.components import Tag
+from tempest_core import Tag
 
 status = Tag(label="Archived", color_scheme="neutral")
 category = Tag(label="Backend", size="sm")
@@ -238,7 +238,7 @@ A row of stars that **shows** (and optionally **sets**) a 1-based rating. It low
 to a `Row` of star cells (★ filled / ☆ empty).
 
 ```python
-from tempest_core.components import Rating
+from tempest_core import Rating
 
 # Interactive: the app owns `value`, the tap reports the new rating.
 rating = Rating(

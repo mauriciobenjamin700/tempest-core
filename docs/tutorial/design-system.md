@@ -11,8 +11,8 @@ Os resolvers interativos vivem em `variants.py` e cada um resolve um `Style`:
 
 ```python
 from tempest_core import IconButton, Theme
-from tempest_core.widgets import Input
-from tempest_core.style import FieldVariant
+from tempest_core import Input
+from tempest_core import FieldVariant
 
 field = Input(value="", field_variant=FieldVariant.FILLED, color_scheme="primary")
 button = IconButton(icon="settings", color_scheme="primary", label="Abrir ajustes")
@@ -30,8 +30,8 @@ elevação.
 
 ```python
 from tempest_core import CardVariant
-from tempest_core.components import Card, HStack, Surface, VStack
-from tempest_core.widgets import Spacer, Text
+from tempest_core import Card, HStack, Surface, VStack
+from tempest_core import Spacer, Text
 
 card = Card(  # (1)!
     variant=CardVariant.OUTLINED,
@@ -73,7 +73,7 @@ superfícies, são **não interativos** (sem tabela de estados).
 
 ```python
 from tempest_core import Alert, Badge, Stat
-from tempest_core.style import AlertVariant, BadgeVariant
+from tempest_core import AlertVariant, BadgeVariant
 
 ok = Badge(label="LIVE", variant=BadgeVariant.SUBTLE, color_scheme="success")  # (1)!
 note = Alert(  # (2)!
@@ -118,7 +118,7 @@ resolver de superfície do H3; o item ativo da `NavBar` é uma pílula de destaq
 
 ```python
 from tempest_core import Tabs
-from tempest_core.components import AppBar, NavBar, SearchBar
+from tempest_core import AppBar, NavBar, SearchBar
 
 bar = AppBar(title="Caixa de entrada", color_scheme="primary")  # (1)!
 busca = SearchBar(value="", on_change=lambda e: None, color_scheme="primary")  # (2)!
@@ -246,7 +246,7 @@ componente não guarda estado — espelha o padrão das listas do E1): o app man
 `sort_column` / `sort_ascending` / `page` e passa as linhas já ordenadas.
 
 ```python
-from tempest_core.components import DataTable
+from tempest_core import DataTable
 
 tabela = DataTable(
     columns=["Classe", "Confiança"],

@@ -29,7 +29,7 @@ o `on_select` — o mês e a seleção têm padrão vazio (mês atual, nada
 selecionado):
 
 ```python
-from tempest_core.components import Calendar
+from tempest_core import Calendar
 
 agenda = Calendar(on_select=lambda iso: print(iso))
 ```
@@ -40,7 +40,7 @@ Para controlar o mês exibido e o dia destacado, passe `month` e `selected` a
 partir do estado do app:
 
 ```python
-from tempest_core.components import Calendar
+from tempest_core import Calendar
 
 agenda = Calendar(
     month="2026-07",  # (1)!
@@ -89,7 +89,7 @@ componente não tica sozinho — o app formata e atualiza o texto a partir do
 estado (como no exemplo `stopwatch`):
 
 ```python
-from tempest_core.components import Clock
+from tempest_core import Clock
 
 relogio = Clock(time="12:34:56")
 ```
@@ -98,7 +98,7 @@ Passe um `label` para uma legenda apagada embaixo da hora, e um `color_scheme`
 opcional para tingir o horário:
 
 ```python
-from tempest_core.components import Clock
+from tempest_core import Clock
 
 cronometro = Clock(
     time="00:00:42",
@@ -147,8 +147,8 @@ acordeão aberto simplesmente renderiza seu corpo abaixo do cabeçalho. O `open`
 cabeçalho, espelhando o `Drawer`:
 
 ```python
-from tempest_core.components import Accordion
-from tempest_core.widgets import Text
+from tempest_core import Accordion
+from tempest_core import Text
 
 detalhes = Accordion(
     title="Detalhes do pedido",

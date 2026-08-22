@@ -6,7 +6,7 @@ web, Qt/Compose properties on native).
 
 ```python
 from tempest_core import Container, Style, Text, Widget
-from tempest_core.style import Color, Edge
+from tempest_core import Color, Edge
 
 
 def card() -> Widget:
@@ -32,7 +32,7 @@ def card() -> Widget:
 Declare a `Transition` and a property change animates instead of snapping:
 
 ```python
-from tempest_core.style import Curve, Transition
+from tempest_core import Curve, Transition
 
 Style(transition=Transition(duration_ms=300, curve=Curve.EASE_IN_OUT))
 ```

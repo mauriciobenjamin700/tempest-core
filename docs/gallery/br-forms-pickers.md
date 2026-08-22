@@ -55,7 +55,7 @@ mostre a mensagem devolvendo-a em `error`:
 
 ```python
 from tempest_core import EmailInput
-from tempest_core.validators import validate_email
+from tempest_core import validate_email
 
 
 def on_email(value: str) -> None:
@@ -137,7 +137,7 @@ inseridos automaticamente enquanto o usuário digita:
 
 ```python
 from tempest_core import PhoneInput
-from tempest_core.validators import validate_phone
+from tempest_core import validate_phone
 
 
 def on_phone(value: str) -> None:
@@ -180,7 +180,7 @@ com `validate_cpf` (que confere os dígitos verificadores, não só o formato):
 
 ```python
 from tempest_core import CPFInput
-from tempest_core.validators import validate_cpf
+from tempest_core import validate_cpf
 
 
 def on_cpf(value: str) -> None:
@@ -223,7 +223,7 @@ Pareie com `validate_cnpj`:
 
 ```python
 from tempest_core import CNPJInput
-from tempest_core.validators import validate_cnpj
+from tempest_core import validate_cnpj
 
 
 def on_cnpj(value: str) -> None:

@@ -30,7 +30,7 @@ mantém o índice/valor selecionado no estado, passa esse valor via prop
 (`on_select`, `on_rate`). O componente só **desenha** o estado que você deu.
 
 ```python
-from tempest_core.components import SegmentedControl
+from tempest_core import SegmentedControl
 
 
 # O app é dono da escolha; o componente só reflete `selected` e reporta o toque.
@@ -69,7 +69,7 @@ uma delas está ativa. Ele abaixa para um `Row` de `Button`s, com o segmento ati
 resolvido como `SOLID` e os demais como `GHOST`.
 
 ```python
-from tempest_core.components import SegmentedControl
+from tempest_core import SegmentedControl
 
 periodo = SegmentedControl(
     options=["Dia", "Semana", "Mês"],
@@ -108,7 +108,7 @@ para um `Column` de `Button`s — um por opção — com a linha escolhida marca
 tingida pelo accent do tema.
 
 ```python
-from tempest_core.components import RadioGroup
+from tempest_core import RadioGroup
 
 envio = RadioGroup(
     options=["Padrão", "Expresso", "Retirada"],
@@ -153,7 +153,7 @@ o componente de seleção mais flexível: dependendo dos props, ele abaixa para
 coisas diferentes.
 
 ```python
-from tempest_core.components import Chip
+from tempest_core import Chip
 
 # Chip de filtro selecionável — o app é dono de `selected`.
 filtro = Chip(
@@ -205,7 +205,7 @@ selecionável, nunca tapável. Use para rótulos **somente leitura** de
 categoria/status, onde a interatividade de um `Chip` seria errada.
 
 ```python
-from tempest_core.components import Tag
+from tempest_core import Tag
 
 status = Tag(label="Arquivado", color_scheme="neutral")
 categoria = Tag(label="Backend", size="sm")
@@ -238,7 +238,7 @@ Uma fileira de estrelas que **mostra** (e opcionalmente **define**) uma nota de
 base 1. Abaixa para um `Row` de células de estrela (★ cheia / ☆ vazia).
 
 ```python
-from tempest_core.components import Rating
+from tempest_core import Rating
 
 # Interativa: o app é dono de `value`, o toque reporta a nova nota.
 nota = Rating(

@@ -33,7 +33,7 @@ widget accepts:
 
 ```python
 from tempest_core import Text
-from tempest_core.style import Style, FontWeight, Color
+from tempest_core import Style, FontWeight, Color
 
 heading = Text(
     content="Welcome",
@@ -94,7 +94,7 @@ renderer's default):
 
 ```python
 from tempest_core import Text
-from tempest_core.style import (
+from tempest_core import (
     Style,
     FontWeight,
     FontStyle,
@@ -134,7 +134,7 @@ the `Text` sit in a container that stretches it):
 
 ```python
 from tempest_core import Text
-from tempest_core.style import Style, TextAlign
+from tempest_core import Style, TextAlign
 
 centered = Text(
     content="Tap to continue",
@@ -156,7 +156,7 @@ terminates, use `text_overflow`:
 
 ```python
 from tempest_core import Text
-from tempest_core.style import Style, TextOverflow
+from tempest_core import Style, TextOverflow
 
 # A two-line preview with an ellipsis at the end.
 preview = Text(
@@ -189,8 +189,8 @@ different from the visible one:
 
 ```python
 from tempest_core import Text
-from tempest_core.widgets import Semantics
-from tempest_core.style import Style, FontWeight
+from tempest_core import Semantics
+from tempest_core import Style, FontWeight
 
 heading = Text(
     content="Settings",
@@ -218,7 +218,7 @@ which `Text` has none of). The `key` is pulled out of the props and becomes
 
 ```python
 from tempest_core import Text, build
-from tempest_core.style import Style, FontWeight
+from tempest_core import Style, FontWeight
 
 node = build(
     Text(content="Hi", key="greeting", style=Style(font_weight=FontWeight.BOLD))

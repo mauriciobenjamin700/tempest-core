@@ -4,6 +4,58 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.13.0] - 2026-08-22
+
+### Added
+
+- **The package root re-exports every public name its submodules declare** —
+  343 symbols, up from 101. `from tempest_core import Input` (and `Image`,
+  `Checkbox`, `Icon`, `Stack`, `Slider`, `Switch`, `Form`, `Dialog`, `Canvas`,
+  `ProgressBar`, `Spinner`, and 231 more) now works.
+
+  The gap was not cosmetic: with two thirds of the surface missing from the root,
+  a consumer had no choice but to import from `tempest_core.widgets.inputs` and
+  friends. Measured in tempestweb: **50 files** reaching into submodules, against
+  that project's own rule of importing from the package root. A partial root is a
+  root that teaches people to bypass it.
+
+  Each name is re-exported in **both** forms — `from x import Y as Y` *and* an
+  entry in `__all__`. That redundancy is what keeps strict type checkers quiet:
+  without the `as` form, basedpyright and Pylance report "private import usage"
+  at every consumer call site, and `__all__` alone does not silence it.
+
+- **`tests/test_public_surface.py`** — the guard that keeps the root and the
+  submodules from drifting again. It fails when a submodule gains a public name
+  the root does not re-export, when `__all__` names something the root cannot
+  hand over, when two submodules export the same name (which would make the
+  root's meaning depend on import order), and when a re-export loses its `as`
+  form.
+
+- **`ActionSheet.on_dismiss`** — the dismissal contract its siblings already had.
+  An action sheet is presented modally, so a renderer reports the scrim tap and
+  the Escape key; there was nowhere to send that, so a sheet whose actions did
+  not close it trapped the reader. That got worse once a renderer started
+  trapping focus inside modal overlays, which the web client now does.
+
+### Fixed
+
+- **`mkdocs build --strict` was already failing before this release**, on a
+  relative link from the English reference page to a generated directory
+  (`../reference/`), which MkDocs reports as unrecognized. The English page now
+  points at the generated reference with an absolute URL — there is one generated
+  page, not a translated pair, because the docstrings are English either way.
+
+- **`Tween`'s docstring used a `Type Args:` section**, which griffe reads as a
+  parameter list and then reports as not appearing in the signature. It only
+  surfaced now because `Tween` was one of the symbols the root did not
+  re-export, so the reference never rendered it.
+
+### Docs
+
+- Every example in the docs imports from the root (240 import statements
+  rewritten), and the three places that told the reader to import from a
+  subpackage now say the opposite, because the reason for that advice is gone.
+
 ## [0.12.0] - 2026-08-21
 
 ### Added

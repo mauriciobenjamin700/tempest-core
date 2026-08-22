@@ -25,7 +25,7 @@ while each widget here only declares *which* container behavior it has. 🚀
 
     ```python
     from tempest_core import Row
-    from tempest_core.style import AlignItems, JustifyContent, Style
+    from tempest_core import AlignItems, JustifyContent, Style
 
     bar = Row(
         style=Style(
@@ -41,11 +41,10 @@ while each widget here only declares *which* container behavior it has. 🚀
     `JustifyContent`, `AlignItems`, `FlexWrap`, `Position`, `StackAlign`) — see the
     [API reference](../reference.md).
 
-!!! tip "Some widgets only live in `tempest_core.widgets`"
-    `Column`, `Row`, `Container` and `Spacer` are re-exported at the top level
-    (`from tempest_core import Column`). The rest (`ScrollView`, `SafeArea`,
-    `SafeAreaEdge`, `Stack`, `Wrap`, `PageView`, `AspectRatio`,
-    `KeyboardAvoidingView`) come from `from tempest_core.widgets import ...` — which
+!!! tip "They all come from the root"
+    `Column`, `Row`, `Container`, `Spacer`, `ScrollView`, `SafeArea`,
+    `SafeAreaEdge`, `Stack`, `Wrap`, `PageView`, `AspectRatio` and
+    `KeyboardAvoidingView` all import from `from tempest_core import ...` — which
     is what the examples below use.
 
 ## `Column`
@@ -120,7 +119,7 @@ applies its `Style` box model.
 
 ```python
 from tempest_core import Container, Text
-from tempest_core.style import Edge, Style
+from tempest_core import Edge, Style
 
 card = Container(
     style=Style(
@@ -150,7 +149,7 @@ vertically by default; set `horizontal` to scroll sideways.
 
 ```python
 from tempest_core import Text
-from tempest_core.widgets import ScrollView
+from tempest_core import ScrollView
 
 feed = ScrollView(children=[Text(content=f"Item {i}") for i in range(200)])
 
@@ -180,7 +179,7 @@ system bars) stands in with fixed approximate insets.
 
 ```python
 from tempest_core import Column, Text
-from tempest_core.widgets import SafeArea
+from tempest_core import SafeArea
 
 screen = SafeArea(child=Column(children=[Text(content="Protected content")]))
 ```
@@ -206,7 +205,7 @@ subset to leave the others flush against the physical edge.
 
 ```python
 from tempest_core import Column, Text
-from tempest_core.widgets import SafeArea, SafeAreaEdge
+from tempest_core import SafeArea, SafeAreaEdge
 
 # Protect only the top — the bottom stays flush (e.g. a bar that already hugs it).
 screen = SafeArea(
@@ -271,8 +270,8 @@ primitive: a scrim, a modal card, a toast or a FAB is just a later child of a
 
 ```python
 from tempest_core import Container, Text
-from tempest_core.style import Position, Style
-from tempest_core.widgets import Stack
+from tempest_core import Position, Style
+from tempest_core import Stack
 
 screen = Stack(
     children=[
@@ -323,7 +322,7 @@ line.
 
 ```python
 from tempest_core import Button
-from tempest_core.widgets import Wrap
+from tempest_core import Wrap
 
 chips = Wrap(
     children=[
@@ -355,7 +354,7 @@ handler.
 
 ```python
 from tempest_core import Container, Text
-from tempest_core.widgets import PageView
+from tempest_core import PageView
 
 onboarding = PageView(
     page=0,
@@ -392,7 +391,7 @@ A single-child box that **constrains its child to a fixed width/height ratio**.
 derives the missing dimension from whichever one the parent bounds.
 
 ```python
-from tempest_core.widgets import AspectRatio, Image
+from tempest_core import AspectRatio, Image
 
 # A video/thumb always 16:9, no matter the available width.
 thumb = AspectRatio(ratio=16 / 9, child=Image(src="cover.jpg"))
@@ -419,7 +418,7 @@ focused input stays visible above it.
 
 ```python
 from tempest_core import Button, Column
-from tempest_core.widgets import Input, KeyboardAvoidingView
+from tempest_core import Input, KeyboardAvoidingView
 
 form = KeyboardAvoidingView(
     children=[

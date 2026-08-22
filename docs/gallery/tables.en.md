@@ -21,7 +21,7 @@ typed `TableRow`s, each carrying a list of `TableCell`s. In the minimal case,
 just `rows`:
 
 ```python
-from tempest_core.components import Table, TableRow, TableCell
+from tempest_core import Table, TableRow, TableCell
 
 table = Table(
     headers=["Name", "Role"],
@@ -56,8 +56,8 @@ A single cell of a `Table`. It's an **immutable value** model (`frozen`): it
 carries the text plus optional `colspan` / `rowspan` and its own `style`.
 
 ```python
-from tempest_core.components import TableCell
-from tempest_core.style import Style
+from tempest_core import TableCell
+from tempest_core import Style
 
 highlight = TableCell(content="Total", style=Style(grow=1.0))
 ```
@@ -82,8 +82,8 @@ A single row of a `Table` — the ordered cells plus an optional `style` overlai
 on the row's default layout. Also `frozen`.
 
 ```python
-from tempest_core.components import TableRow, TableCell
-from tempest_core.style import Style
+from tempest_core import TableRow, TableCell
+from tempest_core import Style
 
 row = TableRow(
     cells=[TableCell(content="Ana"), TableCell(content="Admin")],
@@ -112,7 +112,7 @@ body `SURFACE` with a subtle zebra stripe, divider `OUTLINE_VARIANT`) — no
 hard-coded hexes. In the minimal case, just `columns` and `rows`:
 
 ```python
-from tempest_core.components import DataTable
+from tempest_core import DataTable
 
 table = DataTable(
     columns=["Name", "Age"],
@@ -171,7 +171,7 @@ prev/next targets come **clamped** to `[0, last page]`, so the pager never leave
 the range:
 
 ```python
-from tempest_core.components import DataTable
+from tempest_core import DataTable
 
 paged = DataTable(
     columns=["Name", "Age"],
@@ -197,7 +197,7 @@ function of that state:
 ```python
 from typing import Any
 
-from tempest_core.components import DataTable
+from tempest_core import DataTable
 
 # The app owns the state — the table is just a projection of it.
 state: dict[str, Any] = {"sort_column": 0, "sort_ascending": True, "page": 0}

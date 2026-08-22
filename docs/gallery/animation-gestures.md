@@ -39,9 +39,9 @@ dá um `controller` (que avança o valor) e, opcionalmente, os estilos de começ
 fim; o renderizador apenas monta o filho já no alvo do frame.
 
 ```python
-from tempest_core.widgets import Animated, Container, Text
-from tempest_core.animation import AnimationController
-from tempest_core.style import Curve, Style
+from tempest_core import Animated, Container, Text
+from tempest_core import AnimationController
+from tempest_core import Curve, Style
 
 # O controller avança de 0.0 a 1.0 em 0.3s com uma ease simétrica.
 controller = AnimationController(duration_s=0.3, curve=Curve.EASE_IN_OUT)
@@ -89,8 +89,8 @@ posiciona os filhos como um `Column`/`Row`, mas numa mudança estrutural (um pat
 instantaneamente.
 
 ```python
-from tempest_core.widgets import AnimatedList, Container, Text
-from tempest_core.style import Curve, FlexDirection
+from tempest_core import AnimatedList, Container, Text
+from tempest_core import Curve, FlexDirection
 
 lista = AnimatedList(
     direction=FlexDirection.COLUMN,
@@ -132,7 +132,7 @@ renderizador interpola a geometria da subárvore marcada ao longo da transição
 rota.
 
 ```python
-from tempest_core.widgets import Hero, Image
+from tempest_core import Hero, Image
 
 # Na tela de lista: a miniatura.
 miniatura = Hero(hero_tag="foto-42", child=Image(src="foto-42-thumb.jpg"))
@@ -163,8 +163,8 @@ diagonal indo de `base_color` até `highlight_color` e voltando, em loop — o
 clássico "conteúdo carregando".
 
 ```python
-from tempest_core.widgets import Shimmer, Column, Skeleton
-from tempest_core.style import Color
+from tempest_core import Shimmer, Column, Skeleton
+from tempest_core import Color
 
 carregando = Shimmer(
     child=Column(
@@ -202,7 +202,7 @@ gradiente, usado para ocupar o lugar de uma linha de texto ou avatar enquanto o
 conteúdo real carrega.
 
 ```python
-from tempest_core.widgets import Skeleton
+from tempest_core import Skeleton
 
 # Uma linha de texto de largura fixa.
 linha = Skeleton(width=200.0, height=16.0, radius=4.0)
@@ -250,7 +250,7 @@ O detector base: reporta tap, double-tap, long-press e swipe direcional sobre se
 filho. Cada handler é opcional e pode ser síncrono ou `async`.
 
 ```python
-from tempest_core.widgets import GestureDetector, Container, Text
+from tempest_core import GestureDetector, Container, Text
 
 card = GestureDetector(
     child=Container(child=Text(content="Toque, segure ou deslize")),
@@ -281,7 +281,7 @@ renderizador entrega deltas por frame e, na soltura, a velocidade do fling, num
 `PanEvent`.
 
 ```python
-from tempest_core.widgets import PanHandler, Container, Text
+from tempest_core import PanHandler, Container, Text
 
 arrastavel = PanHandler(
     child=Container(child=Text(content="Arraste-me")),
@@ -314,7 +314,7 @@ Reporta **pinch** (escala + rotação) e um double-tap. O `on_scale` recebe um
 par comum para resetar o zoom.
 
 ```python
-from tempest_core.widgets import ScaleHandler, Image
+from tempest_core import ScaleHandler, Image
 
 foto = ScaleHandler(
     child=Image(src="mapa.png"),
@@ -337,7 +337,7 @@ O caso mais enxuto: só um **toque duplo**. Útil para "curtir com dois toques" 
 um atalho de zoom sem o custo do pinch.
 
 ```python
-from tempest_core.widgets import DoubleTapHandler, Image
+from tempest_core import DoubleTapHandler, Image
 
 curtivel = DoubleTapHandler(
     child=Image(src="post.jpg"),
@@ -359,7 +359,7 @@ um rótulo opaco carregado até o alvo de soltura via `DragEvent.data`, para o a
 identificar o que caiu nele.
 
 ```python
-from tempest_core.widgets import Draggable, Container, Text
+from tempest_core import Draggable, Container, Text
 
 carta = Draggable(
     child=Container(child=Text(content="Rei de Espadas")),
@@ -386,7 +386,7 @@ quando um draggable é liberado sobre o alvo, recebendo o `DragEvent` com os dad
 do item.
 
 ```python
-from tempest_core.widgets import DragTarget, Container, Text
+from tempest_core import DragTarget, Container, Text
 
 pilha = DragTarget(
     child=Container(child=Text(content="Solte cartas aqui")),
@@ -411,7 +411,7 @@ O `direction` define a direção de swipe que dispara a dispensa; o `on_dismiss`
 dispara quando o swipe passa do limiar.
 
 ```python
-from tempest_core.widgets import Dismissible, Container, Text, SwipeDirection
+from tempest_core import Dismissible, Container, Text, SwipeDirection
 
 item = Dismissible(
     child=Container(child=Text(content="Deslize para apagar")),
@@ -441,7 +441,7 @@ handler tipicamente muta a lista de apoio
 filhos com `key` estável então diffa para um patch `Reorder`.
 
 ```python
-from tempest_core.widgets import ReorderableList, Container, Text
+from tempest_core import ReorderableList, Container, Text
 
 
 def reordenar(e):
@@ -480,7 +480,7 @@ drag), limitado entre `min_scale` e `max_scale`. O `on_interaction` dispara
 conforme a view transforma, com a escala atual, o ponto focal e a rotação.
 
 ```python
-from tempest_core.widgets import InteractiveViewer, Image
+from tempest_core import InteractiveViewer, Image
 
 visualizador = InteractiveViewer(
     child=Image(src="planta-baixa.png"),

@@ -62,7 +62,7 @@ Unlike buttons, a field is **focus-led**: the resting treatment is low-emphasis 
 
 ```python
 from tempest_core import Input
-from tempest_core.style import FieldVariant
+from tempest_core import FieldVariant
 
 outlined = Input(placeholder="Email", field_variant=FieldVariant.OUTLINE)
 filled = Input(placeholder="Email", field_variant=FieldVariant.FILLED)
@@ -83,7 +83,7 @@ for each `ComponentState`, with the caller's override already merged on top:
 
 ```python
 from tempest_core import Input
-from tempest_core.style import ComponentState
+from tempest_core import ComponentState
 
 field = Input(placeholder="Name", color_scheme="primary")
 states = field.state_styles()
@@ -142,7 +142,7 @@ Pass an `on_change` to react to each edit; the handler receives a
 
 ```python
 from tempest_core import Input, KeyboardType
-from tempest_core.style import FieldVariant
+from tempest_core import FieldVariant
 
 email = Input(
     value="",

@@ -11,8 +11,8 @@ The interactive resolvers live in `variants.py`; each resolves a `Style`:
 
 ```python
 from tempest_core import IconButton, Theme
-from tempest_core.widgets import Input
-from tempest_core.style import FieldVariant
+from tempest_core import Input
+from tempest_core import FieldVariant
 
 field = Input(value="", field_variant=FieldVariant.FILLED, color_scheme="primary")
 button = IconButton(icon="settings", color_scheme="primary", label="Open settings")
@@ -29,8 +29,8 @@ chooses how the box is filled and whether it casts an elevation shadow.
 
 ```python
 from tempest_core import CardVariant
-from tempest_core.components import Card, HStack, Surface, VStack
-from tempest_core.widgets import Spacer, Text
+from tempest_core import Card, HStack, Surface, VStack
+from tempest_core import Spacer, Text
 
 card = Card(  # (1)!
     variant=CardVariant.OUTLINED,
@@ -71,7 +71,7 @@ surfaces, are **non-interactive** (no state table).
 
 ```python
 from tempest_core import Alert, Badge, Stat
-from tempest_core.style import AlertVariant, BadgeVariant
+from tempest_core import AlertVariant, BadgeVariant
 
 ok = Badge(label="LIVE", variant=BadgeVariant.SUBTLE, color_scheme="success")  # (1)!
 note = Alert(  # (2)!
@@ -112,7 +112,7 @@ the inactive ones are *ghost* (the H1 variant resolver).
 
 ```python
 from tempest_core import Tabs
-from tempest_core.components import AppBar, NavBar, SearchBar
+from tempest_core import AppBar, NavBar, SearchBar
 
 bar = AppBar(title="Inbox", color_scheme="primary")  # (1)!
 search = SearchBar(value="", on_change=lambda e: None, color_scheme="primary")  # (2)!
@@ -239,7 +239,7 @@ holds no state — it mirrors the E1 list pattern): the app holds `sort_column` 
 `sort_ascending` / `page` and passes the rows already sorted.
 
 ```python
-from tempest_core.components import DataTable
+from tempest_core import DataTable
 
 table = DataTable(
     columns=["Class", "Confidence"],

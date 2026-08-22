@@ -21,7 +21,7 @@ igual. Você a monta a partir de `TableRow`s tipadas, cada uma com uma lista de
 `TableCell`s. No caso mínimo, só `rows`:
 
 ```python
-from tempest_core.components import Table, TableRow, TableCell
+from tempest_core import Table, TableRow, TableCell
 
 tabela = Table(
     headers=["Nome", "Papel"],
@@ -56,8 +56,8 @@ Uma única célula de uma `Table`. É um modelo de **valor imutável** (`frozen`
 carrega o texto e, opcionalmente, `colspan` / `rowspan` e um `style` próprio.
 
 ```python
-from tempest_core.components import TableCell
-from tempest_core.style import Style
+from tempest_core import TableCell
+from tempest_core import Style
 
 destaque = TableCell(content="Total", style=Style(grow=1.0))
 ```
@@ -83,8 +83,8 @@ Uma única linha de uma `Table` — as células ordenadas mais um `style` opcion
 sobreposto ao layout padrão da linha. Também é `frozen`.
 
 ```python
-from tempest_core.components import TableRow, TableCell
-from tempest_core.style import Style
+from tempest_core import TableRow, TableCell
+from tempest_core import Style
 
 linha = TableRow(
     cells=[TableCell(content="Ana"), TableCell(content="Admin")],
@@ -114,7 +114,7 @@ divisor `OUTLINE_VARIANT`) — nenhum hexadecimal fixo. No caso mínimo, só
 `columns` e `rows`:
 
 ```python
-from tempest_core.components import DataTable
+from tempest_core import DataTable
 
 tabela = DataTable(
     columns=["Nome", "Idade"],
@@ -174,7 +174,7 @@ prev/next já vêm **limitados** a `[0, última página]`, então o paginador nu
 sai do intervalo:
 
 ```python
-from tempest_core.components import DataTable
+from tempest_core import DataTable
 
 pagina = DataTable(
     columns=["Nome", "Idade"],
@@ -200,7 +200,7 @@ estado:
 ```python
 from typing import Any
 
-from tempest_core.components import DataTable
+from tempest_core import DataTable
 
 # O app é dono do estado — a tabela é só uma projeção dele.
 state: dict[str, Any] = {"sort_column": 0, "sort_ascending": True, "page": 0}

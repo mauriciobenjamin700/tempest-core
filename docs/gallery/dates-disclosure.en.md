@@ -29,7 +29,7 @@ A month grid of selectable day cells. In the minimal case you pass only
 selected):
 
 ```python
-from tempest_core.components import Calendar
+from tempest_core import Calendar
 
 agenda = Calendar(on_select=lambda iso: print(iso))
 ```
@@ -40,7 +40,7 @@ To control the displayed month and the highlighted day, pass `month` and
 `selected` from app state:
 
 ```python
-from tempest_core.components import Calendar
+from tempest_core import Calendar
 
 agenda = Calendar(
     month="2026-07",  # (1)!
@@ -90,7 +90,7 @@ does not tick on its own — the app formats and updates the text from state (as
 the `stopwatch` example):
 
 ```python
-from tempest_core.components import Clock
+from tempest_core import Clock
 
 clock = Clock(time="12:34:56")
 ```
@@ -99,7 +99,7 @@ Pass a `label` for a muted caption under the time, and an optional `color_scheme
 to tint the time:
 
 ```python
-from tempest_core.components import Clock
+from tempest_core import Clock
 
 stopwatch = Clock(
     time="00:00:42",
@@ -148,8 +148,8 @@ open accordion simply renders its body below the header. `open` is
 `on_toggle`, mirroring `Drawer`:
 
 ```python
-from tempest_core.components import Accordion
-from tempest_core.widgets import Text
+from tempest_core import Accordion
+from tempest_core import Text
 
 details = Accordion(
     title="Order details",

@@ -25,7 +25,7 @@ enquanto cada widget aqui só declara *qual* comportamento de container ele tem.
 
     ```python
     from tempest_core import Row
-    from tempest_core.style import AlignItems, JustifyContent, Style
+    from tempest_core import AlignItems, JustifyContent, Style
 
     barra = Row(
         style=Style(
@@ -41,12 +41,11 @@ enquanto cada widget aqui só declara *qual* comportamento de container ele tem.
     (`FlexDirection`, `JustifyContent`, `AlignItems`, `FlexWrap`, `Position`,
     `StackAlign`) — veja a [Referência da API](../reference.md).
 
-!!! tip "Alguns widgets só existem em `tempest_core.widgets`"
-    `Column`, `Row`, `Container` e `Spacer` são re-exportados no topo
-    (`from tempest_core import Column`). Os demais (`ScrollView`, `SafeArea`,
-    `SafeAreaEdge`, `Stack`, `Wrap`, `PageView`, `AspectRatio`,
-    `KeyboardAvoidingView`) vêm de `from tempest_core.widgets import ...` — é o que
-    os exemplos abaixo usam.
+!!! tip "Todos vêm do topo"
+    `Column`, `Row`, `Container`, `Spacer`, `ScrollView`, `SafeArea`,
+    `SafeAreaEdge`, `Stack`, `Wrap`, `PageView`, `AspectRatio` e
+    `KeyboardAvoidingView` importam todos de `from tempest_core import ...` — os
+    exemplos abaixo usam essa forma.
 
 ## `Column`
 
@@ -120,7 +119,7 @@ envolve **um** widget (ou nenhum) e aplica o modelo de caixa do seu `Style`.
 
 ```python
 from tempest_core import Container, Text
-from tempest_core.style import Edge, Style
+from tempest_core import Edge, Style
 
 cartao = Container(
     style=Style(
@@ -150,7 +149,7 @@ padrão rola na vertical; ative `horizontal` para rolar na lateral.
 
 ```python
 from tempest_core import Text
-from tempest_core.widgets import ScrollView
+from tempest_core import ScrollView
 
 lista = ScrollView(children=[Text(content=f"Item {i}") for i in range(200)])
 
@@ -180,7 +179,7 @@ barra de status, a barra de navegação, ou um recorte/notch de tela. Espelha o
 
 ```python
 from tempest_core import Column, Text
-from tempest_core.widgets import SafeArea
+from tempest_core import SafeArea
 
 tela = SafeArea(child=Column(children=[Text(content="Conteúdo protegido")]))
 ```
@@ -206,7 +205,7 @@ subconjunto para deixar as outras rentes à borda física.
 
 ```python
 from tempest_core import Column, Text
-from tempest_core.widgets import SafeArea, SafeAreaEdge
+from tempest_core import SafeArea, SafeAreaEdge
 
 # Só protege o topo — o rodapé fica rente à borda (ex.: uma barra que já encosta).
 tela = SafeArea(
@@ -273,8 +272,8 @@ um `Stack` que envolve o conteúdo da página.
 
 ```python
 from tempest_core import Container, Text
-from tempest_core.style import Position, Style
-from tempest_core.widgets import Stack
+from tempest_core import Position, Style
+from tempest_core import Stack
 
 tela = Stack(
     children=[
@@ -325,7 +324,7 @@ que mantém todo filho numa única linha.
 
 ```python
 from tempest_core import Button
-from tempest_core.widgets import Wrap
+from tempest_core import Wrap
 
 chips = Wrap(
     children=[
@@ -356,7 +355,7 @@ prev/next (simulador) para navegar. O índice ativo mora na **state da aplicaç�
 
 ```python
 from tempest_core import Container, Text
-from tempest_core.widgets import PageView
+from tempest_core import PageView
 
 onboarding = PageView(
     page=0,
@@ -394,7 +393,7 @@ fixa**. O `ratio` é `largura / altura`: `1.0` é quadrado, `16/9` é widescreen
 renderizador deriva a dimensão faltante a partir da que o pai limita.
 
 ```python
-from tempest_core.widgets import AspectRatio, Image
+from tempest_core import AspectRatio, Image
 
 # Um vídeo/thumb sempre 16:9, não importa a largura disponível.
 thumb = AspectRatio(ratio=16 / 9, child=Image(src="capa.jpg"))
@@ -422,7 +421,7 @@ visível acima dele.
 
 ```python
 from tempest_core import Button, Column
-from tempest_core.widgets import Input, KeyboardAvoidingView
+from tempest_core import Input, KeyboardAvoidingView
 
 form = KeyboardAvoidingView(
     children=[

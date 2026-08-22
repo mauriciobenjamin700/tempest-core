@@ -98,7 +98,7 @@ map** for responsive density:
 
 ```python
 from tempest_core import Button
-from tempest_core.style import Size
+from tempest_core import Size
 
 # Compact on mobile, roomy from the "md" breakpoint up.
 responsive = Button(label="Submit", size={"base": Size.SM, "md": Size.LG})
@@ -123,7 +123,7 @@ At construction, `Button` runs a `model_validator(mode="after")` that:
 
 ```python
 from tempest_core import Button
-from tempest_core.style import Style
+from tempest_core import Style
 
 # The override wins on the fields it sets; the rest comes from the resolved variant.
 custom = Button(label="Danger", color_scheme="error", style=Style(radius=999.0))
@@ -142,7 +142,7 @@ for each `ComponentState`, with the caller's override merged on top:
 
 ```python
 from tempest_core import Button
-from tempest_core.style import ComponentState
+from tempest_core import ComponentState
 
 button = Button(label="Save", color_scheme="primary")
 states = button.state_styles()

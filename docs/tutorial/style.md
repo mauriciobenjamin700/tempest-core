@@ -6,7 +6,7 @@ o seu alvo (CSS no web, propriedades Qt/Compose no nativo).
 
 ```python
 from tempest_core import Container, Style, Text, Widget
-from tempest_core.style import Color, Edge
+from tempest_core import Color, Edge
 
 
 def cartao() -> Widget:
@@ -32,7 +32,7 @@ def cartao() -> Widget:
 Declare uma `Transition` e a mudança de propriedades é animada em vez de saltar:
 
 ```python
-from tempest_core.style import Curve, Transition
+from tempest_core import Curve, Transition
 
 Style(transition=Transition(duration_ms=300, curve=Curve.EASE_IN_OUT))
 ```

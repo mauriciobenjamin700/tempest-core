@@ -28,8 +28,8 @@ variant `Style`, with no inner padding or gap. It is what every higher-level
 surface (`Card`, `Accordion` header, …) builds on.
 
 ```python
-from tempest_core.components import Surface
-from tempest_core.widgets import Text
+from tempest_core import Surface
+from tempest_core import Text
 
 surface = Surface(child=Text(content="Hello"))
 ```
@@ -38,9 +38,9 @@ That `Surface(child=…)` is already an **elevated, neutral** surface — ready 
 the renderers. Pick the variant and color family by *intent*:
 
 ```python
-from tempest_core.components import Surface
-from tempest_core.style import CardVariant
-from tempest_core.widgets import Text
+from tempest_core import Surface
+from tempest_core import CardVariant
+from tempest_core import Text
 
 panel = Surface(
     variant=CardVariant.OUTLINED,  # (1)!
@@ -79,8 +79,8 @@ accepts a step name (`"md"` / `"lg"`) resolved against the theme's spacing scale
 or a raw `float` for backward-compatibility.
 
 ```python
-from tempest_core.components import StyledContainer
-from tempest_core.widgets import Text
+from tempest_core import StyledContainer
+from tempest_core import Text
 
 box = StyledContainer(padding="lg", child=Text(content="Roomy content"))
 ```
@@ -112,8 +112,8 @@ A themed surface grouping a stack of children (Material 3 card). It is exactly
 children in a `Column`.
 
 ```python
-from tempest_core.components import Card
-from tempest_core.widgets import Text
+from tempest_core import Card
+from tempest_core import Text
 
 card = Card(
     children=[
@@ -127,9 +127,9 @@ A no-arg `Card(children=…)` produces an **elevated, neutral** card. Pick the
 variant and tune the spacing steps:
 
 ```python
-from tempest_core.components import Card
-from tempest_core.style import CardVariant
-from tempest_core.widgets import Text
+from tempest_core import Card
+from tempest_core import CardVariant
+from tempest_core import Text
 
 featured = Card(
     variant=CardVariant.FILLED,
@@ -180,7 +180,7 @@ The title uses `ON_SURFACE`, the subtitle uses `ON_SURFACE_VARIANT`, and the
 gaps/padding come from the theme's spacing scale.
 
 ```python
-from tempest_core.components import Avatar, ListTile
+from tempest_core import Avatar, ListTile
 from tempest_core import IconButton
 
 row = ListTile(
@@ -215,7 +215,7 @@ fills with the `color_scheme`'s tonal `*_container` role and the initials use it
 legible `on_*_container` role (WCAG-AA safe by construction).
 
 ```python
-from tempest_core.components import Avatar
+from tempest_core import Avatar
 
 avatar = Avatar(initials="MB", size=48.0, color_scheme="secondary")
 ```
@@ -241,7 +241,7 @@ A thin horizontal rule, tinted with Material 3's `OUTLINE_VARIANT` color.
 `float`.
 
 ```python
-from tempest_core.components import Divider
+from tempest_core import Divider
 
 rule = Divider()  # 1px outline-variant rule
 thick = Divider(thickness=2.0, color_scheme="primary")
@@ -266,8 +266,8 @@ A fixed-column grid laying children out in equal-width cells, filled
 left-to-right then top-to-bottom.
 
 ```python
-from tempest_core.components import Card, Grid
-from tempest_core.widgets import Text
+from tempest_core import Card, Grid
+from tempest_core import Text
 
 grid = Grid(
     columns=3,
@@ -297,9 +297,9 @@ SwiftUI-style ergonomic wrapper over the primitive `Row`, with `align`
 (cross-axis) and `justify` (main-axis) surfaced.
 
 ```python
-from tempest_core.components import HStack
-from tempest_core.style import JustifyContent
-from tempest_core.widgets import Text
+from tempest_core import HStack
+from tempest_core import JustifyContent
+from tempest_core import Text
 
 bar = HStack(
     gap="sm",
@@ -325,8 +325,8 @@ top-to-bottom with a token-step `gap`. Here `align` is the cross-axis
 (horizontal) and `justify` is the main-axis (vertical).
 
 ```python
-from tempest_core.components import VStack
-from tempest_core.widgets import Text
+from tempest_core import VStack
+from tempest_core import Text
 
 column = VStack(
     gap="lg",
@@ -356,9 +356,9 @@ The page frame: an app bar on top, a growing body, and an optional bottom bar.
 The theme's `BACKGROUND` fills the frame.
 
 ```python
-from tempest_core.components import Scaffold
+from tempest_core import Scaffold
 from tempest_core import AppBar
-from tempest_core.widgets import Text
+from tempest_core import Text
 
 page = Scaffold(
     app_bar=AppBar(title="Home"),
@@ -390,7 +390,7 @@ resolved from `variant` / `color_scheme` / `elevation`, mirroring a card; the
 fixed width and padding are unchanged.
 
 ```python
-from tempest_core.components import Sidebar
+from tempest_core import Sidebar
 from tempest_core import Button
 
 sidebar = Sidebar(
@@ -426,8 +426,8 @@ explicitly non-`None` on the override win; everything else keeps the component's
 default. Since `Style` is frozen, it returns a fresh merged copy.
 
 ```python
-from tempest_core.components import merge_style
-from tempest_core.style import Style
+from tempest_core import merge_style
+from tempest_core import Style
 
 base = Style(padding=None, radius=8.0, gap=4.0)
 final = merge_style(base, Style(radius=16.0))  # radius wins; gap and padding from base
@@ -449,7 +449,7 @@ Six `Color` constants — a restrained dark palette matching the examples. They
 serve as ready-made values when assembling components outside a full `Theme`.
 
 ```python
-from tempest_core.components import (
+from tempest_core import (
     BACKGROUND,
     SURFACE,
     ACCENT,
@@ -457,8 +457,8 @@ from tempest_core.components import (
     ON_SURFACE,
     ON_MUTED,
 )
-from tempest_core.style import Style
-from tempest_core.widgets import Container, Text
+from tempest_core import Style
+from tempest_core import Container, Text
 
 box = Container(
     style=Style(background=SURFACE),

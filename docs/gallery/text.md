@@ -31,7 +31,7 @@ todo widget aceita:
 
 ```python
 from tempest_core import Text
-from tempest_core.style import Style, FontWeight, Color
+from tempest_core import Style, FontWeight, Color
 
 titulo = Text(
     content="Bem-vindo",
@@ -92,7 +92,7 @@ renderizador):
 
 ```python
 from tempest_core import Text
-from tempest_core.style import (
+from tempest_core import (
     Style,
     FontWeight,
     FontStyle,
@@ -132,7 +132,7 @@ para ver efeito, a caixa precisa ser mais larga que a linha (dê largura via
 
 ```python
 from tempest_core import Text
-from tempest_core.style import Style, TextAlign
+from tempest_core import Style, TextAlign
 
 centralizado = Text(
     content="Toque para continuar",
@@ -154,7 +154,7 @@ o texto cortado termina, use `text_overflow`:
 
 ```python
 from tempest_core import Text
-from tempest_core.style import Style, TextOverflow
+from tempest_core import Style, TextOverflow
 
 # Uma prévia de duas linhas com reticências no fim.
 previa = Text(
@@ -187,8 +187,8 @@ acessível diferente do visível:
 
 ```python
 from tempest_core import Text
-from tempest_core.widgets import Semantics
-from tempest_core.style import Style, FontWeight
+from tempest_core import Semantics
+from tempest_core import Style, FontWeight
 
 titulo = Text(
     content="Configurações",
@@ -215,7 +215,7 @@ vira prop:
 
 ```python
 from tempest_core import Text, build
-from tempest_core.style import Style, FontWeight
+from tempest_core import Style, FontWeight
 
 node = build(
     Text(content="Oi", key="saudacao", style=Style(font_weight=FontWeight.BOLD))

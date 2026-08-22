@@ -54,7 +54,7 @@ and surface the message by feeding it back into `error`:
 
 ```python
 from tempest_core import EmailInput
-from tempest_core.validators import validate_email
+from tempest_core import validate_email
 
 
 def on_email(value: str) -> None:
@@ -136,7 +136,7 @@ automatically as the user types:
 
 ```python
 from tempest_core import PhoneInput
-from tempest_core.validators import validate_phone
+from tempest_core import validate_phone
 
 
 def on_phone(value: str) -> None:
@@ -179,7 +179,7 @@ A labelled CPF field, **masked** `999.999.999-99`, numeric keyboard. Pair it wit
 
 ```python
 from tempest_core import CPFInput
-from tempest_core.validators import validate_cpf
+from tempest_core import validate_cpf
 
 
 def on_cpf(value: str) -> None:
@@ -222,7 +222,7 @@ with `validate_cnpj`:
 
 ```python
 from tempest_core import CNPJInput
-from tempest_core.validators import validate_cnpj
+from tempest_core import validate_cnpj
 
 
 def on_cnpj(value: str) -> None:

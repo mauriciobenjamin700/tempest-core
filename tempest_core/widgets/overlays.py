@@ -259,14 +259,26 @@ class Popover(Widget):
 class ActionSheet(Widget):
     """A bottom-anchored list of actions, optionally titled.
 
+    It is presented modally — with a scrim behind it — so it needs the same
+    dismissal contract as a :class:`Dialog` or a :class:`BottomSheet`: a renderer
+    reports the scrim tap or the Escape key, and the app decides whether to close.
+    Without :attr:`on_dismiss` that gesture had nowhere to go, so a sheet whose
+    actions did not close it trapped the reader — worse once a renderer traps
+    focus inside modal overlays, as the web client now does.
+
     Attributes:
         title: Optional sheet title.
         items: The selectable actions.
         on_select: Handler invoked on action selection, validated against
             :class:`MenuSelectEvent`.
+        on_dismiss: Handler invoked when the user dismisses the sheet (barrier
+            tap or system back), validated against :class:`DismissEvent`.
     """
 
-    event_schemas: ClassVar[dict[str, type[Event]]] = {"on_select": MenuSelectEvent}
+    event_schemas: ClassVar[dict[str, type[Event]]] = {
+        "on_select": MenuSelectEvent,
+        "on_dismiss": DismissEvent,
+    }
 
     title: str | None = Field(default=None, description="Optional sheet title.")
     items: list[MenuItem] = Field(
@@ -276,4 +288,9 @@ class ActionSheet(Widget):
         default=None,
         description="Handler invoked on action selection, validated against "
         ":class:`MenuSelectEvent`.",
+    )
+    on_dismiss: DismissHandler | None = Field(
+        default=None,
+        description="Handler invoked when the user dismisses the sheet (barrier "
+        "tap or system back), validated against :class:`DismissEvent`.",
     )

@@ -98,7 +98,7 @@ breakpoint** para densidade responsiva:
 
 ```python
 from tempest_core import Button
-from tempest_core.style import Size
+from tempest_core import Size
 
 # Compacto no mobile, folgado a partir do breakpoint "md".
 responsivo = Button(label="Enviar", size={"base": Size.SM, "md": Size.LG})
@@ -123,7 +123,7 @@ Na construção, o `Button` roda um `model_validator(mode="after")` que:
 
 ```python
 from tempest_core import Button
-from tempest_core.style import Style
+from tempest_core import Style
 
 # O override ganha nos campos que ele seta; o resto vem da variante resolvida.
 custom = Button(label="Perigo", color_scheme="error", style=Style(radius=999.0))
@@ -142,7 +142,7 @@ interação**. O método `state_styles()` devolve o `Style` resolvido para cada
 
 ```python
 from tempest_core import Button
-from tempest_core.style import ComponentState
+from tempest_core import ComponentState
 
 botao = Button(label="Salvar", color_scheme="primary")
 estados = botao.state_styles()

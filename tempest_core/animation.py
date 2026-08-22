@@ -303,8 +303,10 @@ class Tween(BaseModel, Generic[T]):
     to get the per-frame interpolated value, which it then feeds into a
     :class:`~tempestroid.style.Style` — so the interpolation stays in the core.
 
-    Type Args:
-        T: The endpoint type being interpolated.
+    ``T`` is the endpoint type being interpolated. It is described here rather
+    than in a section of its own: a type parameter is not an argument, and griffe
+    reports a "Type Args" entry that does not appear in the signature — which
+    `mkdocs build --strict` turns into a failed docs build.
 
     Attributes:
         begin: The value at ``t == 0.0``.

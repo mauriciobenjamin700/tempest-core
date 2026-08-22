@@ -1,11 +1,12 @@
 # Navegação
 
 A navegação no `tempest-core` se divide em **duas famílias**. Os **componentes**
-(`from tempest_core.components import ...`) são peças de página que **abaixam para
-primitivas** (`Row`/`Column`/`Container`) e resolvem seu visual pelos tokens do
-`Theme` — barras, abas, trilhas e campos de barra. Os **widgets de roteamento**
-(`from tempest_core import ...`) são os nós de IR que hospedam a *pilha de rotas*
-na árvore: `Navigator`, `TabView`, `TabBar` e `RouteDrawer`. 🚀
+são peças de página que **abaixam para primitivas** (`Row`/`Column`/`Container`) e
+resolvem seu visual pelos tokens do `Theme` — barras, abas, trilhas e campos de
+barra. Os **widgets de roteamento** são os nós de IR que hospedam a *pilha de
+rotas* na árvore: `Navigator`, `TabView`, `TabBar` e `RouteDrawer`. As duas
+famílias se importam do topo (`from tempest_core import ...`); a diferença é o que
+cada uma faz, não de onde vem. 🚀
 
 !!! info "O que você aprende aqui"
     - As **barras** de topo/rodapé (`AppBar`, `CollapsingAppBar`, `Header`,
@@ -19,10 +20,10 @@ na árvore: `Navigator`, `TabView`, `TabBar` e `RouteDrawer`. 🚀
       `RouteDrawer`) — os nós de IR que hospedam a pilha de rotas.
     - Os **campos de barra** (`SearchBar`, `Stepper`) montados sobre primitivas.
 
-!!! note "De onde importar cada símbolo"
-    Componentes vêm do subpacote: `from tempest_core.components import AppBar, NavBar, ...`.
-    Widgets de roteamento vêm do topo: `from tempest_core import Navigator, TabView, TabBar, RouteDrawer`.
-    Não misture — o exemplo de cada seção usa o import certo.
+!!! note "Um lugar para importar"
+    Tudo que é público sai do topo: `from tempest_core import AppBar, NavBar,
+    Navigator, TabView, TabBar, RouteDrawer`. Os submódulos continuam existindo,
+    mas você não precisa saber em qual deles cada símbolo mora.
 
 ## Barras
 
@@ -38,7 +39,7 @@ Uma barra de aplicação de topo: `leading` opcional, `title` e `actions` no fim
 No caso mínimo você só passa o `title`:
 
 ```python
-from tempest_core.components import AppBar
+from tempest_core import AppBar
 from tempest_core import Button, IconButton
 
 barra = AppBar(
@@ -80,7 +81,7 @@ estado e devolve em `scroll_offset` — a altura (e a fonte do título) é deriv
 disso em Python puro, então o reconciliador só faz diff de `Style.height`:
 
 ```python
-from tempest_core.components import CollapsingAppBar
+from tempest_core import CollapsingAppBar
 
 barra = CollapsingAppBar(
     title="Galeria",
@@ -124,7 +125,7 @@ superfície elevada. As cores saem direto dos tokens (`SURFACE_VARIANT` no fundo
 `ON_SURFACE` no título, `ON_SURFACE_VARIANT` no subtítulo):
 
 ```python
-from tempest_core.components import Header
+from tempest_core import Header
 
 cabecalho = Header(
     title="Configurações",
@@ -154,7 +155,7 @@ Uma barra inferior que segura conteúdo arbitrário, centralizado. Espelha a
 `AppBar` na resolução de superfície:
 
 ```python
-from tempest_core.components import Footer
+from tempest_core import Footer
 from tempest_core import Text
 
 rodape = Footer(
@@ -189,7 +190,7 @@ inativos ficam num tratamento GHOST discreto (neutro). A barra em si é uma
 superfície resolvida:
 
 ```python
-from tempest_core.components import NavBar
+from tempest_core import NavBar
 
 barra = NavBar(
     items=["Início", "Buscar", "Perfil"],
@@ -227,7 +228,7 @@ fina (2px) como indicador — usando só campos de `Style` existentes, **sem** c
 novo:
 
 ```python
-from tempest_core.components import Tabs
+from tempest_core import Tabs
 
 abas = Tabs(
     tabs=["Visão geral", "Atividade", "Ajustes"],
@@ -263,7 +264,7 @@ separadores `ON_SURFACE_VARIANT`. Se você passar `on_select`, as migalhas
 navegáveis viram links (`resolve_variant` LINK) — **a última nunca é tapável**:
 
 ```python
-from tempest_core.components import Breadcrumb
+from tempest_core import Breadcrumb
 
 trilha = Breadcrumb(
     items=["Início", "Projetos", "tempest-core"],
@@ -299,7 +300,7 @@ sistema de ícones (um ícone de linha de verdade, não um caractere literal). O
 típico é alternar um `Drawer`:
 
 ```python
-from tempest_core.components import Burger
+from tempest_core import Burger
 
 botao = Burger(
     on_click=lambda: app.set_state(menu_open=not app.state.menu_open),
@@ -332,7 +333,7 @@ colapsa para uma caixa vazia quando `False`. O flag `open` mora no estado do app
 superfície via `resolve_surface_variant`, espelhando um card:
 
 ```python
-from tempest_core.components import Drawer
+from tempest_core import Drawer
 from tempest_core import Text
 
 painel = Drawer(
@@ -501,7 +502,7 @@ um `IconButton` (glifo curado `Icons.X`, GHOST) — mostrado só quando `on_clea
 setado **e** o campo não está vazio:
 
 ```python
-from tempest_core.components import SearchBar
+from tempest_core import SearchBar
 
 busca = SearchBar(
     value=app.state.query,  # (1)!
@@ -541,7 +542,7 @@ o resultado aos limites opcionais antes de reportar, então o handler nunca rece
 valor fora de faixa:
 
 ```python
-from tempest_core.components import Stepper
+from tempest_core import Stepper
 
 qtd = Stepper(
     value=app.state.qty,
@@ -569,9 +570,9 @@ qtd = Stepper(
 
 ## Recapitulando
 
-- **Duas famílias**: componentes (`from tempest_core.components import ...`) que
-  abaixam para primitivas, e widgets de roteamento (`from tempest_core import ...`)
-  que hospedam a pilha de rotas na IR.
+- **Duas famílias**: componentes, que abaixam para primitivas, e widgets de
+  roteamento, que hospedam a pilha de rotas na IR — as duas importadas do topo
+  (`from tempest_core import ...`).
 - **Barras**: `AppBar` / `Footer` / `CollapsingAppBar` resolvem a **superfície**
   via `resolve_surface_variant`; `Header` lê tokens direto (faixa plana, sem
   `variant`).

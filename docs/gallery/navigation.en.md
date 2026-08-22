@@ -1,11 +1,12 @@
 # Navigation
 
 Navigation in `tempest-core` splits into **two families**. The **components**
-(`from tempest_core.components import ...`) are page pieces that **lower to
-primitives** (`Row`/`Column`/`Container`) and resolve their look from the `Theme`
-tokens — bars, tabs, rails and bar fields. The **routing widgets**
-(`from tempest_core import ...`) are the IR nodes that host the *route stack* in
-the tree: `Navigator`, `TabView`, `TabBar` and `RouteDrawer`. 🚀
+are page pieces that **lower to primitives** (`Row`/`Column`/`Container`) and
+resolve their look from the `Theme` tokens — bars, tabs, rails and bar fields. The
+**routing widgets** are the IR nodes that host the *route stack* in the tree:
+`Navigator`, `TabView`, `TabBar` and `RouteDrawer`. Both families import from the
+root (`from tempest_core import ...`); what differs is what they do, not where
+they live. 🚀
 
 !!! info "What you'll learn here"
     - The top/bottom **bars** (`AppBar`, `CollapsingAppBar`, `Header`, `Footer`)
@@ -19,10 +20,10 @@ the tree: `Navigator`, `TabView`, `TabBar` and `RouteDrawer`. 🚀
       the IR nodes that host the route stack.
     - The **bar fields** (`SearchBar`, `Stepper`) assembled over primitives.
 
-!!! note "Where to import each symbol"
-    Components come from the subpackage: `from tempest_core.components import AppBar, NavBar, ...`.
-    Routing widgets come from the top level: `from tempest_core import Navigator, TabView, TabBar, RouteDrawer`.
-    Don't mix them — each section's example uses the right import.
+!!! note "One place to import from"
+    Everything public comes from the root: `from tempest_core import AppBar,
+    NavBar, Navigator, TabView, TabBar, RouteDrawer`. The submodules still exist,
+    but you no longer have to know which one a symbol lives in.
 
 ## Bars
 
@@ -38,7 +39,7 @@ A top application bar: optional `leading`, `title` and trailing `actions`. In th
 minimal case you pass only the `title`:
 
 ```python
-from tempest_core.components import AppBar
+from tempest_core import AppBar
 from tempest_core import Button, IconButton
 
 bar = AppBar(
@@ -81,7 +82,7 @@ font) is derived from that in pure Python, so the reconciler only diffs
 `Style.height`:
 
 ```python
-from tempest_core.components import CollapsingAppBar
+from tempest_core import CollapsingAppBar
 
 bar = CollapsingAppBar(
     title="Gallery",
@@ -125,7 +126,7 @@ come straight from the tokens (`SURFACE_VARIANT` fill, `ON_SURFACE` title,
 `ON_SURFACE_VARIANT` subtitle):
 
 ```python
-from tempest_core.components import Header
+from tempest_core import Header
 
 header = Header(
     title="Settings",
@@ -155,7 +156,7 @@ A bottom bar holding arbitrary, centered content. It mirrors `AppBar` on surface
 resolution:
 
 ```python
-from tempest_core.components import Footer
+from tempest_core import Footer
 from tempest_core import Text
 
 footer = Footer(
@@ -190,7 +191,7 @@ ones are a low-emphasis GHOST treatment (neutral). The bar itself is a resolved
 surface:
 
 ```python
-from tempest_core.components import NavBar
+from tempest_core import NavBar
 
 bar = NavBar(
     items=["Home", "Search", "Profile"],
@@ -227,7 +228,7 @@ the active one takes the `color_scheme` role color plus a thin bottom `SideBorde
 (2px) as the indicator — using only existing `Style` fields, **no** new field:
 
 ```python
-from tempest_core.components import Tabs
+from tempest_core import Tabs
 
 tabs = Tabs(
     tabs=["Overview", "Activity", "Settings"],
@@ -263,7 +264,7 @@ A trail of crumbs joined by a separator. Colors come from the tokens: the curren
 (`resolve_variant` LINK) — **the last is never tappable**:
 
 ```python
-from tempest_core.components import Breadcrumb
+from tempest_core import Breadcrumb
 
 trail = Breadcrumb(
     items=["Home", "Projects", "tempest-core"],
@@ -299,7 +300,7 @@ the icon system (a real line icon, not a literal character). The typical use is 
 toggle a `Drawer`:
 
 ```python
-from tempest_core.components import Burger
+from tempest_core import Burger
 
 button = Burger(
     on_click=lambda: app.set_state(menu_open=not app.state.menu_open),
@@ -332,7 +333,7 @@ it from a `Burger`'s `on_click`). When open, the panel resolves its surface via
 `resolve_surface_variant`, mirroring a card:
 
 ```python
-from tempest_core.components import Drawer
+from tempest_core import Drawer
 from tempest_core import Text
 
 panel = Drawer(
@@ -499,7 +500,7 @@ carries a surface from `resolve_surface_variant`; and the clear button lowers to
 **and** the field is non-empty:
 
 ```python
-from tempest_core.components import SearchBar
+from tempest_core import SearchBar
 
 search = SearchBar(
     value=app.state.query,  # (1)!
@@ -539,7 +540,7 @@ the result to the optional bounds before reporting, so the handler never receive
 an out-of-range value:
 
 ```python
-from tempest_core.components import Stepper
+from tempest_core import Stepper
 
 qty = Stepper(
     value=app.state.qty,
@@ -567,9 +568,9 @@ qty = Stepper(
 
 ## Recap
 
-- **Two families**: components (`from tempest_core.components import ...`) that lower
-  to primitives, and routing widgets (`from tempest_core import ...`) that host the
-  route stack in the IR.
+- **Two families**: components, which lower to primitives, and routing widgets,
+  which host the route stack in the IR — both imported from the root
+  (`from tempest_core import ...`).
 - **Bars**: `AppBar` / `Footer` / `CollapsingAppBar` resolve their **surface** via
   `resolve_surface_variant`; `Header` reads tokens directly (flat band, no
   `variant`).

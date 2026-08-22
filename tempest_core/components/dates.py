@@ -17,7 +17,7 @@ from pydantic import Field
 
 from tempest_core.components.base import merge_style
 from tempest_core.style import AlignItems, Edge, FontWeight, Style, TextAlign
-from tempest_core.theme import Theme
+from tempest_core.theme import Theme, current_theme
 from tempest_core.tokens import ColorRole
 from tempest_core.widgets import Button, Column, Component, Container, Row, Text, Widget
 
@@ -65,7 +65,7 @@ class Calendar(Component):
         description="The Material 3 role family the selected day fills with.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens supply the colors.",
     )
 
@@ -215,7 +215,7 @@ class Clock(Component):
         description="Optional Material 3 role family tinting the time.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens supply the colors.",
     )
 

@@ -30,7 +30,7 @@ from tempest_core.style import (
     Style,
     TextAlign,
 )
-from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.theme import MediaQueryData, Theme, current_theme
 from tempest_core.tokens import ColorRole
 from tempest_core.widgets import Column, Component, Container, Row, Text, Widget
 
@@ -124,7 +124,7 @@ class Card(Component):
         description="The spacing-scale step name for the gap between children.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the surface.",
     )
     media: MediaQueryData | None = Field(
@@ -196,7 +196,7 @@ class ListTile(Component):
         description="Optional Material 3 role family tinting the title.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens supply colors and spacing.",
     )
 
@@ -292,7 +292,7 @@ class Avatar(Component):
         description="The Material 3 role family the circle tints with.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme resolving the circle colors.",
     )
 
@@ -350,7 +350,7 @@ class Divider(Component):
         description="Optional Material 3 role family to color the rule.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens supply the color and step.",
     )
 

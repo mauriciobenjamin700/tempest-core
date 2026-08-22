@@ -24,7 +24,7 @@ from pydantic import Field, PrivateAttr, model_validator
 
 from tempest_core.icons import Icons
 from tempest_core.style import ComponentState, FieldVariant, Size, Style
-from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.theme import MediaQueryData, Theme, current_theme
 from tempest_core.variants import (
     ResponsiveSize,
     merge_styles,
@@ -143,7 +143,7 @@ class _FieldWidget(Widget):
         description="The Material 3 role family the focus tint paints with.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the variant.",
     )
     media: MediaQueryData | None = Field(
@@ -231,7 +231,7 @@ class _SelectionWidget(Widget):
         description="The Material 3 role family the accent paints with.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the variant.",
     )
     media: MediaQueryData | None = Field(
@@ -306,7 +306,7 @@ class _SliderWidget(Widget):
         description="The Material 3 role family the active track paints with.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the variant.",
     )
     media: MediaQueryData | None = Field(

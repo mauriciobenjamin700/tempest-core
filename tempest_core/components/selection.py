@@ -26,7 +26,7 @@ from tempest_core.style import (
     Style,
     Variant,
 )
-from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.theme import MediaQueryData, Theme, current_theme
 from tempest_core.tokens import ColorRole
 from tempest_core.variants import (
     ResponsiveSize,
@@ -81,7 +81,7 @@ class SegmentedControl(Component):
         default=Size.SM, description="The density size of each segment."
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme resolving the segments.",
     )
     media: MediaQueryData | None = Field(
@@ -177,7 +177,7 @@ class RadioGroup(Component):
         description="The Material 3 role family the chosen row's accent paints with.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme resolving the row colors.",
     )
     media: MediaQueryData | None = Field(
@@ -293,7 +293,7 @@ class Chip(Component):
         default=Size.MD, description="The density size of the pill."
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme resolving the chip treatment.",
     )
     media: MediaQueryData | None = Field(
@@ -378,7 +378,7 @@ class Rating(Component):
         description="The Material 3 role family the filled stars paint with.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme resolving the star color.",
     )
 

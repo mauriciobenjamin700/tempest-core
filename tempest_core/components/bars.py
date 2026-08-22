@@ -28,7 +28,7 @@ from tempest_core.style import (
     JustifyContent,
     Style,
 )
-from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.theme import MediaQueryData, Theme, current_theme
 from tempest_core.tokens import ColorRole
 from tempest_core.variants import merge_styles, resolve_surface_variant
 from tempest_core.widgets import Column, Component, Container, Row, Text, Widget
@@ -127,7 +127,7 @@ class AppBar(Component):
         description="An explicit M3 elevation level (0-5) overriding the default.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the bar surface.",
     )
     media: MediaQueryData | None = Field(
@@ -212,7 +212,7 @@ class Header(Component):
         description="Optional Material 3 role family tinting the title.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens supply colors and spacing.",
     )
 
@@ -299,7 +299,7 @@ class Footer(Component):
         description="An explicit M3 elevation level (0-5) overriding the default.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the bar surface.",
     )
     media: MediaQueryData | None = Field(
@@ -401,7 +401,7 @@ class CollapsingAppBar(Component):
         description="An explicit M3 elevation level (0-5) overriding the default.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the bar surface.",
     )
     media: MediaQueryData | None = Field(

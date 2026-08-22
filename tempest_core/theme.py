@@ -14,6 +14,9 @@ mutating in place.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -33,7 +36,55 @@ __all__ = [
     "ThemeMode",
     "Theme",
     "MediaQueryData",
+    "current_theme",
+    "use_theme",
 ]
+
+
+_current: ContextVar[Theme | None] = ContextVar("tempest_core_theme", default=None)
+"""The theme the view being built runs under, or ``None`` outside a build."""
+
+
+def current_theme() -> Theme:
+    """Return the theme of the view currently building.
+
+    Every themed component declares ``theme`` with this as its default
+    factory, which is what makes an app's palette reach the tree without a
+    single call site passing it down. The factory runs while the widget is
+    constructed — that is, while the view runs — so :meth:`use_theme` only
+    has to be installed around the view call.
+
+    Outside a build there is no app to ask, so this answers the Material
+    baseline. That keeps a widget constructed in a test, a script or a REPL
+    working exactly as before.
+
+    Returns:
+        Theme: The active theme, or a baseline one outside a build.
+    """
+    active = _current.get()
+    return Theme() if active is None else active
+
+
+@contextmanager
+def use_theme(theme: Theme) -> Iterator[None]:
+    """Run a block with ``theme`` as the one components default to.
+
+    Installed by :meth:`~tempest_core.App._build` around the view call. The
+    variable is a :class:`~contextvars.ContextVar`, so concurrent apps —
+    two server sessions building at the same time — never see each other's
+    palette, and the token is reset on the way out even if the view raises.
+
+    Args:
+        theme (Theme): The palette for the tree about to be built.
+
+    Yields:
+        None: Control, with the theme installed.
+    """
+    token = _current.set(theme)
+    try:
+        yield
+    finally:
+        _current.reset(token)
 
 
 class ThemeMode(StrEnum):

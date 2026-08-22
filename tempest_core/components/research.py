@@ -47,7 +47,7 @@ from tempest_core.style import (
     Color,
     Style,
 )
-from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.theme import MediaQueryData, Theme, current_theme
 from tempest_core.tokens import ColorRole
 from tempest_core.widgets import (
     Canvas,
@@ -273,7 +273,7 @@ class MetricCard(Component):
         description="An optional widget shown to the right of the stat block.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the surface.",
     )
     media: MediaQueryData | None = Field(
@@ -369,7 +369,7 @@ class ConfidenceBadge(Component):
         default=0.5, description="The warning threshold (see ``confidence_scheme``)."
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the pill.",
     )
 
@@ -478,7 +478,7 @@ class _ChartBase(Component):
         description="The default Material 3 role family for an unnamed series.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens supply colors.",
     )
 
@@ -751,7 +751,7 @@ class DetectionOverlay(Component):
         default=0.5, description="The warning threshold (see ``confidence_scheme``)."
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens supply the label color.",
     )
 
@@ -865,7 +865,7 @@ class ResultView(Component):
         description="The optional result widget shown below the picker.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens supply the spacing.",
     )
 

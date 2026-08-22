@@ -31,7 +31,7 @@ from tempest_core.style import (
     Style,
     TextAlign,
 )
-from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.theme import MediaQueryData, Theme, current_theme
 from tempest_core.tokens import ColorRole
 from tempest_core.variants import (
     ResponsiveSize,
@@ -105,7 +105,7 @@ class Banner(Component):
         description="An optional trailing widget (e.g. a dismiss ``Button``).",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the treatment.",
     )
 
@@ -181,7 +181,7 @@ class Alert(Component):
         description="An optional trailing dismiss widget (e.g. a close ``Button``).",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the treatment.",
     )
 
@@ -275,7 +275,7 @@ class EmptyState(Component):
         description="An optional call-to-action widget (e.g. a ``Button``).",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens supply colors and spacing.",
     )
 
@@ -371,7 +371,7 @@ class Badge(Component):
         default=Size.SM, description="The density size of the pill."
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the treatment.",
     )
     media: MediaQueryData | None = Field(
@@ -427,7 +427,7 @@ class Stat(Component):
         description="Whether the delta is positive (success) or negative (error).",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens supply colors and spacing.",
     )
 
@@ -518,7 +518,7 @@ class ProgressStepper(Component):
         description="The Material 3 role family the done/active steps paint with.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme resolving the step colors and spacing.",
     )
 

@@ -322,7 +322,19 @@ class Widget(BaseModel):
             default and ignored by non-web renderers.
     """
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    #: ``extra="forbid"`` because the default silently *drops* what it does not
+    #: recognize, and for a widget tree that silence is expensive. Measured:
+    #: ``Container(on_click=handler)`` built without complaint and the handler
+    #: simply ceased to exist — ``Container`` declares no ``on_click`` — so the
+    #: click looked like a bug in the renderer, and the investigation started in
+    #: the client's event delegation instead of at ``model_fields``. The same
+    #: silence swallows a typo: ``Text(contnet="hi")`` rendered an empty label.
+    #:
+    #: A widget is constructed on every rebuild, so this is a hot path; forbidding
+    #: is free (pydantic-core checks the key set it already parsed) while a
+    #: warning-based guard would cost a Python-level comparison per widget per
+    #: frame.
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
 
     #: Names of fields that hold child widgets. Layout widgets override this so
     #: the reconciler can split "children" from renderable props generically,

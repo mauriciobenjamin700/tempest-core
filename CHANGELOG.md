@@ -4,6 +4,31 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.14.0] - 2026-08-22
+
+### Changed
+
+- **BREAKING: um widget recusa campo que não declara.** `model_config` da base
+  `Widget` passou a `extra="forbid"`. O default descarta em silêncio o que não
+  reconhece, e numa árvore de UI esse silêncio é caro — medido:
+  `Container(on_click=handler)` era construído sem reclamar e o handler
+  simplesmente deixava de existir (`Container` não declara `on_click`), então o
+  clique parecia bug do renderizador e a investigação começava na delegação de
+  eventos do cliente em vez de no `model_fields`. Um typo é a mesma falha com
+  disfarce pior: `Text(contnet="hi")` renderizava rótulo vazio.
+
+  Agora é `ValidationError` no ponto de construção, com o nome do campo. É
+  breaking exatamente para quem já passava kwarg extra sem perceber — a
+  população afetada é a que estava sendo prejudicada em silêncio —, e a correção
+  é local: use o widget que declara o handler (`Button`, `GestureDetector`), ou
+  corrija o nome.
+
+  Não custa desempenho: um widget é construído a cada rebuild, e proibir é de
+  graça (o pydantic-core checa o conjunto de chaves que já parseou), enquanto um
+  guard por warning custaria uma comparação em Python por widget por frame.
+
+  Fecha mauriciobenjamin700/tempestweb#90.
+
 ## [0.13.0] - 2026-08-22
 
 ### Added

@@ -27,7 +27,7 @@ from tempest_core.style import (
     Style,
     Variant,
 )
-from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.theme import MediaQueryData, Theme, current_theme
 from tempest_core.variants import (
     ResponsiveSize,
     merge_styles,
@@ -199,7 +199,7 @@ class SearchBar(Component):
         description="The density size — a single ``Size`` or a per-breakpoint map.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the field and pill.",
     )
     media: MediaQueryData | None = Field(

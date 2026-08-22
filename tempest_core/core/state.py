@@ -24,7 +24,7 @@ from tempest_core.core.ir import Patch, Scene
 from tempest_core.core.reconciler import build_scene, diff_scene
 from tempest_core.i18n import Locale
 from tempest_core.navigation import NavStack, Route
-from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.theme import MediaQueryData, Theme, use_theme
 from tempest_core.widgets import LazyColumn, LazyGrid, LazyRow, SectionList, Widget
 
 __all__ = ["App", "OverlayEntry"]
@@ -305,13 +305,21 @@ class App(Generic[S]):
         Tracked list windows are injected into the root tree first; the floating
         overlays are folded in as the scene's overlay layer.
 
+        The app's theme is installed for the duration, so every themed
+        component constructed by the view defaults to it. Without this the
+        palette was inert: ``App.theme`` existed, components declared
+        ``theme`` with a baseline default factory, and nothing connected the
+        two — an app that built a brand palette still rendered Material
+        purple buttons.
+
         Returns:
             The freshly built :class:`Scene` with virtualized lists materialized
             at their tracked windows.
         """
-        return build_scene(
-            self._inject_windows(self._view(self)), self._overlay_specs()
-        )
+        with use_theme(self.theme):
+            return build_scene(
+                self._inject_windows(self._view(self)), self._overlay_specs()
+            )
 
     def _overlay_specs(self) -> list[tuple[str, Widget, bool]]:
         """Lower the overlay entries to ``(id, widget, barrier)`` build tuples.

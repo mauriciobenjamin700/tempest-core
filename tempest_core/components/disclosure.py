@@ -14,7 +14,7 @@ from pydantic import Field
 
 from tempest_core.components.base import merge_style
 from tempest_core.style import CardVariant, Edge, FontWeight, Style
-from tempest_core.theme import Theme
+from tempest_core.theme import Theme, current_theme
 from tempest_core.variants import merge_styles, resolve_surface_variant
 from tempest_core.widgets import Button, Column, Component, Widget
 
@@ -66,7 +66,7 @@ class Accordion(Component):
         default="neutral", description="The Material 3 role family to tint with."
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the header surface.",
     )
 

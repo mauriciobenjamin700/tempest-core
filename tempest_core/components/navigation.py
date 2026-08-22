@@ -40,7 +40,7 @@ from tempest_core.style import (
     Style,
     Variant,
 )
-from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.theme import MediaQueryData, Theme, current_theme
 from tempest_core.tokens import ColorRole
 from tempest_core.variants import (
     ResponsiveSize,
@@ -103,7 +103,7 @@ class NavBar(Component):
         description="The density size — a single ``Size`` or a per-breakpoint map.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the bar and items.",
     )
     media: MediaQueryData | None = Field(
@@ -234,7 +234,7 @@ class Tabs(Component):
         description="The density size — a single ``Size`` or a per-breakpoint map.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the strip and tabs.",
     )
     media: MediaQueryData | None = Field(
@@ -363,7 +363,7 @@ class Breadcrumb(Component):
         description="The Material 3 role family the link crumb paints with.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens supply colors and the link.",
     )
     media: MediaQueryData | None = Field(

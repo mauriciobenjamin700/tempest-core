@@ -22,7 +22,7 @@ from pydantic import Field
 
 from tempest_core.components.base import merge_style
 from tempest_core.style import FieldVariant, FontWeight, Size, Style
-from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.theme import MediaQueryData, Theme, current_theme
 from tempest_core.tokens import ColorRole
 from tempest_core.validators import EMAIL_PATTERN
 from tempest_core.variants import ResponsiveSize
@@ -169,7 +169,7 @@ class _BRField(Component):
         description="The Material 3 role family the inner field's focus paints with.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme resolving the field + label/error colors.",
     )
     media: MediaQueryData | None = Field(

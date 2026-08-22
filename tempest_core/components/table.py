@@ -41,7 +41,7 @@ from tempest_core.style import (
     Style,
     TextAlign,
 )
-from tempest_core.theme import Theme
+from tempest_core.theme import Theme, current_theme
 from tempest_core.tokens import ColorRole
 from tempest_core.widgets import Button, Column, Component, Container, Row, Text, Widget
 
@@ -289,7 +289,7 @@ class DataTable(Component):
         description="Called with the requested zero-based page index on prev/next.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens supply the colors.",
     )
     style: Style | None = None

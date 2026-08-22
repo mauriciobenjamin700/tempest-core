@@ -4,6 +4,32 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.12.0] - 2026-08-21
+
+### Added
+
+- **`App.theme` finally reaches the components the view builds.** It existed
+  and was inert: every themed component declares `theme` with a baseline
+  default factory, `build` knew nothing about the app, and nothing connected
+  the two. An app that generated a brand palette with `Theme.from_seed` still
+  rendered Material-purple buttons, because a component resolves its colors at
+  **construction** and writes them into its style. Measured in a real Mode B
+  app: `--tw-primary` was the brand slate on `:root` while the button computed
+  `rgb(88, 71, 133)`.
+
+  `theme.current_theme()` and `theme.use_theme(theme)` are the connection.
+  `App._build` installs the app's theme around the view call — which is when
+  components are constructed — and the 46 component fields now default to
+  `current_theme` instead of a fresh baseline. No call site changes, no
+  signature changes: an app sets `App(theme=...)` and its palette is what the
+  tree wears.
+
+  Outside a build `current_theme()` answers the baseline, so a widget built in
+  a test, a script or a REPL behaves exactly as before. A theme passed
+  explicitly still wins. The variable is a `ContextVar`, so two server
+  sessions building concurrently never see each other's palette, and the token
+  is reset in a `finally` — a view that raises cannot poison the next build.
+
 ## [0.11.0] - 2026-07-09
 
 ### Added

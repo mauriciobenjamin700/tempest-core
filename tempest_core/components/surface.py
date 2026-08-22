@@ -22,7 +22,7 @@ from __future__ import annotations
 from pydantic import Field
 
 from tempest_core.style import CardVariant, Edge, Style
-from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.theme import MediaQueryData, Theme, current_theme
 from tempest_core.variants import merge_styles, resolve_surface_variant
 from tempest_core.widgets import Component, Container, Widget
 
@@ -74,7 +74,7 @@ class Surface(Component):
         default="md", description="The shape-scale step name for the corner radius."
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the surface.",
     )
     media: MediaQueryData | None = Field(
@@ -130,7 +130,7 @@ class StyledContainer(Component):
         description='Inner padding — a token-step name (``"md"``) or a float.',
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose spacing scale resolves a step.",
     )
 

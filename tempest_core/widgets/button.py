@@ -8,7 +8,7 @@ from pydantic import Field, PrivateAttr, model_validator
 
 from tempest_core.icons import Icons
 from tempest_core.style import ComponentState, Size, Style, Variant
-from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.theme import MediaQueryData, Theme, current_theme
 from tempest_core.variants import (
     MIN_TOUCH_TARGET,
     ResponsiveSize,
@@ -89,7 +89,7 @@ class Button(Widget):
         description="The Material 3 role family to paint with.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the variant.",
     )
     media: MediaQueryData | None = Field(
@@ -217,7 +217,7 @@ class IconButton(Widget):
         description="The accessible label for the icon-only button (a11y).",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the variant.",
     )
     media: MediaQueryData | None = Field(

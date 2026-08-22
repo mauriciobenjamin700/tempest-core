@@ -25,7 +25,7 @@ from pydantic import Field
 from tempest_core.components.base import merge_style
 from tempest_core.icons import Icons
 from tempest_core.style import CardVariant, Edge, Size, Style, Variant
-from tempest_core.theme import MediaQueryData, Theme
+from tempest_core.theme import MediaQueryData, Theme, current_theme
 from tempest_core.variants import ResponsiveSize, merge_styles, resolve_surface_variant
 from tempest_core.widgets import Column, Component, Container, IconButton, Widget
 
@@ -86,7 +86,7 @@ class Burger(Component):
         "Material ``menu`` icon.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the variant.",
     )
     media: MediaQueryData | None = Field(
@@ -159,7 +159,7 @@ class Drawer(Component):
         description="An explicit M3 elevation level (0-5) overriding the default.",
     )
     theme: Theme = Field(
-        default_factory=Theme,
+        default_factory=current_theme,
         description="The design-system theme whose tokens resolve the panel surface.",
     )
     media: MediaQueryData | None = Field(

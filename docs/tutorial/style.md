@@ -13,9 +13,9 @@ def cartao() -> Widget:
     return Container(
         key="cartao",
         style=Style(
-            padding=Edge.all(16),                    # (1)!
+            padding=Edge.all(16),  # (1)!
             gap=8.0,
-            background=Color.from_hex("#f5f5f5"),     # (2)!
+            background=Color.from_hex("#f5f5f5"),  # (2)!
             radius=12.0,
         ),
         children=[Text(content="Num cartão", key="t")],
@@ -54,7 +54,7 @@ from tempest_core import Container, Text, Widget
 def barra_de_navegacao() -> Widget:
     return Container(
         key="nav",
-        tag="nav",                                    # (1)!
+        tag="nav",  # (1)!
         attrs={"id": "topo", "aria-label": "Principal"},  # (2)!
         children=[
             Text(

@@ -30,8 +30,8 @@ while each widget here only declares *which* container behavior it has. 🚀
     bar = Row(
         style=Style(
             justify=JustifyContent.SPACE_BETWEEN,  # distribute along the main axis
-            align=AlignItems.CENTER,               # center on the cross axis
-            gap=8.0,                                # space between children
+            align=AlignItems.CENTER,  # center on the cross axis
+            gap=8.0,  # space between children
         ),
         children=[],
     )
@@ -56,11 +56,13 @@ stacked in the order they appear in `children`.
 ```python
 from tempest_core import Column, Text
 
-column = Column(children=[
-    Text(content="First row"),
-    Text(content="Second row"),
-    Text(content="Third row"),
-])
+column = Column(
+    children=[
+        Text(content="First row"),
+        Text(content="Second row"),
+        Text(content="Third row"),
+    ]
+)
 ```
 
 ### Props
@@ -90,10 +92,12 @@ mirror of `Column` on the other axis.
 ```python
 from tempest_core import Button, Row
 
-bar = Row(children=[
-    Button(label="Save"),
-    Button(label="Cancel", variant="outline"),
-])
+bar = Row(
+    children=[
+        Button(label="Save"),
+        Button(label="Cancel", variant="outline"),
+    ]
+)
 ```
 
 ### Props
@@ -148,9 +152,7 @@ vertically by default; set `horizontal` to scroll sideways.
 from tempest_core import Text
 from tempest_core.widgets import ScrollView
 
-feed = ScrollView(children=[
-    Text(content=f"Item {i}") for i in range(200)
-])
+feed = ScrollView(children=[Text(content=f"Item {i}") for i in range(200)])
 
 carousel = ScrollView(horizontal=True, children=[])
 ```
@@ -229,11 +231,13 @@ siblings to the ends. It's an invisible leaf — only its `Style`'s `grow` matte
 from tempest_core import Button, Row, Spacer
 
 # "Back" on the left, "Next" on the right — the Spacer pushes them to the ends.
-footer = Row(children=[
-    Button(label="Back", variant="ghost"),
-    Spacer(),
-    Button(label="Next"),
-])
+footer = Row(
+    children=[
+        Button(label="Back", variant="ghost"),
+        Spacer(),
+        Button(label="Next"),
+    ]
+)
 ```
 
 ### Props
@@ -270,17 +274,22 @@ from tempest_core import Container, Text
 from tempest_core.style import Position, Style
 from tempest_core.widgets import Stack
 
-screen = Stack(children=[
-    Container(child=Text(content="Page content")),  # bottom layer
-    Container(                                       # full-bleed scrim on top
-        style=Style(
-            position=Position.ABSOLUTE,
-            top=0.0, right=0.0, bottom=0.0, left=0.0,
-            background="#000000",
-            opacity=0.5,
+screen = Stack(
+    children=[
+        Container(child=Text(content="Page content")),  # bottom layer
+        Container(  # full-bleed scrim on top
+            style=Style(
+                position=Position.ABSOLUTE,
+                top=0.0,
+                right=0.0,
+                bottom=0.0,
+                left=0.0,
+                background="#000000",
+                opacity=0.5,
+            ),
         ),
-    ),
-])
+    ]
+)
 ```
 
 ### Props
@@ -316,9 +325,11 @@ line.
 from tempest_core import Button
 from tempest_core.widgets import Wrap
 
-chips = Wrap(children=[
-    Button(label=tag, variant="outline") for tag in ["Python", "Rust", "Go", "Zig"]
-])
+chips = Wrap(
+    children=[
+        Button(label=tag, variant="outline") for tag in ["Python", "Rust", "Go", "Zig"]
+    ]
+)
 ```
 
 ### Props
@@ -410,13 +421,17 @@ focused input stays visible above it.
 from tempest_core import Button, Column
 from tempest_core.widgets import Input, KeyboardAvoidingView
 
-form = KeyboardAvoidingView(children=[
-    Column(children=[
-        Input(placeholder="Email"),
-        Input(placeholder="Password"),
-        Button(label="Sign in"),
-    ]),
-])
+form = KeyboardAvoidingView(
+    children=[
+        Column(
+            children=[
+                Input(placeholder="Email"),
+                Input(placeholder="Password"),
+                Button(label="Sign in"),
+            ]
+        ),
+    ]
+)
 ```
 
 ### Props

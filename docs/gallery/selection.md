@@ -32,6 +32,7 @@ mantém o índice/valor selecionado no estado, passa esse valor via prop
 ```python
 from tempest_core.components import SegmentedControl
 
+
 # O app é dono da escolha; o componente só reflete `selected` e reporta o toque.
 class Preferencias:
     def __init__(self) -> None:
@@ -40,12 +41,12 @@ class Preferencias:
     def view(self) -> SegmentedControl:
         return SegmentedControl(
             options=["Dia", "Semana", "Mês"],
-            selected=self.aba,             # (2)!
-            on_select=self._trocar_aba,    # (3)!
+            selected=self.aba,  # (2)!
+            on_select=self._trocar_aba,  # (3)!
         )
 
     def _trocar_aba(self, index: int) -> None:
-        self.aba = index                   # (4)!
+        self.aba = index  # (4)!
         # ... agende um rebuild da view
 ```
 
@@ -72,8 +73,8 @@ from tempest_core.components import SegmentedControl
 
 periodo = SegmentedControl(
     options=["Dia", "Semana", "Mês"],
-    selected=1,                              # "Semana" ativo
-    on_select=lambda index: print(index),    # (1)!
+    selected=1,  # "Semana" ativo
+    on_select=lambda index: print(index),  # (1)!
     color_scheme="primary",
     size="sm",
 )
@@ -112,7 +113,7 @@ from tempest_core.components import RadioGroup
 envio = RadioGroup(
     options=["Padrão", "Expresso", "Retirada"],
     selected=0,
-    on_select=lambda index: print(index),   # (1)!
+    on_select=lambda index: print(index),  # (1)!
     color_scheme="primary",
     size="md",
 )
@@ -158,7 +159,7 @@ from tempest_core.components import Chip
 filtro = Chip(
     label="Em promoção",
     selected=True,
-    on_click=lambda: print("chip tocado"),   # (1)!
+    on_click=lambda: print("chip tocado"),  # (1)!
     color_scheme="primary",
     size="md",
 )
@@ -243,7 +244,7 @@ from tempest_core.components import Rating
 nota = Rating(
     value=3,
     max_stars=5,
-    on_rate=lambda estrelas: print(estrelas),   # (1)!
+    on_rate=lambda estrelas: print(estrelas),  # (1)!
     color_scheme="primary",
 )
 

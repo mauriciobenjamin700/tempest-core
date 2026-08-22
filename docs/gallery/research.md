@@ -154,9 +154,9 @@ A função pura por trás de toda cor de confiança do kit. É o clássico semá
 ```python
 from tempest_core import confidence_scheme
 
-confidence_scheme(0.92)              # "success"
-confidence_scheme(0.63)              # "warning"
-confidence_scheme(0.31)              # "error"
+confidence_scheme(0.92)  # "success"
+confidence_scheme(0.63)  # "warning"
+confidence_scheme(0.31)  # "error"
 confidence_scheme(0.63, high=0.9, mid=0.6)  # "warning" (limiares próprios)
 ```
 
@@ -224,8 +224,12 @@ from tempest_core import ChartSeries, LineChart
 
 curva = LineChart(
     series=[
-        ChartSeries(points=[0.90, 0.42, 0.31, 0.18], label="loss", color_scheme="error"),
-        ChartSeries(points=[0.55, 0.71, 0.84, 0.92], label="acc", color_scheme="success"),
+        ChartSeries(
+            points=[0.90, 0.42, 0.31, 0.18], label="loss", color_scheme="error"
+        ),
+        ChartSeries(
+            points=[0.55, 0.71, 0.84, 0.92], label="acc", color_scheme="success"
+        ),
     ],
     width=320.0,
     height=200.0,
@@ -387,9 +391,11 @@ constrói a partir da saída do modelo (um `DetectionOverlay`, um `MetricCard`, 
 ```python
 from tempest_core import DetectionBox, DetectionOverlay, ResultView
 
+
 def ao_escolher(uri: str) -> None:
     """Roda a inferência e guarda o resultado no estado do app."""
     ...  # o app roda o modelo e faz set_state com o widget montado
+
 
 view = ResultView(
     label="Envie uma foto",

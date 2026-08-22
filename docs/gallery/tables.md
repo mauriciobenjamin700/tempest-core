@@ -180,7 +180,7 @@ pagina = DataTable(
     columns=["Nome", "Idade"],
     rows=[["Ana", "42"], ["Bruno", "17"], ["Carla", "88"], ["Diego", "5"]],
     page=0,
-    page_size=2,          # duas linhas por página → 2 páginas
+    page_size=2,  # duas linhas por página → 2 páginas
     on_page=lambda p: None,  # troque pela sua re-renderização
 )
 ```
@@ -239,7 +239,7 @@ def build() -> DataTable:
     """Build the table as a pure projection of the current app state."""
     return DataTable(
         columns=["Nome", "Idade"],
-        rows=sorted_rows(),                      # o app passa as linhas já ordenadas
+        rows=sorted_rows(),  # o app passa as linhas já ordenadas
         sort_column=state["sort_column"],
         sort_ascending=state["sort_ascending"],
         on_sort=on_sort,

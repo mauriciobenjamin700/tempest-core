@@ -36,13 +36,16 @@ and closures over your application logic:
 ```python
 from tempest_core import Validator
 
+
 def required(value: str) -> str | None:
     """Reject empty or whitespace-only values."""
     return "This field is required" if not value.strip() else None
 
+
 def looks_like_email(value: str) -> str | None:
     """A minimal email sanity check."""
     return None if "@" in value else "Enter a valid email"
+
 
 # A Validator can also close over application state:
 def min_length(n: int) -> Validator:
@@ -73,7 +76,7 @@ renderers draw it recursively and it crosses the boundary like any other child:
 from tempest_core import FormField, Input
 
 email = FormField(
-    name="email",                       # (1)!
+    name="email",  # (1)!
     label="Email",
     validators=[required, looks_like_email],
     child=Input(placeholder="you@example.com"),
@@ -114,9 +117,9 @@ field = FormField(
     child=Input(secure=True),
 )
 
-field.run_validators("")            # "This field is required"  (stops at 1st rule)
-field.run_validators("short")       # "At least 8 characters"
-field.run_validators("supersecret") # None  → valid
+field.run_validators("")  # "This field is required"  (stops at 1st rule)
+field.run_validators("short")  # "At least 8 characters"
+field.run_validators("supersecret")  # None  → valid
 ```
 
 !!! note "Why `run_validators` and not `validate`"
@@ -156,15 +159,14 @@ from tempest_core import Form, FormField, Input
 
 form = Form(
     fields=[
-        FormField(name="email", validators=[required, looks_like_email],
-                  child=Input()),
+        FormField(name="email", validators=[required, looks_like_email], child=Input()),
         FormField(name="password", validators=[required], child=Input(secure=True)),
     ],
 )
 
 state = form.validate({"email": "no-at-sign", "password": ""})
 state.errors  # {"email": "Enter a valid email", "password": "This field is required"}
-state.valid   # False
+state.valid  # False
 ```
 
 !!! warning "`validate` does not fire submit — it only informs it"
@@ -269,13 +271,13 @@ without fear of accidental mutation.
 from tempest_core import FormState
 
 # A fully valid form:
-FormState()                          # errors={}, valid=True
-FormState(errors={}, valid=True)     # equivalent
+FormState()  # errors={}, valid=True
+FormState(errors={}, valid=True)  # equivalent
 
 # A form with one failure:
 state = FormState(errors={"email": "Enter a valid email"}, valid=False)
 state.errors["email"]  # "Enter a valid email"
-state.valid            # False
+state.valid  # False
 ```
 
 !!! note "Only failing fields appear in `errors`"

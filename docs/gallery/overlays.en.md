@@ -206,10 +206,12 @@ A floating panel **anchored near a widget**, dismissible by tapping away. Like
 from tempest_core import Popover, Column, Text, Switch
 
 preferences = Popover(
-    child=Column(children=[
-        Text(text="Notifications"),
-        Switch(value=True),
-    ]),
+    child=Column(
+        children=[
+            Text(text="Notifications"),
+            Switch(value=True),
+        ]
+    ),
     anchor="bell-icon",
     on_dismiss=lambda e: app.set_state(popover_open=False),
 )

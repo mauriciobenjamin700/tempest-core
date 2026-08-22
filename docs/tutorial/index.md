@@ -16,7 +16,7 @@ from tempest_core import Column, Text, build
         ],
     )
 )
-print(árvore.type)        # "Column"
+print(árvore.type)  # "Column"
 print(árvore.children[0].props["content"])  # "Olá"
 ```
 

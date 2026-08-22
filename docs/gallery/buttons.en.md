@@ -76,12 +76,14 @@ treatment.
 ```python
 from tempest_core import Button, Row
 
-bar = Row(children=[
-    Button(label="Save", variant="solid"),        # highest emphasis
-    Button(label="Cancel", variant="outline"),    # medium emphasis
-    Button(label="Skip", variant="ghost"),        # low emphasis
-    Button(label="Learn more", variant="link"),   # inline
-])
+bar = Row(
+    children=[
+        Button(label="Save", variant="solid"),  # highest emphasis
+        Button(label="Cancel", variant="outline"),  # medium emphasis
+        Button(label="Skip", variant="ghost"),  # low emphasis
+        Button(label="Learn more", variant="link"),  # inline
+    ]
+)
 ```
 
 !!! tip "Emphasis scale"
@@ -145,11 +147,11 @@ from tempest_core.style import ComponentState
 button = Button(label="Save", color_scheme="primary")
 states = button.state_styles()
 
-states[ComponentState.DEFAULT]   # at rest
-states[ComponentState.HOVER]     # pointer over (M3 state layer)
-states[ComponentState.PRESSED]   # being tapped
+states[ComponentState.DEFAULT]  # at rest
+states[ComponentState.HOVER]  # pointer over (M3 state layer)
+states[ComponentState.PRESSED]  # being tapped
 states[ComponentState.DISABLED]  # inactive (reduced opacity)
-states[ComponentState.FOCUS]     # keyboard/reader focus
+states[ComponentState.FOCUS]  # keyboard/reader focus
 ```
 
 !!! note "Resolution is pure; only the event→state mapping lives in the renderer"

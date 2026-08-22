@@ -57,9 +57,11 @@ mostre a mensagem devolvendo-a em `error`:
 from tempest_core import EmailInput
 from tempest_core.validators import validate_email
 
+
 def on_email(value: str) -> None:
     erro = "" if validate_email(value) else "E-mail inválido"
     app.set_state(email=value, email_error=erro)
+
 
 email = EmailInput(
     value=app.state.email,
@@ -137,9 +139,11 @@ inseridos automaticamente enquanto o usuário digita:
 from tempest_core import PhoneInput
 from tempest_core.validators import validate_phone
 
+
 def on_phone(value: str) -> None:
     erro = "" if validate_phone(value) else "Telefone inválido"
     app.set_state(telefone=value, telefone_error=erro)
+
 
 telefone = PhoneInput(
     value=app.state.telefone,
@@ -178,9 +182,11 @@ com `validate_cpf` (que confere os dígitos verificadores, não só o formato):
 from tempest_core import CPFInput
 from tempest_core.validators import validate_cpf
 
+
 def on_cpf(value: str) -> None:
     erro = "" if validate_cpf(value) else "CPF inválido"
     app.set_state(cpf=value, cpf_error=erro)
+
 
 cpf = CPFInput(
     value=app.state.cpf,
@@ -219,9 +225,11 @@ Pareie com `validate_cnpj`:
 from tempest_core import CNPJInput
 from tempest_core.validators import validate_cnpj
 
+
 def on_cnpj(value: str) -> None:
     erro = "" if validate_cnpj(value) else "CNPJ inválido"
     app.set_state(cnpj=value, cnpj_error=erro)
+
 
 cnpj = CNPJInput(
     value=app.state.cnpj,
@@ -261,8 +269,10 @@ rua, número, complemento, bairro, cidade e UF de uma vez. Um **único** `on_cha
 ```python
 from tempest_core import AddressInput
 
+
 def on_address(field_name: str, value: str) -> None:  # (1)!
     app.set_state(**{field_name: value})
+
 
 endereco = AddressInput(
     cep=app.state.cep,

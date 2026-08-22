@@ -88,11 +88,11 @@ from tempest_core.style import ComponentState
 field = Input(placeholder="Name", color_scheme="primary")
 states = field.state_styles()
 
-states[ComponentState.DEFAULT]   # at rest
-states[ComponentState.HOVER]     # pointer over
-states[ComponentState.PRESSED]   # treated as FOCUS on a field (it gains focus)
+states[ComponentState.DEFAULT]  # at rest
+states[ComponentState.HOVER]  # pointer over
+states[ComponentState.PRESSED]  # treated as FOCUS on a field (it gains focus)
 states[ComponentState.DISABLED]  # inactive (content at 38%)
-states[ComponentState.FOCUS]     # keyboard/reader focus (2px accent border)
+states[ComponentState.FOCUS]  # keyboard/reader focus (2px accent border)
 ```
 
 !!! note "Resolution is pure; only the event→state mapping lives in the renderer"

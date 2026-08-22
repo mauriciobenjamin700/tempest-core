@@ -152,9 +152,9 @@ component (badge, detection box) colors consistently:
 ```python
 from tempest_core import confidence_scheme
 
-confidence_scheme(0.92)              # "success"
-confidence_scheme(0.63)              # "warning"
-confidence_scheme(0.31)              # "error"
+confidence_scheme(0.92)  # "success"
+confidence_scheme(0.63)  # "warning"
+confidence_scheme(0.31)  # "error"
 confidence_scheme(0.63, high=0.9, mid=0.6)  # "warning" (custom thresholds)
 ```
 
@@ -221,8 +221,12 @@ from tempest_core import ChartSeries, LineChart
 
 curve = LineChart(
     series=[
-        ChartSeries(points=[0.90, 0.42, 0.31, 0.18], label="loss", color_scheme="error"),
-        ChartSeries(points=[0.55, 0.71, 0.84, 0.92], label="acc", color_scheme="success"),
+        ChartSeries(
+            points=[0.90, 0.42, 0.31, 0.18], label="loss", color_scheme="error"
+        ),
+        ChartSeries(
+            points=[0.55, 0.71, 0.84, 0.92], label="acc", color_scheme="success"
+        ),
     ],
     width=320.0,
     height=200.0,
@@ -381,9 +385,11 @@ a chart):
 ```python
 from tempest_core import DetectionBox, DetectionOverlay, ResultView
 
+
 def on_pick(uri: str) -> None:
     """Run inference and store the result in the app state."""
     ...  # the app runs the model and set_state's the built widget
+
 
 view = ResultView(
     label="Upload a photo",

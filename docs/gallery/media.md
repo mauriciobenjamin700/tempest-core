@@ -45,7 +45,7 @@ conteúdo não bate com a da caixa.
 from tempest_core import ImageFit
 
 ImageFit.CONTAIN  # cabe inteiro, pode sobrar espaço
-ImageFit.COVER    # cobre tudo, pode cortar
+ImageFit.COVER  # cobre tudo, pode cortar
 ```
 
 !!! tip "`CONTAIN` vs. `COVER`"
@@ -243,7 +243,7 @@ clipe = VideoPlayer(
     src="https://cdn.exemplo.com/intro.mp4",
     autoplay=True,
     loop=True,
-    muted=True,      # autoplay silencioso — política comum de mobile/web
+    muted=True,  # autoplay silencioso — política comum de mobile/web
     controls=False,
 )
 ```
@@ -281,9 +281,11 @@ handler com um `CameraFrameEvent` no máximo a cada `frame_interval_ms`.
 ```python
 from tempest_core import CameraPreview
 
+
 async def on_frame(event):
     # reconstrua o array com tempestroid.vision.frame_array e rode a inferência
     ...
+
 
 camera = CameraPreview(
     facing="back",
@@ -312,8 +314,10 @@ resultado.
 ```python
 from tempest_core import QrScanner
 
+
 def on_scan(event):
     print("código lido:", event)
+
 
 scanner = QrScanner(on_scan=on_scan)
 ```

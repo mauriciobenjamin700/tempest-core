@@ -56,9 +56,11 @@ and surface the message by feeding it back into `error`:
 from tempest_core import EmailInput
 from tempest_core.validators import validate_email
 
+
 def on_email(value: str) -> None:
     error = "" if validate_email(value) else "Invalid e-mail"
     app.set_state(email=value, email_error=error)
+
 
 email = EmailInput(
     value=app.state.email,
@@ -136,9 +138,11 @@ automatically as the user types:
 from tempest_core import PhoneInput
 from tempest_core.validators import validate_phone
 
+
 def on_phone(value: str) -> None:
     error = "" if validate_phone(value) else "Invalid phone"
     app.set_state(phone=value, phone_error=error)
+
 
 phone = PhoneInput(
     value=app.state.phone,
@@ -177,9 +181,11 @@ A labelled CPF field, **masked** `999.999.999-99`, numeric keyboard. Pair it wit
 from tempest_core import CPFInput
 from tempest_core.validators import validate_cpf
 
+
 def on_cpf(value: str) -> None:
     error = "" if validate_cpf(value) else "Invalid CPF"
     app.set_state(cpf=value, cpf_error=error)
+
 
 cpf = CPFInput(
     value=app.state.cpf,
@@ -218,9 +224,11 @@ with `validate_cnpj`:
 from tempest_core import CNPJInput
 from tempest_core.validators import validate_cnpj
 
+
 def on_cnpj(value: str) -> None:
     error = "" if validate_cnpj(value) else "Invalid CNPJ"
     app.set_state(cnpj=value, cnpj_error=error)
+
 
 cnpj = CNPJInput(
     value=app.state.cnpj,
@@ -260,8 +268,10 @@ is one of `"cep"`, `"street"`, `"number"`, `"complement"`, `"neighborhood"`,
 ```python
 from tempest_core import AddressInput
 
+
 def on_address(field_name: str, value: str) -> None:  # (1)!
     app.set_state(**{field_name: value})
+
 
 address = AddressInput(
     cep=app.state.cep,

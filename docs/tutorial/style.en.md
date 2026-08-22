@@ -13,9 +13,9 @@ def card() -> Widget:
     return Container(
         key="card",
         style=Style(
-            padding=Edge.all(16),                    # (1)!
+            padding=Edge.all(16),  # (1)!
             gap=8.0,
-            background=Color.from_hex("#f5f5f5"),     # (2)!
+            background=Color.from_hex("#f5f5f5"),  # (2)!
             radius=12.0,
         ),
         children=[Text(content="In a card", key="t")],
@@ -54,7 +54,7 @@ from tempest_core import Container, Text, Widget
 def navbar() -> Widget:
     return Container(
         key="nav",
-        tag="nav",                                    # (1)!
+        tag="nav",  # (1)!
         attrs={"id": "top", "aria-label": "Primary"},  # (2)!
         children=[
             Text(

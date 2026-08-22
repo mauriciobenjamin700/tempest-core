@@ -59,9 +59,9 @@ event: TapEvent = parse_event(TapEvent, raw)
 
 # 3. handler_accepts_event decide a convenção: com argumento vs. sem.
 if handler_accepts_event(on_tap):
-    on_tap(event)        # recebe o TapEvent validado
+    on_tap(event)  # recebe o TapEvent validado
 else:
-    on_tap()             # handler de zero argumentos é chamado pelado
+    on_tap()  # handler de zero argumentos é chamado pelado
 ```
 
 !!! note "`parse_event` é o único portão de confiança"

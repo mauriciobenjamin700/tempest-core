@@ -194,7 +194,7 @@ from tempest_core.components import NavBar
 
 bar = NavBar(
     items=["Home", "Search", "Profile"],
-    active=app.state.tab,            # (1)!
+    active=app.state.tab,  # (1)!
     on_select=lambda i: app.set_state(tab=i),
     color_scheme="primary",
 )
@@ -336,7 +336,7 @@ from tempest_core.components import Drawer
 from tempest_core import Text
 
 panel = Drawer(
-    open=app.state.menu_open,     # (1)!
+    open=app.state.menu_open,  # (1)!
     children=[
         Text(content="Home"),
         Text(content="Settings"),
@@ -502,7 +502,7 @@ carries a surface from `resolve_surface_variant`; and the clear button lowers to
 from tempest_core.components import SearchBar
 
 search = SearchBar(
-    value=app.state.query,          # (1)!
+    value=app.state.query,  # (1)!
     placeholder="Search products",
     on_change=lambda e: app.set_state(query=e.value),
     on_clear=lambda: app.set_state(query=""),

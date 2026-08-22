@@ -139,8 +139,10 @@ built into the IR:
 ```python
 from tempest_core import LazyColumn, Text
 
+
 def build_item(index: int) -> Text:
     return Text(content=f"Item {index}")
+
 
 lst = LazyColumn(item_count=10_000, item_builder=build_item)
 ```
@@ -153,8 +155,10 @@ That `LazyColumn` with 10,000 items materializes only the first `20`
 ```python
 from tempest_core import LazyColumn, Text
 
+
 async def load_more(event) -> None:  # (1)!
     ...
+
 
 lst = LazyColumn(
     item_count=10_000,
@@ -304,6 +308,7 @@ its header plus its own virtualized items. The renderer renders the headers stic
 ```python
 from tempest_core import SectionHeader, SectionList, Text
 
+
 def make_section(letter: str) -> SectionHeader:
     return SectionHeader(
         title=letter,
@@ -311,6 +316,7 @@ def make_section(letter: str) -> SectionHeader:
         item_builder=lambda i: Text(content=f"{letter}-{i}"),
         header_builder=lambda: Text(content=f"Section {letter}"),
     )
+
 
 contacts = SectionList(
     sections=[make_section("A"), make_section("B"), make_section("C")],
@@ -346,8 +352,9 @@ renderer; the widget carries only the refresh contract:
 ```python
 from tempest_core import RefreshControl
 
-async def reload(event) -> None:
-    ...
+
+async def reload(event) -> None: ...
+
 
 control = RefreshControl(refreshing=False, on_refresh=reload)
 ```

@@ -140,8 +140,10 @@ construída na IR:
 ```python
 from tempest_core import LazyColumn, Text
 
+
 def build_item(index: int) -> Text:
     return Text(content=f"Item {index}")
+
 
 lista = LazyColumn(item_count=10_000, item_builder=build_item)
 ```
@@ -154,8 +156,10 @@ Esse `LazyColumn` com 10 mil itens materializa só os primeiros `20`
 ```python
 from tempest_core import LazyColumn, Text
 
+
 async def carregar_mais(event) -> None:  # (1)!
     ...
+
 
 lista = LazyColumn(
     item_count=10_000,
@@ -306,6 +310,7 @@ label acima da área de scroll):
 ```python
 from tempest_core import SectionHeader, SectionList, Text
 
+
 def make_section(letra: str) -> SectionHeader:
     return SectionHeader(
         title=letra,
@@ -313,6 +318,7 @@ def make_section(letra: str) -> SectionHeader:
         item_builder=lambda i: Text(content=f"{letra}-{i}"),
         header_builder=lambda: Text(content=f"Seção {letra}"),
     )
+
 
 contatos = SectionList(
     sections=[make_section("A"), make_section("B"), make_section("C")],
@@ -348,8 +354,9 @@ fornecido pelo renderizador; o widget carrega só o contrato de refresh:
 ```python
 from tempest_core import RefreshControl
 
-async def recarregar(event) -> None:
-    ...
+
+async def recarregar(event) -> None: ...
+
 
 controle = RefreshControl(refreshing=False, on_refresh=recarregar)
 ```

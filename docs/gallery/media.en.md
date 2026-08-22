@@ -43,7 +43,7 @@ match the box's.
 from tempest_core import ImageFit
 
 ImageFit.CONTAIN  # fits entirely, may leave space
-ImageFit.COVER    # covers everything, may crop
+ImageFit.COVER  # covers everything, may crop
 ```
 
 !!! tip "`CONTAIN` vs. `COVER`"
@@ -240,7 +240,7 @@ clip = VideoPlayer(
     src="https://cdn.example.com/intro.mp4",
     autoplay=True,
     loop=True,
-    muted=True,      # silent autoplay — the common mobile/web policy
+    muted=True,  # silent autoplay — the common mobile/web policy
     controls=False,
 )
 ```
@@ -278,9 +278,11 @@ a `CameraFrameEvent` at most every `frame_interval_ms`.
 ```python
 from tempest_core import CameraPreview
 
+
 async def on_frame(event):
     # rebuild the array with tempestroid.vision.frame_array and run inference
     ...
+
 
 camera = CameraPreview(
     facing="back",
@@ -307,8 +309,10 @@ A live camera surface that scans QR/barcodes and reports each result.
 ```python
 from tempest_core import QrScanner
 
+
 def on_scan(event):
     print("scanned code:", event)
+
 
 scanner = QrScanner(on_scan=on_scan)
 ```

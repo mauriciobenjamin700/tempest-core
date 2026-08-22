@@ -33,15 +33,18 @@ from tempest_core import CardVariant
 from tempest_core.components import Card, HStack, Surface, VStack
 from tempest_core.widgets import Spacer, Text
 
-card = Card(                                  # (1)!
+card = Card(  # (1)!
     variant=CardVariant.OUTLINED,
-    color_scheme="primary",                   # (2)!
+    color_scheme="primary",  # (2)!
     children=[
-        HStack(gap="md", children=[           # (3)!
-            Text(content="Título"),
-            Spacer(),                         # (4)!
-            Text(content="42"),
-        ]),
+        HStack(
+            gap="md",
+            children=[  # (3)!
+                Text(content="Título"),
+                Spacer(),  # (4)!
+                Text(content="42"),
+            ],
+        ),
     ],
 )
 ```
@@ -73,13 +76,15 @@ from tempest_core import Alert, Badge, Stat
 from tempest_core.style import AlertVariant, BadgeVariant
 
 ok = Badge(label="LIVE", variant=BadgeVariant.SUBTLE, color_scheme="success")  # (1)!
-note = Alert(                                  # (2)!
+note = Alert(  # (2)!
     title="Salvo",
     body="Suas alterações estão no ar.",
     variant=AlertVariant.LEFT_ACCENT,
     color_scheme="success",
 )
-metric = Stat(label="Usuários ativos", value="1.2k", delta="+12%", delta_up=True)  # (3)!
+metric = Stat(
+    label="Usuários ativos", value="1.2k", delta="+12%", delta_up=True
+)  # (3)!
 ```
 
 1. Badge: `SOLID` (papel + on-papel), `SUBTLE` (par `*_container` / `on_*_container`,
@@ -117,7 +122,9 @@ from tempest_core.components import AppBar, NavBar, SearchBar
 
 bar = AppBar(title="Caixa de entrada", color_scheme="primary")  # (1)!
 busca = SearchBar(value="", on_change=lambda e: None, color_scheme="primary")  # (2)!
-nav = NavBar(items=["Início", "Busca", "Você"], active=0, on_select=lambda i: None)  # (3)!
+nav = NavBar(
+    items=["Início", "Busca", "Você"], active=0, on_select=lambda i: None
+)  # (3)!
 abas = Tabs(tabs=["Resumo", "Atividade"], active=0, on_select=lambda i: None)  # (4)!
 ```
 
@@ -180,9 +187,11 @@ confianca = ConfidenceBadge(confidence=0.92, label="gato")  # pílula "gato 92%"
 ```python
 from tempest_core import BarChart, ChartSeries, LineChart
 
-linha = LineChart(series=[
-    ChartSeries(points=[0.1, 0.4, 0.35, 0.8], label="loss", color_scheme="primary"),
-])
+linha = LineChart(
+    series=[
+        ChartSeries(points=[0.1, 0.4, 0.35, 0.8], label="loss", color_scheme="primary"),
+    ]
+)
 barras = BarChart(values=[3.0, 5.0, 2.0], labels=["a", "b", "c"])
 ```
 
@@ -203,9 +212,12 @@ de série única. Cada gráfico emite uma lista de comandos do `Canvas`
 ```python
 from tempest_core import DetectionBox, DetectionOverlay
 
-overlay = DetectionOverlay(image_src="foto.jpg", boxes=[
-    DetectionBox(x1=0.1, y1=0.2, x2=0.5, y2=0.6, name="gato", conf=0.93),
-])
+overlay = DetectionOverlay(
+    image_src="foto.jpg",
+    boxes=[
+        DetectionBox(x1=0.1, y1=0.2, x2=0.5, y2=0.6, name="gato", conf=0.93),
+    ],
+)
 ```
 
 Um `DetectionBox` é `xyxy` **normalizado em `[0, 1]`** — independente de resolução,
@@ -223,7 +235,7 @@ from tempest_core import ResultView
 view = ResultView(
     label="Envie uma foto",
     on_pick=lambda uri: app.set_state(...),  # roda a inferência
-    result=overlay,                          # o widget que você montou do resultado
+    result=overlay,  # o widget que você montou do resultado
 )
 ```
 
@@ -238,9 +250,13 @@ from tempest_core.components import DataTable
 
 tabela = DataTable(
     columns=["Classe", "Confiança"],
-    rows=linhas_ordenadas,            # o app ordena
-    sort_column=1, sort_ascending=False, on_sort=lambda col: app.ordenar(col),
-    page=0, page_size=10, on_page=lambda p: app.ir_para(p),
+    rows=linhas_ordenadas,  # o app ordena
+    sort_column=1,
+    sort_ascending=False,
+    on_sort=lambda col: app.ordenar(col),
+    page=0,
+    page_size=10,
+    on_page=lambda p: app.ir_para(p),
 )
 ```
 

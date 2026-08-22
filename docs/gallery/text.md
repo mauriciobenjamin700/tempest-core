@@ -103,13 +103,17 @@ from tempest_core.style import (
 # Um preço em destaque: grande, seminegrito, colorido.
 preco = Text(
     content="R$ 49,90",
-    style=Style(font_size=28.0, font_weight=FontWeight.SEMIBOLD, color=Color.from_hex("#006C4C")),
+    style=Style(
+        font_size=28.0, font_weight=FontWeight.SEMIBOLD, color=Color.from_hex("#006C4C")
+    ),
 )
 
 # Uma nota em itálico, riscada (preço antigo).
 antigo = Text(
     content="R$ 79,90",
-    style=Style(font_style=FontStyle.ITALIC, text_decoration=TextDecoration.LINE_THROUGH),
+    style=Style(
+        font_style=FontStyle.ITALIC, text_decoration=TextDecoration.LINE_THROUGH
+    ),
 )
 ```
 
@@ -213,11 +217,13 @@ vira prop:
 from tempest_core import Text, build
 from tempest_core.style import Style, FontWeight
 
-node = build(Text(content="Oi", key="saudacao", style=Style(font_weight=FontWeight.BOLD)))
+node = build(
+    Text(content="Oi", key="saudacao", style=Style(font_weight=FontWeight.BOLD))
+)
 
-node.type      # "Text"
-node.key       # "saudacao"  — o key sai dos props e vira identidade do nó
-node.props     # {"content": "Oi", "style": Style(font_weight=BOLD, ...), "semantics": None, ...}
+node.type  # "Text"
+node.key  # "saudacao"  — o key sai dos props e vira identidade do nó
+node.props  # {"content": "Oi", "style": Style(font_weight=BOLD, ...), "semantics": None, ...}
 node.children  # []  — Text é um nó folha
 ```
 

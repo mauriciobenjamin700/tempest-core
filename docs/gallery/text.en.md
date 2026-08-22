@@ -105,13 +105,17 @@ from tempest_core.style import (
 # A highlighted price: large, semibold, colored.
 price = Text(
     content="$49.90",
-    style=Style(font_size=28.0, font_weight=FontWeight.SEMIBOLD, color=Color.from_hex("#006C4C")),
+    style=Style(
+        font_size=28.0, font_weight=FontWeight.SEMIBOLD, color=Color.from_hex("#006C4C")
+    ),
 )
 
 # A note in italics, struck through (old price).
 old = Text(
     content="$79.90",
-    style=Style(font_style=FontStyle.ITALIC, text_decoration=TextDecoration.LINE_THROUGH),
+    style=Style(
+        font_style=FontStyle.ITALIC, text_decoration=TextDecoration.LINE_THROUGH
+    ),
 )
 ```
 
@@ -216,11 +220,13 @@ which `Text` has none of). The `key` is pulled out of the props and becomes
 from tempest_core import Text, build
 from tempest_core.style import Style, FontWeight
 
-node = build(Text(content="Hi", key="greeting", style=Style(font_weight=FontWeight.BOLD)))
+node = build(
+    Text(content="Hi", key="greeting", style=Style(font_weight=FontWeight.BOLD))
+)
 
-node.type      # "Text"
-node.key       # "greeting"  — the key leaves the props and becomes node identity
-node.props     # {"content": "Hi", "style": Style(font_weight=BOLD, ...), "semantics": None, ...}
+node.type  # "Text"
+node.key  # "greeting"  — the key leaves the props and becomes node identity
+node.props  # {"content": "Hi", "style": Style(font_weight=BOLD, ...), "semantics": None, ...}
 node.children  # []  — Text is a leaf node
 ```
 

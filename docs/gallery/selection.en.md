@@ -32,6 +32,7 @@ component only **draws** the state you gave it.
 ```python
 from tempest_core.components import SegmentedControl
 
+
 # The app owns the choice; the component only reflects `selected` and reports taps.
 class Preferences:
     def __init__(self) -> None:
@@ -40,12 +41,12 @@ class Preferences:
     def view(self) -> SegmentedControl:
         return SegmentedControl(
             options=["Day", "Week", "Month"],
-            selected=self.tab,             # (2)!
-            on_select=self._switch_tab,    # (3)!
+            selected=self.tab,  # (2)!
+            on_select=self._switch_tab,  # (3)!
         )
 
     def _switch_tab(self, index: int) -> None:
-        self.tab = index                   # (4)!
+        self.tab = index  # (4)!
         # ... schedule a rebuild of the view
 ```
 
@@ -72,8 +73,8 @@ from tempest_core.components import SegmentedControl
 
 period = SegmentedControl(
     options=["Day", "Week", "Month"],
-    selected=1,                              # "Week" active
-    on_select=lambda index: print(index),    # (1)!
+    selected=1,  # "Week" active
+    on_select=lambda index: print(index),  # (1)!
     color_scheme="primary",
     size="sm",
 )
@@ -111,7 +112,7 @@ from tempest_core.components import RadioGroup
 shipping = RadioGroup(
     options=["Standard", "Express", "Pickup"],
     selected=0,
-    on_select=lambda index: print(index),   # (1)!
+    on_select=lambda index: print(index),  # (1)!
     color_scheme="primary",
     size="md",
 )
@@ -158,7 +159,7 @@ from tempest_core.components import Chip
 filter_chip = Chip(
     label="On sale",
     selected=True,
-    on_click=lambda: print("chip tapped"),   # (1)!
+    on_click=lambda: print("chip tapped"),  # (1)!
     color_scheme="primary",
     size="md",
 )
@@ -243,7 +244,7 @@ from tempest_core.components import Rating
 rating = Rating(
     value=3,
     max_stars=5,
-    on_rate=lambda stars: print(stars),   # (1)!
+    on_rate=lambda stars: print(stars),  # (1)!
     color_scheme="primary",
 )
 

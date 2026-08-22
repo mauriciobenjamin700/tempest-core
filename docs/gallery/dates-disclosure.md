@@ -43,7 +43,7 @@ partir do estado do app:
 from tempest_core.components import Calendar
 
 agenda = Calendar(
-    month="2026-07",                                   # (1)!
+    month="2026-07",  # (1)!
     selected="2026-07-12",
     on_select=lambda iso: app.set_state(selected=iso),  # (2)!
     color_scheme="primary",
@@ -102,8 +102,8 @@ from tempest_core.components import Clock
 
 cronometro = Clock(
     time="00:00:42",
-    label="Tempo decorrido",     # (1)!
-    color_scheme="primary",       # (2)!
+    label="Tempo decorrido",  # (1)!
+    color_scheme="primary",  # (2)!
 )
 ```
 
@@ -152,7 +152,7 @@ from tempest_core.widgets import Text
 
 detalhes = Accordion(
     title="Detalhes do pedido",
-    open=app.state.details_open,                              # (1)!
+    open=app.state.details_open,  # (1)!
     on_toggle=lambda: app.set_state(details_open=not app.state.details_open),
     children=[Text(content="Entrega prevista para sexta.")],  # (2)!
 )

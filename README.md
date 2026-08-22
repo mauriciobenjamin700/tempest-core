@@ -21,7 +21,7 @@ from tempest_core import App, Column, Text, Button, Style, build, diff
 
 old = build(Column(children=[Text(content="Count: 0", key="label")]))
 new = build(Column(children=[Text(content="Count: 1", key="label")]))
-patches = diff(old, new)          # -> [Update(set_props={"content": "Count: 1"})]
+patches = diff(old, new)  # -> [Update(set_props={"content": "Count: 1"})]
 ```
 
 ### Design system (Chakra-style variants → Material 3)
@@ -40,7 +40,15 @@ WCAG-AA contrast is preserved. An explicit `style=` is always merged on top.
 
 ```python
 from tempest_core import Alert, Badge, CardVariant, IconButton, Stat, Tabs, Theme
-from tempest_core.components import AppBar, Card, HStack, NavBar, SearchBar, Surface, VStack
+from tempest_core.components import (
+    AppBar,
+    Card,
+    HStack,
+    NavBar,
+    SearchBar,
+    Surface,
+    VStack,
+)
 from tempest_core.widgets import Input, Spacer, Text
 from tempest_core.style import AlertVariant, BadgeVariant, FieldVariant
 
@@ -49,15 +57,25 @@ button = IconButton(icon="settings", color_scheme="primary", label="Open setting
 
 # H3 styled surface & layout kit: cards/surfaces (elevated/filled/outlined) +
 # SwiftUI-style stacks with token-step gaps + a flex Spacer.
-card = Card(variant=CardVariant.OUTLINED, color_scheme="primary", children=[
-    HStack(gap="md", children=[Text(content="Title"), Spacer(), Text(content="42")]),
-])
+card = Card(
+    variant=CardVariant.OUTLINED,
+    color_scheme="primary",
+    children=[
+        HStack(
+            gap="md", children=[Text(content="Title"), Spacer(), Text(content="42")]
+        ),
+    ],
+)
 
 # H4 styled data-display & feedback kit: status families (success/warning/info) +
 # badge/tag/chip + alert/banner + stat.
 ok = Badge(label="LIVE", variant=BadgeVariant.SUBTLE, color_scheme="success")
-note = Alert(title="Saved", body="Your changes are live.",
-             variant=AlertVariant.LEFT_ACCENT, color_scheme="success")
+note = Alert(
+    title="Saved",
+    body="Your changes are live.",
+    variant=AlertVariant.LEFT_ACCENT,
+    color_scheme="success",
+)
 metric = Stat(label="Active users", value="1.2k", delta="+12%", delta_up=True)
 
 # H5 styled navigation kit: themed bars + an active accent pill / underline tab.
@@ -69,17 +87,27 @@ tabs = Tabs(tabs=["Overview", "Activity"], active=0, on_select=lambda i: None)
 # H6 research kit: metric cards, charts (over the Canvas) and a detection overlay
 # for showing an ONNX / ort-vision-sdk result end to end.
 from tempest_core import (
-    BarChart, ChartSeries, ConfidenceBadge, DetectionBox, DetectionOverlay,
-    LineChart, MetricCard,
+    BarChart,
+    ChartSeries,
+    ConfidenceBadge,
+    DetectionBox,
+    DetectionOverlay,
+    LineChart,
+    MetricCard,
 )
 
 acc = MetricCard(label="Accuracy", value="92%", delta="+3%", delta_up=True)
 conf = ConfidenceBadge(confidence=0.92, label="cat")  # success pill "cat 92%"
-chart = LineChart(series=[ChartSeries(points=[0.1, 0.4, 0.35, 0.8], color_scheme="primary")])
+chart = LineChart(
+    series=[ChartSeries(points=[0.1, 0.4, 0.35, 0.8], color_scheme="primary")]
+)
 bars = BarChart(values=[3.0, 5.0, 2.0], labels=["a", "b", "c"])
-boxed = DetectionOverlay(image_src="photo.jpg", boxes=[
-    DetectionBox(x1=0.1, y1=0.2, x2=0.5, y2=0.6, name="cat", conf=0.93),
-])
+boxed = DetectionOverlay(
+    image_src="photo.jpg",
+    boxes=[
+        DetectionBox(x1=0.1, y1=0.2, x2=0.5, y2=0.6, name="cat", conf=0.93),
+    ],
+)
 ```
 
 The H3 surface kit (`CardVariant`, `resolve_surface_variant`, `Surface`,

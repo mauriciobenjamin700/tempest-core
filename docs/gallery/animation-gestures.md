@@ -101,7 +101,7 @@ lista = AnimatedList(
     enter_duration_ms=300,
     exit_duration_ms=300,
     enter_curve=Curve.EASE_OUT,  # entra desacelerando
-    exit_curve=Curve.EASE_IN,    # sai acelerando
+    exit_curve=Curve.EASE_IN,  # sai acelerando
 )
 ```
 
@@ -167,12 +167,14 @@ from tempest_core.widgets import Shimmer, Column, Skeleton
 from tempest_core.style import Color
 
 carregando = Shimmer(
-    child=Column(children=[
-        Skeleton(height=16.0),
-        Skeleton(height=16.0, width=180.0),
-    ]),
-    base_color=Color(r=224, g=224, b=224),      # tom de repouso
-    highlight_color=Color(r=245, g=245, b=245), # tom do destaque em movimento
+    child=Column(
+        children=[
+            Skeleton(height=16.0),
+            Skeleton(height=16.0, width=180.0),
+        ]
+    ),
+    base_color=Color(r=224, g=224, b=224),  # tom de repouso
+    highlight_color=Color(r=245, g=245, b=245),  # tom do destaque em movimento
     duration_ms=1200,
 )
 ```
@@ -441,9 +443,11 @@ filhos com `key` estável então diffa para um patch `Reorder`.
 ```python
 from tempest_core.widgets import ReorderableList, Container, Text
 
+
 def reordenar(e):
     itens.insert(e.to_index, itens.pop(e.from_index))
     app.rebuild()
+
 
 lista = ReorderableList(
     children=[

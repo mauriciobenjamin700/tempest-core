@@ -30,8 +30,8 @@ enquanto cada widget aqui só declara *qual* comportamento de container ele tem.
     barra = Row(
         style=Style(
             justify=JustifyContent.SPACE_BETWEEN,  # distribui no eixo principal
-            align=AlignItems.CENTER,               # centraliza no eixo cruzado
-            gap=8.0,                                # espaço entre filhos
+            align=AlignItems.CENTER,  # centraliza no eixo cruzado
+            gap=8.0,  # espaço entre filhos
         ),
         children=[],
     )
@@ -56,11 +56,13 @@ filhos são empilhados na ordem em que aparecem em `children`.
 ```python
 from tempest_core import Column, Text
 
-coluna = Column(children=[
-    Text(content="Primeira linha"),
-    Text(content="Segunda linha"),
-    Text(content="Terceira linha"),
-])
+coluna = Column(
+    children=[
+        Text(content="Primeira linha"),
+        Text(content="Segunda linha"),
+        Text(content="Terceira linha"),
+    ]
+)
 ```
 
 ### Props
@@ -90,10 +92,12 @@ direita. É o espelho de `Column` no outro eixo.
 ```python
 from tempest_core import Button, Row
 
-barra = Row(children=[
-    Button(label="Salvar"),
-    Button(label="Cancelar", variant="outline"),
-])
+barra = Row(
+    children=[
+        Button(label="Salvar"),
+        Button(label="Cancelar", variant="outline"),
+    ]
+)
 ```
 
 ### Props
@@ -148,9 +152,7 @@ padrão rola na vertical; ative `horizontal` para rolar na lateral.
 from tempest_core import Text
 from tempest_core.widgets import ScrollView
 
-lista = ScrollView(children=[
-    Text(content=f"Item {i}") for i in range(200)
-])
+lista = ScrollView(children=[Text(content=f"Item {i}") for i in range(200)])
 
 carrossel = ScrollView(horizontal=True, children=[])
 ```
@@ -231,11 +233,13 @@ e empurra os irmãos para as pontas. É uma folha invisível — só o `grow` do
 from tempest_core import Button, Row, Spacer
 
 # "Voltar" à esquerda, "Avançar" à direita — o Spacer empurra tudo pras pontas.
-rodape = Row(children=[
-    Button(label="Voltar", variant="ghost"),
-    Spacer(),
-    Button(label="Avançar"),
-])
+rodape = Row(
+    children=[
+        Button(label="Voltar", variant="ghost"),
+        Spacer(),
+        Button(label="Avançar"),
+    ]
+)
 ```
 
 ### Props
@@ -272,17 +276,22 @@ from tempest_core import Container, Text
 from tempest_core.style import Position, Style
 from tempest_core.widgets import Stack
 
-tela = Stack(children=[
-    Container(child=Text(content="Conteúdo da página")),  # camada de baixo
-    Container(                                             # scrim full-bleed por cima
-        style=Style(
-            position=Position.ABSOLUTE,
-            top=0.0, right=0.0, bottom=0.0, left=0.0,
-            background="#000000",
-            opacity=0.5,
+tela = Stack(
+    children=[
+        Container(child=Text(content="Conteúdo da página")),  # camada de baixo
+        Container(  # scrim full-bleed por cima
+            style=Style(
+                position=Position.ABSOLUTE,
+                top=0.0,
+                right=0.0,
+                bottom=0.0,
+                left=0.0,
+                background="#000000",
+                opacity=0.5,
+            ),
         ),
-    ),
-])
+    ]
+)
 ```
 
 ### Props
@@ -318,9 +327,11 @@ que mantém todo filho numa única linha.
 from tempest_core import Button
 from tempest_core.widgets import Wrap
 
-chips = Wrap(children=[
-    Button(label=tag, variant="outline") for tag in ["Python", "Rust", "Go", "Zig"]
-])
+chips = Wrap(
+    children=[
+        Button(label=tag, variant="outline") for tag in ["Python", "Rust", "Go", "Zig"]
+    ]
+)
 ```
 
 ### Props
@@ -413,13 +424,17 @@ visível acima dele.
 from tempest_core import Button, Column
 from tempest_core.widgets import Input, KeyboardAvoidingView
 
-form = KeyboardAvoidingView(children=[
-    Column(children=[
-        Input(placeholder="E-mail"),
-        Input(placeholder="Senha"),
-        Button(label="Entrar"),
-    ]),
-])
+form = KeyboardAvoidingView(
+    children=[
+        Column(
+            children=[
+                Input(placeholder="E-mail"),
+                Input(placeholder="Senha"),
+                Button(label="Entrar"),
+            ]
+        ),
+    ]
+)
 ```
 
 ### Props

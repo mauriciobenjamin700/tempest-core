@@ -46,9 +46,9 @@ from tempest_core.style import CardVariant
 from tempest_core.widgets import Text
 
 painel = Surface(
-    variant=CardVariant.OUTLINED,   # (1)!
-    color_scheme="primary",         # tonal *_container
-    elevation=0,                    # nível M3 explícito
+    variant=CardVariant.OUTLINED,  # (1)!
+    color_scheme="primary",  # tonal *_container
+    elevation=0,  # nível M3 explícito
     child=Text(content="Painel"),
 )
 ```
@@ -118,10 +118,12 @@ padding e empilha os filhos numa `Column`.
 from tempest_core.components import Card
 from tempest_core.widgets import Text
 
-cartao = Card(children=[
-    Text(content="Título"),
-    Text(content="Corpo do card."),
-])
+cartao = Card(
+    children=[
+        Text(content="Título"),
+        Text(content="Corpo do card."),
+    ]
+)
 ```
 
 Um `Card(children=…)` sem argumentos produz um card **elevado, neutro**. Escolha
@@ -135,8 +137,8 @@ from tempest_core.widgets import Text
 destaque = Card(
     variant=CardVariant.FILLED,
     color_scheme="primary",
-    padding_step="lg",   # padding interno
-    gap_step="md",       # espaço entre os filhos
+    padding_step="lg",  # padding interno
+    gap_step="md",  # espaço entre os filhos
     children=[Text(content="Plano Pro")],
 )
 ```
@@ -245,7 +247,7 @@ ou um `float` cru.
 ```python
 from tempest_core.components import Divider
 
-linha = Divider()                        # régua de 1px, outline-variant
+linha = Divider()  # régua de 1px, outline-variant
 grossa = Divider(thickness=2.0, color_scheme="primary")
 ```
 
@@ -273,7 +275,7 @@ from tempest_core.widgets import Text
 
 grade = Grid(
     columns=3,
-    gap="md",   # passo de token ou float
+    gap="md",  # passo de token ou float
     children=[Card(children=[Text(content=f"Item {i}")]) for i in range(6)],
 )
 ```
@@ -432,7 +434,7 @@ from tempest_core.components import merge_style
 from tempest_core.style import Style
 
 base = Style(padding=None, radius=8.0, gap=4.0)
-final = merge_style(base, Style(radius=16.0))   # radius vence; gap e padding do base
+final = merge_style(base, Style(radius=16.0))  # radius vence; gap e padding do base
 ```
 
 Esse é exatamente o mecanismo que todo componente usa para deixar você

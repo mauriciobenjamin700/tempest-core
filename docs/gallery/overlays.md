@@ -205,10 +205,12 @@ qualquer:
 from tempest_core import Popover, Column, Text, Switch
 
 preferencias = Popover(
-    child=Column(children=[
-        Text(text="Notificações"),
-        Switch(value=True),
-    ]),
+    child=Column(
+        children=[
+            Text(text="Notificações"),
+            Switch(value=True),
+        ]
+    ),
     anchor="icone-sino",
     on_dismiss=lambda e: app.set_state(popover_aberto=False),
 )

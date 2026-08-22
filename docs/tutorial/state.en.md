@@ -23,7 +23,7 @@ def view(app: App[State]) -> Widget:
 
 
 app = App(state=State(), view=view, apply_patches=emitted.append)  # (1)!
-app.start()                                   # (2)!
+app.start()  # (2)!
 app.set_state(lambda s: setattr(s, "value", 1))  # (3)!
 ```
 

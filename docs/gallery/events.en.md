@@ -58,9 +58,9 @@ event: TapEvent = parse_event(TapEvent, raw)
 
 # 3. handler_accepts_event decides the convention: with-arg vs. bare.
 if handler_accepts_event(on_tap):
-    on_tap(event)        # receives the validated TapEvent
+    on_tap(event)  # receives the validated TapEvent
 else:
-    on_tap()             # a zero-argument handler is called bare
+    on_tap()  # a zero-argument handler is called bare
 ```
 
 !!! note "`parse_event` is the single trust gate"

@@ -193,7 +193,7 @@ from tempest_core.components import NavBar
 
 barra = NavBar(
     items=["Início", "Buscar", "Perfil"],
-    active=app.state.tab,            # (1)!
+    active=app.state.tab,  # (1)!
     on_select=lambda i: app.set_state(tab=i),
     color_scheme="primary",
 )
@@ -336,7 +336,7 @@ from tempest_core.components import Drawer
 from tempest_core import Text
 
 painel = Drawer(
-    open=app.state.menu_open,     # (1)!
+    open=app.state.menu_open,  # (1)!
     children=[
         Text(content="Início"),
         Text(content="Ajustes"),
@@ -504,7 +504,7 @@ setado **e** o campo não está vazio:
 from tempest_core.components import SearchBar
 
 busca = SearchBar(
-    value=app.state.query,          # (1)!
+    value=app.state.query,  # (1)!
     placeholder="Buscar produtos",
     on_change=lambda e: app.set_state(query=e.value),
     on_clear=lambda: app.set_state(query=""),

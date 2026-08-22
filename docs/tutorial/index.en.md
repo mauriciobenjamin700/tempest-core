@@ -17,7 +17,7 @@ tree = build(
         ],
     )
 )
-print(tree.type)        # "Column"
+print(tree.type)  # "Column"
 print(tree.children[0].props["content"])  # "Hello"
 ```
 

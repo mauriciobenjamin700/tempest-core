@@ -177,7 +177,7 @@ paged = DataTable(
     columns=["Name", "Age"],
     rows=[["Ana", "42"], ["Bruno", "17"], ["Carla", "88"], ["Diego", "5"]],
     page=0,
-    page_size=2,          # two rows per page → 2 pages
+    page_size=2,  # two rows per page → 2 pages
     on_page=lambda p: None,  # swap for your re-render
 )
 ```
@@ -236,7 +236,7 @@ def build() -> DataTable:
     """Build the table as a pure projection of the current app state."""
     return DataTable(
         columns=["Name", "Age"],
-        rows=sorted_rows(),                      # the app passes rows already sorted
+        rows=sorted_rows(),  # the app passes rows already sorted
         sort_column=state["sort_column"],
         sort_ascending=state["sort_ascending"],
         on_sort=on_sort,

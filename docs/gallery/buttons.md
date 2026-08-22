@@ -76,12 +76,14 @@ decide *qual* família de cor pinta esse tratamento.
 ```python
 from tempest_core import Button, Row
 
-barra = Row(children=[
-    Button(label="Salvar", variant="solid"),      # ênfase máxima
-    Button(label="Cancelar", variant="outline"),  # ênfase média
-    Button(label="Pular", variant="ghost"),       # ênfase baixa
-    Button(label="Saiba mais", variant="link"),   # inline
-])
+barra = Row(
+    children=[
+        Button(label="Salvar", variant="solid"),  # ênfase máxima
+        Button(label="Cancelar", variant="outline"),  # ênfase média
+        Button(label="Pular", variant="ghost"),  # ênfase baixa
+        Button(label="Saiba mais", variant="link"),  # inline
+    ]
+)
 ```
 
 !!! tip "Escala de ênfase"
@@ -145,11 +147,11 @@ from tempest_core.style import ComponentState
 botao = Button(label="Salvar", color_scheme="primary")
 estados = botao.state_styles()
 
-estados[ComponentState.DEFAULT]   # repouso
-estados[ComponentState.HOVER]     # ponteiro em cima (state layer M3)
-estados[ComponentState.PRESSED]   # sendo tocado
+estados[ComponentState.DEFAULT]  # repouso
+estados[ComponentState.HOVER]  # ponteiro em cima (state layer M3)
+estados[ComponentState.PRESSED]  # sendo tocado
 estados[ComponentState.DISABLED]  # inativo (opacidade reduzida)
-estados[ComponentState.FOCUS]     # foco de teclado/leitor
+estados[ComponentState.FOCUS]  # foco de teclado/leitor
 ```
 
 !!! note "A resolução é pura; só o mapeamento evento→estado mora no renderizador"

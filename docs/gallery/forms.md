@@ -36,13 +36,16 @@ Ou seja, qualquer callable com essa forma serve como validador — inclusive
 ```python
 from tempest_core import Validator
 
+
 def required(value: str) -> str | None:
     """Reject empty or whitespace-only values."""
     return "Este campo é obrigatório" if not value.strip() else None
 
+
 def looks_like_email(value: str) -> str | None:
     """A minimal email sanity check."""
     return None if "@" in value else "Informe um e-mail válido"
+
 
 # Um Validator também pode fechar sobre estado da aplicação:
 def min_length(n: int) -> Validator:
@@ -74,7 +77,7 @@ outro filho:
 from tempest_core import FormField, Input
 
 email = FormField(
-    name="email",                       # (1)!
+    name="email",  # (1)!
     label="E-mail",
     validators=[required, looks_like_email],
     child=Input(placeholder="voce@exemplo.com"),
@@ -115,8 +118,8 @@ campo = FormField(
     child=Input(secure=True),
 )
 
-campo.run_validators("")          # "Este campo é obrigatório"  (para na 1ª regra)
-campo.run_validators("curta")     # "Mínimo de 8 caracteres"
+campo.run_validators("")  # "Este campo é obrigatório"  (para na 1ª regra)
+campo.run_validators("curta")  # "Mínimo de 8 caracteres"
 campo.run_validators("supersegura")  # None  → válido
 ```
 
@@ -156,15 +159,14 @@ from tempest_core import Form, FormField, Input
 
 form = Form(
     fields=[
-        FormField(name="email", validators=[required, looks_like_email],
-                  child=Input()),
+        FormField(name="email", validators=[required, looks_like_email], child=Input()),
         FormField(name="senha", validators=[required], child=Input(secure=True)),
     ],
 )
 
 estado = form.validate({"email": "sem-arroba", "senha": ""})
 estado.errors  # {"email": "Informe um e-mail válido", "senha": "Este campo é obrigatório"}
-estado.valid   # False
+estado.valid  # False
 ```
 
 !!! warning "`validate` não dispara o submit — ela só o informa"
@@ -267,13 +269,13 @@ sem medo de mutação acidental.
 from tempest_core import FormState
 
 # Um form todo válido:
-FormState()                          # errors={}, valid=True
-FormState(errors={}, valid=True)     # equivalente
+FormState()  # errors={}, valid=True
+FormState(errors={}, valid=True)  # equivalente
 
 # Um form com uma falha:
 estado = FormState(errors={"email": "Informe um e-mail válido"}, valid=False)
 estado.errors["email"]  # "Informe um e-mail válido"
-estado.valid            # False
+estado.valid  # False
 ```
 
 !!! note "Só os campos que falham aparecem em `errors`"

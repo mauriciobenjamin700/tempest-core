@@ -32,15 +32,18 @@ from tempest_core import CardVariant
 from tempest_core.components import Card, HStack, Surface, VStack
 from tempest_core.widgets import Spacer, Text
 
-card = Card(                                  # (1)!
+card = Card(  # (1)!
     variant=CardVariant.OUTLINED,
-    color_scheme="primary",                   # (2)!
+    color_scheme="primary",  # (2)!
     children=[
-        HStack(gap="md", children=[           # (3)!
-            Text(content="Title"),
-            Spacer(),                         # (4)!
-            Text(content="42"),
-        ]),
+        HStack(
+            gap="md",
+            children=[  # (3)!
+                Text(content="Title"),
+                Spacer(),  # (4)!
+                Text(content="42"),
+            ],
+        ),
     ],
 )
 ```
@@ -71,7 +74,7 @@ from tempest_core import Alert, Badge, Stat
 from tempest_core.style import AlertVariant, BadgeVariant
 
 ok = Badge(label="LIVE", variant=BadgeVariant.SUBTLE, color_scheme="success")  # (1)!
-note = Alert(                                  # (2)!
+note = Alert(  # (2)!
     title="Saved",
     body="Your changes are live.",
     variant=AlertVariant.LEFT_ACCENT,
@@ -113,7 +116,9 @@ from tempest_core.components import AppBar, NavBar, SearchBar
 
 bar = AppBar(title="Inbox", color_scheme="primary")  # (1)!
 search = SearchBar(value="", on_change=lambda e: None, color_scheme="primary")  # (2)!
-nav = NavBar(items=["Home", "Search", "You"], active=0, on_select=lambda i: None)  # (3)!
+nav = NavBar(
+    items=["Home", "Search", "You"], active=0, on_select=lambda i: None
+)  # (3)!
 tabs = Tabs(tabs=["Overview", "Activity"], active=0, on_select=lambda i: None)  # (4)!
 ```
 
@@ -176,9 +181,11 @@ conf = ConfidenceBadge(confidence=0.92, label="cat")  # the pill "cat 92%"
 ```python
 from tempest_core import BarChart, ChartSeries, LineChart
 
-line = LineChart(series=[
-    ChartSeries(points=[0.1, 0.4, 0.35, 0.8], label="loss", color_scheme="primary"),
-])
+line = LineChart(
+    series=[
+        ChartSeries(points=[0.1, 0.4, 0.35, 0.8], label="loss", color_scheme="primary"),
+    ]
+)
 bars = BarChart(values=[3.0, 5.0, 2.0], labels=["a", "b", "c"])
 ```
 
@@ -198,9 +205,12 @@ pins the sequence.
 ```python
 from tempest_core import DetectionBox, DetectionOverlay
 
-overlay = DetectionOverlay(image_src="photo.jpg", boxes=[
-    DetectionBox(x1=0.1, y1=0.2, x2=0.5, y2=0.6, name="cat", conf=0.93),
-])
+overlay = DetectionOverlay(
+    image_src="photo.jpg",
+    boxes=[
+        DetectionBox(x1=0.1, y1=0.2, x2=0.5, y2=0.6, name="cat", conf=0.93),
+    ],
+)
 ```
 
 A `DetectionBox` is **normalized `[0, 1]` `xyxy`** — resolution-independent,
@@ -218,7 +228,7 @@ from tempest_core import ResultView
 view = ResultView(
     label="Upload a photo",
     on_pick=lambda uri: app.set_state(...),  # run inference
-    result=overlay,                          # the widget you built from the result
+    result=overlay,  # the widget you built from the result
 )
 ```
 
@@ -233,9 +243,13 @@ from tempest_core.components import DataTable
 
 table = DataTable(
     columns=["Class", "Confidence"],
-    rows=sorted_rows,                 # the app sorts
-    sort_column=1, sort_ascending=False, on_sort=lambda col: app.sort(col),
-    page=0, page_size=10, on_page=lambda p: app.go_to(p),
+    rows=sorted_rows,  # the app sorts
+    sort_column=1,
+    sort_ascending=False,
+    on_sort=lambda col: app.sort(col),
+    page=0,
+    page_size=10,
+    on_page=lambda p: app.go_to(p),
 )
 ```
 

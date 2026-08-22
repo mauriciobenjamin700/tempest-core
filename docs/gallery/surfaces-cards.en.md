@@ -43,9 +43,9 @@ from tempest_core.style import CardVariant
 from tempest_core.widgets import Text
 
 panel = Surface(
-    variant=CardVariant.OUTLINED,   # (1)!
-    color_scheme="primary",         # tonal *_container
-    elevation=0,                    # explicit M3 level
+    variant=CardVariant.OUTLINED,  # (1)!
+    color_scheme="primary",  # tonal *_container
+    elevation=0,  # explicit M3 level
     child=Text(content="Panel"),
 )
 ```
@@ -115,10 +115,12 @@ children in a `Column`.
 from tempest_core.components import Card
 from tempest_core.widgets import Text
 
-card = Card(children=[
-    Text(content="Title"),
-    Text(content="Card body."),
-])
+card = Card(
+    children=[
+        Text(content="Title"),
+        Text(content="Card body."),
+    ]
+)
 ```
 
 A no-arg `Card(children=…)` produces an **elevated, neutral** card. Pick the
@@ -132,8 +134,8 @@ from tempest_core.widgets import Text
 featured = Card(
     variant=CardVariant.FILLED,
     color_scheme="primary",
-    padding_step="lg",   # inner padding
-    gap_step="md",       # space between children
+    padding_step="lg",  # inner padding
+    gap_step="md",  # space between children
     children=[Text(content="Pro plan")],
 )
 ```
@@ -241,7 +243,7 @@ A thin horizontal rule, tinted with Material 3's `OUTLINE_VARIANT` color.
 ```python
 from tempest_core.components import Divider
 
-rule = Divider()                          # 1px outline-variant rule
+rule = Divider()  # 1px outline-variant rule
 thick = Divider(thickness=2.0, color_scheme="primary")
 ```
 
@@ -269,7 +271,7 @@ from tempest_core.widgets import Text
 
 grid = Grid(
     columns=3,
-    gap="md",   # token step or float
+    gap="md",  # token step or float
     children=[Card(children=[Text(content=f"Item {i}")]) for i in range(6)],
 )
 ```
@@ -428,7 +430,7 @@ from tempest_core.components import merge_style
 from tempest_core.style import Style
 
 base = Style(padding=None, radius=8.0, gap=4.0)
-final = merge_style(base, Style(radius=16.0))   # radius wins; gap and padding from base
+final = merge_style(base, Style(radius=16.0))  # radius wins; gap and padding from base
 ```
 
 This is exactly the mechanism every component uses to let you override only the

@@ -87,11 +87,11 @@ from tempest_core.style import ComponentState
 campo = Input(placeholder="Nome", color_scheme="primary")
 estados = campo.state_styles()
 
-estados[ComponentState.DEFAULT]   # repouso
-estados[ComponentState.HOVER]     # ponteiro em cima
-estados[ComponentState.PRESSED]   # tratado como FOCUS num campo (ganha foco)
+estados[ComponentState.DEFAULT]  # repouso
+estados[ComponentState.HOVER]  # ponteiro em cima
+estados[ComponentState.PRESSED]  # tratado como FOCUS num campo (ganha foco)
 estados[ComponentState.DISABLED]  # inativo (conteúdo a 38%)
-estados[ComponentState.FOCUS]     # foco de teclado/leitor (borda de acento 2px)
+estados[ComponentState.FOCUS]  # foco de teclado/leitor (borda de acento 2px)
 ```
 
 !!! note "A resolução é pura; só o mapeamento evento→estado mora no renderizador"

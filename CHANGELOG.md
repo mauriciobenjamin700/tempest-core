@@ -4,6 +4,65 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.15.0] - 2026-08-23
+
+### Fixed
+
+- **BREAKING: a chave de um filho é namespaced pela chave do componente.**
+  Componente nomeava nó interno com chave fixa — `key=f"seg-{index}"` no
+  `SegmentedControl`, `radio-{index}` no `RadioGroup`, `nav-{index}` na `NavBar`,
+  `dt-next` na `DataTable`, `card-body` no `Card`, `field-label` em todo campo BR.
+  Evento roteia **por chave**, então duas instâncias na mesma tela disputavam o
+  mesmo nome e o handler que respondia era o da instância errada.
+
+  Medido: dois `SegmentedControl` numa tela (tema e qualidade) emitiam
+  `seg-0..2` cada um; a busca é depth-first e para no primeiro match, então
+  **toda** interação com o segundo controle ia para o primeiro — clicar "Claro"
+  no controle de tema mudava a qualidade, e o controle de tema ficava inerte. Os
+  runtimes ainda discordavam sobre qual instância errada respondia: o registro de
+  handlers do cliente JS resolvia para a última, o Python para a primeira.
+
+  `Component` agora expõe a identidade:
+
+  - `default_key` (`ClassVar[str]`) — o nome do componente, usado quando quem
+    chama não passa `key`; cada componente público declara o seu;
+  - `base_key` — `self.key or self.default_key`, a chave da raiz emitida;
+  - `child_key(sufixo)` — `f"{base_key}-{sufixo}"`, a chave de cada nó interno.
+
+  Todo componente do pacote passou a usar as duas, e o sufixo perdeu a repetição
+  do nome do componente (`seg-1` → `<key>-item-1`, `dt-next` → `<key>-next`,
+  `card-body` → `<key>-body`, `step-value` → `<key>-value`). Componente sem `key`
+  cai em `<default_key>-<sufixo>`, o que preserva a chave antiga onde o sufixo já
+  repetia o nome (`appbar-title`, `header-subtitle`, `card-body`).
+
+  É breaking para quem procura nó por chave literal — teste, fixture de
+  renderizador, roteamento de evento gravado. Tabela de migração completa em
+  `docs/tutorial/keys.md` (PT) / `keys.en.md` (EN). O escopo é maior que o da
+  issue de propósito: o defeito era da classe toda (nav/tabs/breadcrumb/
+  DataTable/Calendar/pickers/campos BR tinham a mesma colisão), e consertar em
+  duas ondas custaria dois releases breaking.
+
+  `tests/test_child_keys.py` fixa o conserto: duas instâncias de cada componente
+  interativo, chave única na árvore, handler disparado pela chave como o runtime
+  faria — mais um guard parametrizado que reprova componente novo que não declare
+  o próprio `default_key`.
+
+  Closes #20.
+
+### Changed
+
+- `Tag` e `StatCard` — presets de `Chip` e `MetricCard` — deixaram de herdar a
+  chave default do pai: uma instância sem `key` agora enraíza em `tag` e
+  `stat-card`, não em `chip` e `metric-card`. Um `Chip` e uma `Tag` sem `key` na
+  mesma tela colidiam.
+
+### Docs
+
+- Nova página de tutorial bilíngue **"4. Chaves e identidade"** (`tutorial/keys.md`
+  + `keys.en.md`): como o evento roteia por chave, o contrato
+  `default_key`/`base_key`/`child_key`, como escrever componente próprio e a
+  tabela de migração de 0.14.x.
+
 ## [0.14.0] - 2026-08-22
 
 ### Changed

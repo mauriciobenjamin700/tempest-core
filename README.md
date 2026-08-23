@@ -156,6 +156,31 @@ canvas size at draw time — the engine takes no `ort-vision-sdk` dependency); a
 colors; `Calendar`/`Clock` migrate to theme tokens (the default look shifts from
 the legacy dark palette to M3 light).
 
+### Component keys are namespaced (0.15.0, breaking)
+
+Events route by key, so a component that named its inner nodes with a fixed key
+(`key="seg-0"`) sent the event to the wrong instance the moment a screen held two
+of them. Every component now hangs its keys off its own key:
+
+```python
+from tempest_core import SegmentedControl
+
+control = SegmentedControl(key="quality", options=[], on_select=lambda i: None)
+
+control.base_key  # "quality" — the root it emits
+control.child_key("item-0")  # "quality-item-0" — every inner node
+
+SegmentedControl(options=[], on_select=lambda i: None).base_key  # "segmented"
+```
+
+`Component` gained `default_key` (the component's name, used when the caller
+passes no `key`), the `base_key` property and the `child_key(suffix)` helper — use
+them in your own components too. The inner key *names* changed with it (`seg-1` →
+`<key>-item-1`, `dt-next` → `<key>-next`, `card-body` → `<key>-body`), so code
+that looks a node up by a literal key needs the new form: full table in the
+tutorial ([PT-BR](https://mauriciobenjamin700.github.io/tempest-core/tutorial/keys/)
+· [EN-US](https://mauriciobenjamin700.github.io/tempest-core/en/tutorial/keys/)).
+
 ## Install
 
 ```bash

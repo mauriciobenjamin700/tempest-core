@@ -277,3 +277,4 @@ default look shifts from the legacy dark palette to M3 light).
   sort/pagination.
 - `HStack` / `VStack` accept a token-step `gap`; `Spacer` is a flex.
 - An explicit `style=` is always merged on top.
+- Next: [keys and identity](keys.md).

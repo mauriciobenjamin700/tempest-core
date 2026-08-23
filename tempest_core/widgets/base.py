@@ -409,7 +409,44 @@ class Component(Widget):
     the returned tree. ``render`` runs on the same thread as ``build`` (desktop
     *and* device), so it may close over plain Python callables (e.g. a navigation
     item's ``on_select``) and wire them into the primitives it emits.
+
+    Every key a component emits is namespaced under :attr:`base_key` — its own
+    root through :attr:`base_key`, each inner node through :meth:`child_key`. A
+    fixed child key (``key="seg-0"``) collides the moment a screen holds two
+    instances of the same component, and since events route by key the handler
+    that answers belongs to the wrong instance. Subclasses that emit inner nodes
+    override :attr:`default_key` so an unkeyed instance still namespaces
+    predictably.
     """
+
+    #: The base key used when the caller passes no ``key``. Subclasses override it
+    #: with their own name (``"segmented"``, ``"navbar"``, …) so an unkeyed
+    #: instance still reads as that component in a dump of the tree. Two unkeyed
+    #: instances of the same component still collide — that is why a screen with
+    #: two of them keys them explicitly.
+    default_key: ClassVar[str] = "component"
+
+    @property
+    def base_key(self) -> str:
+        """The key this component's root node and inner keys namespace under.
+
+        Returns:
+            The caller-supplied ``key``, or :attr:`default_key` when unkeyed.
+        """
+        return self.key or self.default_key
+
+    def child_key(self, suffix: str) -> str:
+        """Namespace one inner node's key under this component's key.
+
+        Args:
+            suffix: The node's role inside this component (``"seg-0"``,
+                ``"card-body"``), unique among the component's own nodes.
+
+        Returns:
+            The suffix prefixed with :attr:`base_key`, so two instances of the
+            component on one screen never emit the same key.
+        """
+        return f"{self.base_key}-{suffix}"
 
     def render(self) -> Widget:
         """Lower this component into a primitive widget tree.

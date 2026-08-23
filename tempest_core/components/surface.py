@@ -19,6 +19,8 @@ the style prop — mirroring the H1/H2 widget baking idiom.
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from pydantic import Field
 
 from tempest_core.style import CardVariant, Edge, Style
@@ -52,6 +54,8 @@ class Surface(Component):
         theme: The design-system theme whose tokens resolve the surface.
         media: Optional viewport snapshot (accepted for parity; unused here).
     """
+
+    default_key: ClassVar[str] = "surface"
 
     #: ``theme``/``media`` are build-time resolution inputs only — they bake into
     #: the resolved ``style`` and are kept OUT of the lowered tree.
@@ -88,6 +92,10 @@ class Surface(Component):
         Returns:
             A ``Container`` carrying the resolved surface style (no inner padding
             of its own beyond the resolver's), wrapping the child.
+
+        Note:
+            ``padding_step="none"``: a bare surface owns no inner padding, since
+            cards add their own.
         """
         resolved = resolve_surface_variant(
             variant=self.variant,
@@ -95,14 +103,13 @@ class Surface(Component):
             theme=self.theme,
             elevation=self.elevation,
             radius_step=self.radius_step,
-            # A bare surface owns no inner padding; cards add their own.
             padding_step="none",
             media=self.media,
         )
         merged = (
             merge_styles(resolved, self.style) if self.style is not None else resolved
         )
-        return Container(key=self.key or "surface", style=merged, child=self.child)
+        return Container(key=self.base_key, style=merged, child=self.child)
 
 
 class StyledContainer(Component):
@@ -121,6 +128,8 @@ class StyledContainer(Component):
             logical pixels.
         theme: The design-system theme whose spacing scale resolves a step name.
     """
+
+    default_key: ClassVar[str] = "styled-container"
 
     child: Widget | None = Field(
         default=None, description="The optional wrapped widget."
@@ -150,6 +159,4 @@ class StyledContainer(Component):
         merged = (
             merge_styles(default, self.style) if self.style is not None else default
         )
-        return Container(
-            key=self.key or "styled-container", style=merged, child=self.child
-        )
+        return Container(key=self.base_key, style=merged, child=self.child)

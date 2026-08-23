@@ -17,6 +17,8 @@ is presentational (no row-level ``on_click``); place a ``Button`` in its
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from pydantic import Field
 
 from tempest_core.components.base import merge_style
@@ -98,6 +100,8 @@ class Card(Component):
         media: Optional viewport snapshot (accepted for parity; unused).
     """
 
+    default_key: ClassVar[str] = "card"
+
     children: list[Widget] = Field(
         description="The widgets stacked vertically inside the card.",
         default_factory=_no_widgets,
@@ -142,12 +146,16 @@ class Card(Component):
         padding = self.theme.space(self.padding_step)
         gap = self.theme.space(self.gap_step)
         inner = Container(
-            key="card-body",
+            key=self.child_key("body"),
             style=Style(padding=Edge.all(padding)),
-            child=Column(style=Style(gap=gap), children=self.children, key="card-col"),
+            child=Column(
+                style=Style(gap=gap),
+                children=self.children,
+                key=self.child_key("col"),
+            ),
         )
         return Surface(
-            key=self.key or "card",
+            key=self.base_key,
             variant=self.variant,
             color_scheme=self.color_scheme,
             elevation=self.elevation,
@@ -177,6 +185,8 @@ class ListTile(Component):
             keeps the neutral ``ON_SURFACE`` title.
         theme: The design-system theme whose tokens supply colors and spacing.
     """
+
+    default_key: ClassVar[str] = "listtile"
 
     title: str = Field(default="", description="The row's primary text.")
     subtitle: str | None = Field(
@@ -224,7 +234,7 @@ class ListTile(Component):
                     font_weight=title_role.font_weight,
                     color=title_color,
                 ),
-                key="tile-title",
+                key=self.child_key("title"),
             )
         ]
         if self.subtitle is not None:
@@ -234,7 +244,7 @@ class ListTile(Component):
                     style=Style(
                         font_size=subtitle_role.font_size, color=on_surface_variant
                     ),
-                    key="tile-subtitle",
+                    key=self.child_key("subtitle"),
                 )
             )
         children: list[Widget] = []
@@ -244,7 +254,7 @@ class ListTile(Component):
             Column(
                 style=Style(grow=1.0, gap=self.theme.space("xs")),
                 children=text_children,
-                key="tile-text",
+                key=self.child_key("text"),
             )
         )
         if self.trailing is not None:
@@ -257,7 +267,7 @@ class ListTile(Component):
             ),
         )
         return Row(
-            key=self.key or "listtile",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
             semantics=self.semantics,
@@ -279,6 +289,8 @@ class Avatar(Component):
         color_scheme: The Material 3 role family the circle tints with.
         theme: The design-system theme resolving the circle colors.
     """
+
+    default_key: ClassVar[str] = "avatar"
 
     initials: str = Field(
         default="",
@@ -311,7 +323,7 @@ class Avatar(Component):
             align=AlignItems.CENTER,
         )
         return Container(
-            key=self.key or "avatar",
+            key=self.base_key,
             style=merge_style(default, self.style),
             child=Text(
                 content=self.initials,
@@ -320,7 +332,7 @@ class Avatar(Component):
                     font_weight=FontWeight.BOLD,
                     text_align=TextAlign.CENTER,
                 ),
-                key="avatar-text",
+                key=self.child_key("text"),
             ),
         )
 
@@ -340,6 +352,8 @@ class Divider(Component):
             uses the neutral ``OUTLINE_VARIANT``.
         theme: The design-system theme whose tokens supply the color and step.
     """
+
+    default_key: ClassVar[str] = "divider"
 
     thickness: float | str = Field(
         default=1.0,
@@ -372,6 +386,6 @@ class Divider(Component):
         )
         default = Style(height=height, background=color)
         return Container(
-            key=self.key or "divider",
+            key=self.base_key,
             style=merge_style(default, self.style),
         )

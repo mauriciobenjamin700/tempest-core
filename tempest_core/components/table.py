@@ -21,7 +21,7 @@ cells (emitting ``on_sort(col)``) and an optional pager row (emitting
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -137,6 +137,8 @@ class Table(Component):
         style: An optional style overlaid on the table's default surface.
     """
 
+    default_key: ClassVar[str] = "table"
+
     rows: list[TableRow] = Field(
         description="The body rows, each a :class:`TableRow` of :class:`TableCell`\\s.",
         default_factory=_no_rows,
@@ -179,10 +181,10 @@ class Table(Component):
         if self.headers:
             body.append(
                 Row(
-                    key="table-header",
+                    key=self.child_key("header"),
                     style=Style(border=_ROW_DIVIDER, background=SURFACE),
                     children=[
-                        self._cell(text, header=True, key=f"th-{index}")
+                        self._cell(text, header=True, key=self.child_key(f"th-{index}"))
                         for index, text in enumerate(self.headers)
                     ],
                 )
@@ -191,13 +193,13 @@ class Table(Component):
             default_row = Style(border=_ROW_DIVIDER)
             body.append(
                 Row(
-                    key=f"table-row-{r_index}",
+                    key=self.child_key(f"row-{r_index}"),
                     style=merge_style(default_row, row.style),
                     children=[
                         self._cell(
                             cell.content,
                             header=False,
-                            key=f"td-{r_index}-{c_index}",
+                            key=self.child_key(f"td-{r_index}-{c_index}"),
                         )
                         for c_index, cell in enumerate(row.cells)
                     ],
@@ -205,7 +207,7 @@ class Table(Component):
             )
         default = Style(background=SURFACE)
         return Column(
-            key=self.key or "table",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=body,
         )
@@ -253,6 +255,8 @@ class DataTable(Component):
         theme: The design-system theme whose tokens supply the colors.
         style: An optional style overlaid on the table's default surface.
     """
+
+    default_key: ClassVar[str] = "data-table"
 
     columns: list[str] = Field(
         description="The column header labels.", default_factory=_no_str
@@ -332,7 +336,7 @@ class DataTable(Component):
             return Button(
                 label=text,
                 on_click=lambda col=index: handler(col),
-                key=f"dt-th-{index}",
+                key=self.child_key(f"th-{index}"),
                 style=Style(
                     grow=1.0,
                     padding=_CELL_PADDING,
@@ -343,7 +347,7 @@ class DataTable(Component):
                 ),
             )
         return Container(
-            key=f"dt-th-{index}",
+            key=self.child_key(f"th-{index}"),
             style=Style(grow=1.0, padding=_CELL_PADDING),
             child=Text(
                 content=text,
@@ -363,7 +367,7 @@ class DataTable(Component):
             A growing ``Container`` wrapping the cell ``Text`` in ``ON_SURFACE``.
         """
         return Container(
-            key=f"dt-td-{r_index}-{c_index}",
+            key=self.child_key(f"td-{r_index}-{c_index}"),
             style=Style(grow=1.0, padding=_CELL_PADDING),
             child=Text(
                 content=content,
@@ -408,7 +412,7 @@ class DataTable(Component):
         next_target = min(total - 1, current + 1)
         muted = self.theme.color(ColorRole.ON_SURFACE_VARIANT)
         return Row(
-            key="dt-pager",
+            key=self.child_key("pager"),
             style=Style(
                 gap=self.theme.space("sm"),
                 align=AlignItems.CENTER,
@@ -422,19 +426,19 @@ class DataTable(Component):
                     on_click=(lambda t=prev_target: on_page(t))
                     if on_page is not None
                     else None,
-                    key="dt-prev",
+                    key=self.child_key("prev"),
                 ),
                 Text(
                     content=f"page {current + 1} / {total}",
                     style=Style(grow=1.0, color=muted, text_align=TextAlign.CENTER),
-                    key="dt-page-label",
+                    key=self.child_key("page-label"),
                 ),
                 Button(
                     label="Next ›",
                     on_click=(lambda t=next_target: on_page(t))
                     if on_page is not None
                     else None,
-                    key="dt-next",
+                    key=self.child_key("next"),
                 ),
             ],
         )
@@ -446,20 +450,25 @@ class DataTable(Component):
             A ``Column`` of a header row, the current page's body rows (with a
             zebra stripe and a bottom divider each) and, when paginated, a pager
             row.
+
+        Note:
+            The zebra stripe is ``SURFACE_VARIANT`` mixed halfway toward
+            ``SURFACE``, since the token model has no dedicated
+            ``SURFACE_CONTAINER`` role and H6 adds no new token — deterministic,
+            so the conformance suite pins it. Its parity follows the *absolute*
+            row index, so stripes stay continuous across pages instead of
+            restarting on each page slice.
         """
         divider = SideBorder(
             bottom=Border(width=1.0, color=self.theme.color(ColorRole.OUTLINE_VARIANT))
         )
         surface = self.theme.color(ColorRole.SURFACE)
-        # A subtle zebra stripe: SURFACE_VARIANT mixed halfway toward SURFACE,
-        # since the token model has no dedicated SURFACE_CONTAINER role and H6
-        # adds no new token. Deterministic, so the conformance suite pins it.
         zebra = self.theme.color(ColorRole.SURFACE_VARIANT).blend(surface, 0.5)
         body: list[Widget] = []
         if self.columns:
             body.append(
                 Row(
-                    key="dt-header",
+                    key=self.child_key("header"),
                     style=Style(
                         border=divider,
                         background=self.theme.color(ColorRole.SURFACE_VARIANT),
@@ -472,12 +481,10 @@ class DataTable(Component):
             )
         row_offset = self.page * self.page_size if self.page_size else 0
         for r_index, row in enumerate(self._page_rows()):
-            # Zebra parity follows the ABSOLUTE row index so stripes stay
-            # continuous across pages (not restarting each page slice).
             stripe = zebra if (row_offset + r_index) % 2 == 1 else surface
             body.append(
                 Row(
-                    key=f"dt-row-{r_index}",
+                    key=self.child_key(f"row-{r_index}"),
                     style=Style(border=divider, background=stripe),
                     children=[
                         self._body_cell(r_index, c_index, value)
@@ -489,7 +496,7 @@ class DataTable(Component):
             body.append(self._pager())
         default = Style(background=surface)
         return Column(
-            key=self.key or "data-table",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=body,
         )

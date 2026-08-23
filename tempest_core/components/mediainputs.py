@@ -11,7 +11,7 @@ the event object.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import Field
 
@@ -70,6 +70,8 @@ class ImagePicker(Component):
         on_pick: Called with the picked image URI on selection.
     """
 
+    default_key: ClassVar[str] = "image-picker"
+
     value: str = Field(
         default="", description="The picked image URI (empty until one is chosen)."
     )
@@ -100,7 +102,7 @@ class ImagePicker(Component):
                     style=Style(
                         font_size=13.0, font_weight=FontWeight.MEDIUM, color=ON_MUTED
                     ),
-                    key="image-picker-label",
+                    key=self.child_key("label"),
                 )
             )
         if self.value:
@@ -109,7 +111,7 @@ class ImagePicker(Component):
                     src=self.value,
                     fit=ImageFit.COVER,
                     style=Style(width=160.0, height=160.0, radius=8.0),
-                    key="image-picker-preview",
+                    key=self.child_key("preview"),
                 )
             )
         children.append(
@@ -117,12 +119,12 @@ class ImagePicker(Component):
                 label=self.button_label,
                 value=self.value,
                 on_select=_on_uri(self.on_pick),
-                key="image-picker-button",
+                key=self.child_key("button"),
             )
         )
         default = Style(gap=8.0)
         return Column(
-            key=self.key or "image-picker",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
         )
@@ -136,6 +138,8 @@ class DocumentPicker(Component):
         label: An optional heading shown above the picker (omitted when empty).
         on_pick: Called with the picked document URI on selection.
     """
+
+    default_key: ClassVar[str] = "document-picker"
 
     value: str = Field(
         default="",
@@ -167,7 +171,7 @@ class DocumentPicker(Component):
                     style=Style(
                         font_size=13.0, font_weight=FontWeight.MEDIUM, color=ON_MUTED
                     ),
-                    key="document-picker-label",
+                    key=self.child_key("label"),
                 )
             )
         children.append(
@@ -175,12 +179,12 @@ class DocumentPicker(Component):
                 label=self.button_label,
                 value=self.value,
                 on_select=_on_uri(self.on_pick),
-                key="document-picker-button",
+                key=self.child_key("button"),
             )
         )
         default = Style(gap=8.0)
         return Column(
-            key=self.key or "document-picker",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
         )
@@ -200,6 +204,8 @@ class ImagePicture(Component):
         size: The circle's diameter in logical pixels.
         on_pick: Called with the picked photo URI on selection.
     """
+
+    default_key: ClassVar[str] = "image-picture"
 
     src: str = Field(
         default="",
@@ -227,10 +233,10 @@ class ImagePicture(Component):
                     src=self.src,
                     fit=ImageFit.COVER,
                     style=circle,
-                    key="image-picture-img",
+                    key=self.child_key("img"),
                 ),
                 style=circle,
-                key="image-picture-clip",
+                key=self.child_key("clip"),
             )
         return Container(
             style=Style(
@@ -240,8 +246,12 @@ class ImagePicture(Component):
                 background=MUTED,
                 align=AlignItems.CENTER,
             ),
-            child=Icon(name="user", size=self.size / 2.0, key="image-picture-icon"),
-            key="image-picture-placeholder",
+            child=Icon(
+                name="user",
+                size=self.size / 2.0,
+                key=self.child_key("icon"),
+            ),
+            key=self.child_key("placeholder"),
         )
 
     def render(self) -> Widget:
@@ -253,7 +263,7 @@ class ImagePicture(Component):
         """
         default = Style(gap=8.0, align=AlignItems.CENTER)
         return Column(
-            key=self.key or "image-picture",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=[
                 self._photo(),
@@ -261,7 +271,7 @@ class ImagePicture(Component):
                     label="Change",
                     value=self.src,
                     on_select=_on_uri(self.on_pick),
-                    key="image-picture-button",
+                    key=self.child_key("button"),
                 ),
             ],
         )

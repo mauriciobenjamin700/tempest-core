@@ -247,7 +247,7 @@ def test_navbar_surface_is_theme_surface() -> None:
 def test_navbar_active_item_is_accent_pill() -> None:
     """The active ``NavBar`` item is a SOLID accent pill in the role color."""
     node = build(NavBar(items=["A", "B"], active=0, on_select=lambda i: None))
-    active = next(c for c in node.children if c.key == "nav-0")
+    active = next(c for c in node.children if c.key == "navbar-item-0")
     assert active.props["style"].background == THEME.color(ColorRole.PRIMARY)
     assert active.props["style"].color == THEME.color(ColorRole.ON_PRIMARY)
 
@@ -255,7 +255,7 @@ def test_navbar_active_item_is_accent_pill() -> None:
 def test_navbar_inactive_item_is_ghost() -> None:
     """An inactive ``NavBar`` item is a GHOST (transparent-ish surface) treatment."""
     node = build(NavBar(items=["A", "B"], active=0, on_select=lambda i: None))
-    inactive = next(c for c in node.children if c.key == "nav-1")
+    inactive = next(c for c in node.children if c.key == "navbar-item-1")
     # GHOST sits on the surface; it is NOT the accent fill.
     assert inactive.props["style"].background == THEME.color(ColorRole.SURFACE)
     assert inactive.props["style"].background != THEME.color(ColorRole.PRIMARY)
@@ -266,7 +266,7 @@ def test_navbar_color_scheme_is_honored() -> None:
     node = build(
         NavBar(items=["A"], active=0, on_select=lambda i: None, color_scheme="error")
     )
-    active = next(c for c in node.children if c.key == "nav-0")
+    active = next(c for c in node.children if c.key == "navbar-item-0")
     assert active.props["style"].background == THEME.color(ColorRole.ERROR)
 
 
@@ -299,13 +299,17 @@ def test_tabs_lowers_to_row_of_buttons() -> None:
     node = build(Tabs(tabs=["One", "Two", "Three"], active=0, on_select=lambda i: None))
     assert node.type == "Row"
     assert [c.type for c in node.children] == ["Button", "Button", "Button"]
-    assert [c.key for c in node.children] == ["tab-0", "tab-1", "tab-2"]
+    assert [c.key for c in node.children] == [
+        "tabs-item-0",
+        "tabs-item-1",
+        "tabs-item-2",
+    ]
 
 
 def test_tabs_active_has_accent_underline() -> None:
     """The active tab carries a bottom ``SideBorder`` underline in the accent role."""
     node = build(Tabs(tabs=["One", "Two"], active=1, on_select=lambda i: None))
-    active = next(c for c in node.children if c.key == "tab-1")
+    active = next(c for c in node.children if c.key == "tabs-item-1")
     border = active.props["style"].border
     assert isinstance(border, SideBorder)
     assert border.bottom is not None
@@ -318,7 +322,7 @@ def test_tabs_active_has_accent_underline() -> None:
 def test_tabs_inactive_has_no_underline() -> None:
     """An inactive tab has no underline border and a neutral (non-accent) color."""
     node = build(Tabs(tabs=["One", "Two"], active=1, on_select=lambda i: None))
-    inactive = next(c for c in node.children if c.key == "tab-0")
+    inactive = next(c for c in node.children if c.key == "tabs-item-0")
     assert inactive.props["style"].border is None
     assert inactive.props["style"].color != THEME.color(ColorRole.PRIMARY)
 
@@ -328,7 +332,7 @@ def test_tabs_color_scheme_drives_underline() -> None:
     node = build(
         Tabs(tabs=["One"], active=0, on_select=lambda i: None, color_scheme="secondary")
     )
-    active = next(c for c in node.children if c.key == "tab-0")
+    active = next(c for c in node.children if c.key == "tabs-item-0")
     border = active.props["style"].border
     assert isinstance(border, SideBorder)
     assert border.bottom is not None
@@ -359,7 +363,7 @@ def test_tabs_is_a_component_not_a_leaf() -> None:
 def test_searchbar_inner_input_resolves_field_style() -> None:
     """The ``SearchBar`` inner input resolves a focus-led field style + grows."""
     node = build(SearchBar(value="", on_change=lambda e: None))
-    inp = next(c for c in node.children if c.key == "search-input")
+    inp = next(c for c in node.children if c.key == "searchbar-input")
     style = inp.props["style"]
     assert style.grow == 1.0
     # The typed text content is on_surface (the field resolver's content color).
@@ -375,14 +379,14 @@ def test_searchbar_pill_resolves_surface() -> None:
 def test_searchbar_clear_button_is_icon_button() -> None:
     """The clear button lowers to an ``IconButton`` when set and value non-empty."""
     node = build(SearchBar(value="q", on_change=lambda e: None, on_clear=lambda: None))
-    clear = next(c for c in node.children if c.key == "search-clear")
+    clear = next(c for c in node.children if c.key == "searchbar-clear")
     assert clear.type == "IconButton"
 
 
 def test_searchbar_clear_hidden_when_empty() -> None:
     """The clear button is absent when the field is empty."""
     node = build(SearchBar(value="", on_change=lambda e: None, on_clear=lambda: None))
-    assert all(c.key != "search-clear" for c in node.children)
+    assert all(c.key != "searchbar-clear" for c in node.children)
 
 
 def test_searchbar_does_not_use_legacy_hexes() -> None:
@@ -429,9 +433,9 @@ def test_burger_glyph_fallback_still_accepted() -> None:
 def test_breadcrumb_current_and_separator_use_theme_roles() -> None:
     """The current crumb + separators read theme roles, not legacy hexes."""
     node = build(Breadcrumb(items=["Home", "Sub", "Page"]))
-    last = next(c for c in node.children if c.key == "crumb-2")
+    last = next(c for c in node.children if c.key == "breadcrumb-item-2")
     assert last.props["style"].color == THEME.color(ColorRole.ON_SURFACE)
-    sep = next(c for c in node.children if (c.key or "").startswith("sep-"))
+    sep = next(c for c in node.children if (c.key or "").startswith("breadcrumb-sep-"))
     assert sep.props["style"].color == THEME.color(ColorRole.ON_SURFACE_VARIANT)
 
 
@@ -442,7 +446,7 @@ def test_breadcrumb_link_crumb_uses_variant_resolver() -> None:
             items=["Home", "Page"], on_select=lambda i: None, color_scheme="info"
         )
     )
-    link = next(c for c in node.children if c.key == "crumb-0")
+    link = next(c for c in node.children if c.key == "breadcrumb-item-0")
     assert link.type == "Button"
     assert link.props["style"].color == THEME.color("info")
 
@@ -451,7 +455,7 @@ def test_breadcrumb_select_fires_for_non_last() -> None:
     """Tapping a non-current crumb invokes ``on_select`` with its index."""
     seen: list[int] = []
     node = build(Breadcrumb(items=["Home", "Page"], on_select=seen.append))
-    link = next(c for c in node.children if c.key == "crumb-0")
+    link = next(c for c in node.children if c.key == "breadcrumb-item-0")
     link.props["on_click"]()
     assert seen == [0]
 

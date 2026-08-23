@@ -16,7 +16,7 @@ validator from :mod:`tempestroid.validators`.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import Field
 
@@ -108,13 +108,17 @@ def _labelled_field(
     Returns:
         A :class:`~tempestroid.widgets.Column` of the label, the field and the
         error line.
+
+    Note:
+        The label and error keys are namespaced under ``key`` — the field's own
+        key — so two labelled fields on one screen never emit the same key.
     """
     children: list[Widget] = []
     if label:
-        children.append(_label_text(label, "field-label", theme))
+        children.append(_label_text(label, f"{key}-field-label", theme))
     children.append(field)
     if error:
-        children.append(_error_text(error, "field-error", theme))
+        children.append(_error_text(error, f"{key}-field-error", theme))
     default = Style(gap=4.0)
     return Column(key=key, style=merge_style(default, style), children=children)
 
@@ -206,6 +210,8 @@ class EmailInput(_BRField):
         on_change: Called with the new string value on each edit.
     """
 
+    default_key: ClassVar[str] = "email-input"
+
     value: str = Field(default="", description="The current text value (controlled).")
     label: str = Field(default="E-mail", description="The label shown above the field.")
     placeholder: str = Field(default="", description="The empty-field hint.")
@@ -231,14 +237,14 @@ class EmailInput(_BRField):
             leading_icon="mail",
             error=self.error,
             on_change=_on_value(self.on_change),
-            key="email-field",
+            key=self.child_key("field"),
             **self._field_kwargs(),
         )
         return _labelled_field(
             self.label,
             field,
             self.error,
-            self.key or "email-input",
+            self.base_key,
             self.style,
             self.theme,
         )
@@ -254,6 +260,8 @@ class PasswordInput(_BRField):
         error: The validation message; shown in the theme's error color.
         on_change: Called with the new string value on each edit.
     """
+
+    default_key: ClassVar[str] = "password-input"
 
     value: str = Field(default="", description="The current text value (controlled).")
     label: str = Field(default="Senha", description="The label shown above the field.")
@@ -279,14 +287,14 @@ class PasswordInput(_BRField):
             leading_icon="lock",
             error=self.error,
             on_change=_on_value(self.on_change),
-            key="password-field",
+            key=self.child_key("field"),
             **self._field_kwargs(),
         )
         return _labelled_field(
             self.label,
             field,
             self.error,
-            self.key or "password-input",
+            self.base_key,
             self.style,
             self.theme,
         )
@@ -304,6 +312,8 @@ class PhoneInput(_BRField):
         error: The validation message; shown in the theme's error color.
         on_change: Called with the new string value on each edit.
     """
+
+    default_key: ClassVar[str] = "phone-input"
 
     value: str = Field(default="", description="The current text value (controlled).")
     label: str = Field(
@@ -330,14 +340,14 @@ class PhoneInput(_BRField):
             mask="(99) 99999-9999",
             keyboard=KeyboardType.PHONE,
             on_change=_on_value(self.on_change),
-            key="phone-field",
+            key=self.child_key("field"),
             **self._field_kwargs(),
         )
         return _labelled_field(
             self.label,
             field,
             self.error,
-            self.key or "phone-input",
+            self.base_key,
             self.style,
             self.theme,
         )
@@ -355,6 +365,8 @@ class CPFInput(_BRField):
         error: The validation message; shown in the theme's error color.
         on_change: Called with the new string value on each edit.
     """
+
+    default_key: ClassVar[str] = "cpf-input"
 
     value: str = Field(default="", description="The current text value (controlled).")
     label: str = Field(default="CPF", description="The label shown above the field.")
@@ -379,14 +391,14 @@ class CPFInput(_BRField):
             mask="999.999.999-99",
             keyboard=KeyboardType.NUMBER,
             on_change=_on_value(self.on_change),
-            key="cpf-field",
+            key=self.child_key("field"),
             **self._field_kwargs(),
         )
         return _labelled_field(
             self.label,
             field,
             self.error,
-            self.key or "cpf-input",
+            self.base_key,
             self.style,
             self.theme,
         )
@@ -404,6 +416,8 @@ class CNPJInput(_BRField):
         error: The validation message; shown in the theme's error color.
         on_change: Called with the new string value on each edit.
     """
+
+    default_key: ClassVar[str] = "cnpj-input"
 
     value: str = Field(default="", description="The current text value (controlled).")
     label: str = Field(default="CNPJ", description="The label shown above the field.")
@@ -428,14 +442,14 @@ class CNPJInput(_BRField):
             mask="99.999.999/9999-99",
             keyboard=KeyboardType.NUMBER,
             on_change=_on_value(self.on_change),
-            key="cnpj-field",
+            key=self.child_key("field"),
             **self._field_kwargs(),
         )
         return _labelled_field(
             self.label,
             field,
             self.error,
-            self.key or "cnpj-input",
+            self.base_key,
             self.style,
             self.theme,
         )
@@ -461,6 +475,8 @@ class AddressInput(_BRField):
         label: The block heading (omitted when empty).
         on_change: Called as ``on_change(field_name, new_value)`` on each edit.
     """
+
+    default_key: ClassVar[str] = "address-input"
 
     cep: str = Field(default="", description="The current postal code (CEP) value.")
     street: str = Field(default="", description="The current street value.")
@@ -513,7 +529,7 @@ class AddressInput(_BRField):
                 mask="99999-999",
                 keyboard=KeyboardType.NUMBER,
                 on_change=self._field_handler("cep"),
-                key="address-cep",
+                key=self.child_key("cep"),
                 **field_kwargs,
             )
         )
@@ -531,13 +547,13 @@ class AddressInput(_BRField):
                     value=field_value,
                     placeholder=placeholder,
                     on_change=self._field_handler(field_name),
-                    key=f"address-{field_name}",
+                    key=self.child_key(field_name),
                     **field_kwargs,
                 )
             )
         default = Style(gap=8.0)
         return Column(
-            key=self.key or "address-input",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
         )

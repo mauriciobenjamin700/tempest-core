@@ -8,7 +8,7 @@ renders its body below the header.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import Field
 
@@ -50,6 +50,8 @@ class Accordion(Component):
         theme: The design-system theme whose tokens resolve the header surface.
     """
 
+    default_key: ClassVar[str] = "accordion"
+
     title: str = Field(default="", description="The header text.")
     open: bool = Field(default=False, description="Whether the body is expanded.")
     children: list[Widget] = Field(
@@ -88,7 +90,7 @@ class Accordion(Component):
         header = Button(
             label=f"{marker}  {self.title}",
             on_click=self.on_toggle,
-            key="accordion-header",
+            key=self.child_key("header"),
             style=header_style,
         )
         body: list[Widget] = []
@@ -100,12 +102,12 @@ class Accordion(Component):
                         padding=Edge.all(self.theme.space("md")),
                     ),
                     children=self.children,
-                    key="accordion-body",
+                    key=self.child_key("body"),
                 )
             )
         default = Style(gap=self.theme.space("xs"))
         return Column(
-            key=self.key or "accordion",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=[header, *body],
         )

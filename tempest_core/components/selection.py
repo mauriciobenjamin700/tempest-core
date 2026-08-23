@@ -13,7 +13,7 @@ color from the theme. ``Tag`` is a closed, non-selectable :class:`Chip` preset.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import Field
 
@@ -65,6 +65,8 @@ class SegmentedControl(Component):
         theme: The design-system theme resolving the segments.
         media: Optional viewport snapshot for a responsive ``size``.
     """
+
+    default_key: ClassVar[str] = "segmented"
 
     options: list[str] = Field(
         description="The visible segment labels, in order.", default_factory=_no_labels
@@ -131,12 +133,12 @@ class SegmentedControl(Component):
                 Button(
                     label=label,
                     on_click=self._handler(index),
-                    key=f"seg-{index}",
+                    key=self.child_key(f"item-{index}"),
                     style=merge_style(seg, Style(grow=1.0)),
                 )
             )
         return Row(
-            key=self.key or "segmented",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
         )
@@ -161,6 +163,8 @@ class RadioGroup(Component):
         theme: The design-system theme resolving the row colors.
         media: Optional viewport snapshot for a responsive ``size``.
     """
+
+    default_key: ClassVar[str] = "radiogroup"
 
     options: list[str] = Field(
         description="The choice labels, in order.", default_factory=_no_labels
@@ -241,7 +245,7 @@ class RadioGroup(Component):
                 Button(
                     label=("◉" if chosen else "○") + f"  {label}",
                     on_click=self._handler(index),
-                    key=f"radio-{index}",
+                    key=self.child_key(f"item-{index}"),
                     style=Style(
                         padding=Edge.symmetric(vertical=10.0, horizontal=14.0),
                         radius=self.theme.radius("sm"),
@@ -251,7 +255,7 @@ class RadioGroup(Component):
                 )
             )
         return Column(
-            key=self.key or "radiogroup",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
         )
@@ -275,6 +279,8 @@ class Chip(Component):
         theme: The design-system theme resolving the chip treatment.
         media: Optional viewport snapshot for a responsive ``size``.
     """
+
+    default_key: ClassVar[str] = "chip"
 
     label: str = Field(default="", description="The chip text.")
     selected: bool = Field(
@@ -318,12 +324,12 @@ class Chip(Component):
             return Button(
                 label=self.label,
                 on_click=self.on_click,
-                key=self.key or "chip",
+                key=self.base_key,
                 style=merge_style(chip_style, self.style),
             )
         return Text(
             content=self.label,
-            key=self.key or "chip",
+            key=self.base_key,
             style=merge_style(chip_style, self.style),
         )
 
@@ -338,6 +344,8 @@ class Tag(Chip):
     ``Chip`` and reuses :func:`~tempest_core.variants.resolve_badge_variant`. Use it
     for read-only category/status labels where a ``Chip``'s interactivity is wrong.
     """
+
+    default_key: ClassVar[str] = "tag"
 
     selected: bool = Field(
         default=False,
@@ -365,6 +373,8 @@ class Rating(Component):
         color_scheme: The Material 3 role family the filled stars paint with.
         theme: The design-system theme resolving the star color.
     """
+
+    default_key: ClassVar[str] = "rating"
 
     value: int = Field(default=0, description="The number of filled stars.")
     max_stars: int = Field(default=5, description="The total number of stars shown.")
@@ -407,17 +417,20 @@ class Rating(Component):
 
         Returns:
             A tappable ``Button`` when ``on_rate`` is set, else a ``Text`` glyph.
+
+        Note:
+            A clickable star is an icon-forward ``GHOST`` button with an
+            explicitly transparent fill, so the glyph reads as a bare star rather
+            than a filled pill — the ``SOLID`` default would paint the role color
+            over it.
         """
         glyph = "★" if index < self.value else "☆"
         star_style = Style(font_size=24.0, color=color)
         if self.on_rate is not None:
-            # A clickable star is an icon-forward GHOST button with an explicitly
-            # transparent fill, so the glyph reads as a bare star instead of a
-            # filled pill (the SOLID default would paint the role color over it).
             return Button(
                 label=glyph,
                 on_click=self._handler(index + 1),
-                key=f"star-{index}",
+                key=self.child_key(f"star-{index}"),
                 variant=Variant.GHOST,
                 style=Style(
                     font_size=24.0,
@@ -425,7 +438,9 @@ class Rating(Component):
                     background=Color(r=0, g=0, b=0, a=0.0),
                 ),
             )
-        return Text(content=glyph, key=f"star-{index}", style=star_style)
+        return Text(
+            content=glyph, key=self.child_key(f"star-{index}"), style=star_style
+        )
 
     def render(self) -> Widget:
         """Lower the rating into a primitive row of stars.
@@ -436,7 +451,7 @@ class Rating(Component):
         color = self.theme.color(self.color_scheme)
         default = Style(gap=self.theme.space("xs"))
         return Row(
-            key=self.key or "rating",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=[self._star(index, color) for index in range(self.max_stars)],
         )

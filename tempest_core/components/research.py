@@ -251,6 +251,8 @@ class MetricCard(Component):
         media: Optional viewport snapshot (accepted for parity; unused).
     """
 
+    default_key: ClassVar[str] = "metric-card"
+
     label: str = Field(default="", description="The metric's caption (muted).")
     value: str = Field(default="", description="The metric's value (prominent).")
     delta: str | None = Field(
@@ -294,7 +296,7 @@ class MetricCard(Component):
             delta_up=self.delta_up,
             theme=self.theme,
             style=Style(grow=1.0),
-            key="metric-stat",
+            key=self.child_key("stat"),
         )
 
     def render(self) -> Widget:
@@ -308,12 +310,12 @@ class MetricCard(Component):
             body: Widget = Row(
                 style=Style(gap=self.theme.space("md"), align=AlignItems.CENTER),
                 children=[self._stat(), self.trailing],
-                key="metric-row",
+                key=self.child_key("row"),
             )
         else:
             body = self._stat()
         return Card(
-            key=self.key or "metric-card",
+            key=self.base_key,
             variant=self.variant,
             color_scheme=self.color_scheme,
             theme=self.theme,
@@ -333,6 +335,8 @@ class StatCard(MetricCard):
     Attributes:
         variant: Defaults to ``filled`` for the compact look (overridable).
     """
+
+    default_key: ClassVar[str] = "stat-card"
 
     variant: CardVariant = Field(
         default=CardVariant.FILLED,
@@ -357,6 +361,8 @@ class ConfidenceBadge(Component):
         theme: The design-system theme whose tokens resolve the pill.
     """
 
+    default_key: ClassVar[str] = "confidence-badge"
+
     confidence: float = Field(description="The model confidence in ``[0, 1]``.")
     label: str = Field(
         default="",
@@ -379,17 +385,20 @@ class ConfidenceBadge(Component):
         Returns:
             A :class:`~tempest_core.components.Badge` whose ``color_scheme`` and
             label encode the confidence.
+
+        Note:
+            ``SUBTLE`` uses the tonal container pair (WCAG-AA safe), unlike
+            ``SOLID``, which paints white on the saturated status role (success
+            ~3.02, warning ~4.0 — both fail AA). Consistent with the H4 A1
+            decision.
         """
         scheme = confidence_scheme(self.confidence, high=self.high, mid=self.mid)
         percent = f"{self.confidence:.0%}"
         text = f"{self.label} {percent}".strip() if self.label else percent
         return Badge(
-            key=self.key or "confidence-badge",
+            key=self.base_key,
             label=text,
             color_scheme=scheme,
-            # SUBTLE uses the tonal container pair (WCAG-AA safe), unlike SOLID
-            # which paints white on the saturated status role (success ~3.02,
-            # warning ~4.0 — both fail AA). Consistency with the H4 A1 decision.
             variant=BadgeVariant.SUBTLE,
             theme=self.theme,
             style=self.style,
@@ -580,6 +589,8 @@ class LineChart(_ChartBase):
         series: The data series to plot (each its own polyline + color).
     """
 
+    default_key: ClassVar[str] = "line-chart"
+
     series: list[ChartSeries] = Field(
         description="The data series to plot.", default_factory=_no_series
     )
@@ -614,7 +625,7 @@ class LineChart(_ChartBase):
             commands.append(StrokeCmd(color=color_floats, width=2.0))
 
         return Canvas(
-            key=self.key or "line-chart",
+            key=self.base_key,
             commands=commands,
             width=self.width,
             height=self.height,
@@ -640,6 +651,8 @@ class BarChart(_ChartBase):
             empty).
         labels: Optional x-axis labels for the bars.
     """
+
+    default_key: ClassVar[str] = "bar-chart"
 
     series: list[ChartSeries] = Field(
         description="The data series (first series plotted as bars).",
@@ -700,7 +713,7 @@ class BarChart(_ChartBase):
                 commands.append(FillCmd(color=color_floats))
 
         return Canvas(
-            key=self.key or "bar-chart",
+            key=self.base_key,
             commands=commands,
             width=self.width,
             height=self.height,
@@ -736,6 +749,8 @@ class DetectionOverlay(Component):
         mid: The warning threshold passed to :func:`confidence_scheme`.
         theme: The design-system theme whose tokens supply the label color.
     """
+
+    default_key: ClassVar[str] = "detection-overlay"
 
     image_src: str = Field(description="The image source to box over.")
     boxes: list[DetectionBox] = Field(
@@ -812,16 +827,16 @@ class DetectionOverlay(Component):
             src=self.image_src,
             fit=ImageFit.COVER,
             style=size_style,
-            key="detection-image",
+            key=self.child_key("image"),
         )
         canvas = Canvas(
             commands=commands,
             width=self.width,
             height=self.height,
-            key="detection-canvas",
+            key=self.child_key("canvas"),
         )
         return Stack(
-            key=self.key or "detection-overlay",
+            key=self.base_key,
             style=merge_style(size_style, self.style),
             children=[image, canvas],
         )
@@ -850,6 +865,8 @@ class ResultView(Component):
             only the picker.
         theme: The design-system theme whose tokens supply the spacing.
     """
+
+    default_key: ClassVar[str] = "result-view"
 
     value: str = Field(
         default="", description="The picked image URI (empty until one is chosen)."
@@ -882,14 +899,14 @@ class ResultView(Component):
                 value=self.value,
                 label=self.label,
                 on_pick=self.on_pick,
-                key="result-picker",
+                key=self.child_key("picker"),
             )
         ]
         if self.result is not None:
             children.append(self.result)
         default = Style(gap=self.theme.space("md"))
         return Column(
-            key=self.key or "result-view",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
         )

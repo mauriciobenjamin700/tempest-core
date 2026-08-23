@@ -10,6 +10,8 @@ trees.
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from pydantic import Field
 
 from tempest_core.components.base import merge_style
@@ -49,6 +51,8 @@ class Sidebar(Component):
         theme: The design-system theme whose tokens resolve the panel surface.
         media: Optional viewport snapshot (accepted for parity; forwarded).
     """
+
+    default_key: ClassVar[str] = "sidebar"
 
     children: list[Widget] = Field(
         description="The widgets stacked top-to-bottom in the sidebar.",
@@ -97,7 +101,7 @@ class Sidebar(Component):
             Style(width=self.width, padding=Edge.all(16.0), gap=10.0),
         )
         return Column(
-            key=self.key or "sidebar",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=self.children,
         )
@@ -116,6 +120,8 @@ class Scaffold(Component):
             convenience; the Compose renderer scrolls natively post-Trilho-B).
         theme: The design-system theme whose ``BACKGROUND`` role fills the frame.
     """
+
+    default_key: ClassVar[str] = "scaffold"
 
     app_bar: Widget | None = Field(
         default=None,
@@ -155,16 +161,20 @@ class Scaffold(Component):
         body: Widget = self.body if self.body is not None else Column()
         if self.scroll:
             body = ScrollView(
-                children=[body], style=Style(grow=1.0), key="scaffold-body"
+                children=[body],
+                style=Style(grow=1.0),
+                key=self.child_key("body"),
             )
         else:
-            body = Container(child=body, style=Style(grow=1.0), key="scaffold-body")
+            body = Container(
+                child=body, style=Style(grow=1.0), key=self.child_key("body")
+            )
         children.append(body)
         if self.bottom_bar is not None:
             children.append(self.bottom_bar)
         default = Style(gap=0.0, background=self.theme.color(ColorRole.BACKGROUND))
         return Column(
-            key=self.key or "scaffold",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
         )
@@ -178,6 +188,8 @@ class Grid(Component):
         columns: The number of columns per row (clamped to at least 1).
         gap: The spacing between cells, both horizontally and vertically.
     """
+
+    default_key: ClassVar[str] = "grid"
 
     children: list[Widget] = Field(
         description="The cell widgets, filled left-to-right then top-to-bottom.",
@@ -213,20 +225,27 @@ class Grid(Component):
                 Container(
                     style=Style(grow=1.0),
                     child=child,
-                    key=f"cell-{start + offset}",
+                    key=self.child_key(f"cell-{start + offset}"),
                 )
                 for offset, child in enumerate(chunk)
             ]
             for pad in range(len(chunk), columns):
                 cells.append(
-                    Container(style=Style(grow=1.0), key=f"cell-pad-{start}-{pad}")
+                    Container(
+                        style=Style(grow=1.0),
+                        key=self.child_key(f"cell-pad-{start}-{pad}"),
+                    )
                 )
             rows.append(
-                Row(style=Style(gap=gap), children=cells, key=f"grid-row-{start}")
+                Row(
+                    style=Style(gap=gap),
+                    children=cells,
+                    key=self.child_key(f"row-{start}"),
+                )
             )
         default = Style(gap=gap)
         return Column(
-            key=self.key or "grid",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=rows,
         )
@@ -250,6 +269,8 @@ class HStack(Component):
         justify: The main-axis (horizontal) distribution of the children.
         theme: The design-system theme whose spacing scale resolves the gap.
     """
+
+    default_key: ClassVar[str] = "hstack"
 
     children: list[Widget] = Field(
         description="The ordered child widgets, laid left-to-right.",
@@ -282,7 +303,7 @@ class HStack(Component):
         gap = self.theme.space(self.gap) if isinstance(self.gap, str) else self.gap
         default = Style(gap=gap, align=self.align, justify=self.justify)
         return Row(
-            key=self.key or "hstack",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=self.children,
         )
@@ -305,6 +326,8 @@ class VStack(Component):
         justify: The main-axis (vertical) distribution of the children.
         theme: The design-system theme whose spacing scale resolves the gap.
     """
+
+    default_key: ClassVar[str] = "vstack"
 
     children: list[Widget] = Field(
         description="The ordered child widgets, laid top-to-bottom.",
@@ -337,7 +360,7 @@ class VStack(Component):
         gap = self.theme.space(self.gap) if isinstance(self.gap, str) else self.gap
         default = Style(gap=gap, align=self.align, justify=self.justify)
         return Column(
-            key=self.key or "vstack",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=self.children,
         )

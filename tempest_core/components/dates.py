@@ -11,7 +11,7 @@ from __future__ import annotations
 import calendar as _calendar
 import datetime as _datetime
 from collections.abc import Callable
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import Field
 
@@ -46,6 +46,8 @@ class Calendar(Component):
         color_scheme: The Material 3 role family the selected day fills with.
         theme: The design-system theme whose tokens supply the colors.
     """
+
+    default_key: ClassVar[str] = "calendar"
 
     month: str = Field(
         default="",
@@ -110,7 +112,9 @@ class Calendar(Component):
             A day ``Button`` or an empty growing ``Container``.
         """
         if day == 0:
-            return Container(key=f"pad-{week_index}-{col}", style=Style(grow=1.0))
+            return Container(
+                key=self.child_key(f"pad-{week_index}-{col}"), style=Style(grow=1.0)
+            )
         iso = f"{year:04d}-{mon:02d}-{day:02d}"
         selected = iso == self.selected
         if selected:
@@ -122,7 +126,7 @@ class Calendar(Component):
         return Button(
             label=str(day),
             on_click=self._make_handler(iso),
-            key=f"day-{day}",
+            key=self.child_key(f"day-{day}"),
             style=Style(
                 grow=1.0,
                 padding=Edge.symmetric(vertical=10.0, horizontal=6.0),
@@ -146,7 +150,7 @@ class Calendar(Component):
         title = Text(
             content=f"{_calendar.month_name[mon]} {year}",
             style=Style(font_size=18.0, font_weight=FontWeight.BOLD, color=on_surface),
-            key="calendar-title",
+            key=self.child_key("title"),
         )
         header = Row(
             style=Style(gap=6.0),
@@ -159,11 +163,11 @@ class Calendar(Component):
                         color=muted,
                         text_align=TextAlign.CENTER,
                     ),
-                    key=f"wd-{name}",
+                    key=self.child_key(f"wd-{name}"),
                 )
                 for name in _WEEKDAYS
             ],
-            key="calendar-header",
+            key=self.child_key("header"),
         )
         rows = [
             Row(
@@ -172,13 +176,13 @@ class Calendar(Component):
                     self._cell(year, mon, day, week_index, col)
                     for col, day in enumerate(week)
                 ],
-                key=f"week-{week_index}",
+                key=self.child_key(f"week-{week_index}"),
             )
             for week_index, week in enumerate(weeks)
         ]
         default = Style(gap=6.0, padding=Edge.all(12.0), background=surface)
         return Column(
-            key=self.key or "calendar",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=[title, header, *rows],
         )
@@ -201,6 +205,8 @@ class Clock(Component):
             keeps the neutral ``ON_SURFACE`` time.
         theme: The design-system theme whose tokens supply the colors.
     """
+
+    default_key: ClassVar[str] = "clock"
 
     time: str = Field(
         default="",
@@ -241,7 +247,7 @@ class Clock(Component):
                     color=time_color,
                     text_align=TextAlign.CENTER,
                 ),
-                key="clock-time",
+                key=self.child_key("time"),
             )
         ]
         if self.label is not None:
@@ -251,7 +257,7 @@ class Clock(Component):
                     style=Style(
                         font_size=14.0, color=muted, text_align=TextAlign.CENTER
                     ),
-                    key="clock-label",
+                    key=self.child_key("label"),
                 )
             )
         default = Style(
@@ -261,7 +267,7 @@ class Clock(Component):
             background=surface,
         )
         return Column(
-            key=self.key or "clock",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
         )

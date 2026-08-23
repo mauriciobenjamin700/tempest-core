@@ -21,7 +21,7 @@ still works — the H5 props are additive with backward-compatible defaults.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import Field
 
@@ -84,6 +84,8 @@ class NavBar(Component):
         theme: The design-system theme whose tokens resolve the bar and items.
         media: Optional viewport snapshot used to resolve a responsive ``size``.
     """
+
+    default_key: ClassVar[str] = "navbar"
 
     items: list[str] = Field(
         description="The visible item labels, in order.", default_factory=_no_labels
@@ -157,7 +159,7 @@ class NavBar(Component):
         return Button(
             label=label,
             on_click=self._make_handler(index),
-            key=f"nav-{index}",
+            key=self.child_key(f"item-{index}"),
             style=item_style,
         )
 
@@ -184,7 +186,7 @@ class NavBar(Component):
             ),
         )
         return Row(
-            key=self.key or "navbar",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=[
                 self._item(index, label) for index, label in enumerate(self.items)
@@ -215,6 +217,8 @@ class Tabs(Component):
         theme: The design-system theme whose tokens resolve the strip and tabs.
         media: Optional viewport snapshot used to resolve a responsive ``size``.
     """
+
+    default_key: ClassVar[str] = "tabs"
 
     tabs: list[str] = Field(
         description="The visible tab labels, in order.", default_factory=_no_labels
@@ -268,6 +272,10 @@ class Tabs(Component):
         Returns:
             A GHOST button, the active one taking the accent color plus a bottom
             underline border.
+
+        Note:
+            The underline indicator is a thin bottom ``SideBorder`` in the accent
+            role — existing ``Style`` fields only, no new field.
         """
         active = index == self.active
         base = resolve_variant(
@@ -279,8 +287,6 @@ class Tabs(Component):
         )
         overrides = Style(grow=1.0)
         if active:
-            # The underline indicator: a thin bottom SideBorder in the accent role
-            # (existing fields only — no new Style field).
             overrides = merge_styles(
                 overrides,
                 Style(border=SideBorder(bottom=Border(width=2.0, color=accent))),
@@ -288,7 +294,7 @@ class Tabs(Component):
         return Button(
             label=label,
             on_click=self._make_handler(index),
-            key=f"tab-{index}",
+            key=self.child_key(f"item-{index}"),
             style=merge_styles(base, overrides),
         )
 
@@ -318,7 +324,7 @@ class Tabs(Component):
             ),
         )
         return Row(
-            key=self.key or "tabs",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=[
                 self._tab(index, label, accent) for index, label in enumerate(self.tabs)
@@ -346,6 +352,8 @@ class Breadcrumb(Component):
         theme: The design-system theme whose tokens supply colors and the link.
         media: Optional viewport snapshot (accepted for parity; forwarded).
     """
+
+    default_key: ClassVar[str] = "breadcrumb"
 
     items: list[str] = Field(
         description="The crumb labels from root to current, in order.",
@@ -411,12 +419,12 @@ class Breadcrumb(Component):
             return Button(
                 label=label,
                 on_click=self._handler(index),
-                key=f"crumb-{index}",
+                key=self.child_key(f"item-{index}"),
                 style=link,
             )
         return Text(
             content=label,
-            key=f"crumb-{index}",
+            key=self.child_key(f"item-{index}"),
             style=Style(
                 color=on_surface if is_last else on_surface_variant,
                 font_size=14.0,
@@ -438,13 +446,13 @@ class Breadcrumb(Component):
                     Text(
                         content=self.separator,
                         style=Style(color=on_surface_variant, font_size=14.0),
-                        key=f"sep-{index}",
+                        key=self.child_key(f"sep-{index}"),
                     )
                 )
             children.append(self._crumb(index, label))
         default = Style(gap=6.0, align=AlignItems.CENTER)
         return Row(
-            key=self.key or "breadcrumb",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
         )

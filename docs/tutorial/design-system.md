@@ -284,3 +284,4 @@ padrão passa da paleta escura antiga para o M3 claro).
   ganha ordenação/paginação conduzidas pelo app.
 - `HStack` / `VStack` aceitam `gap` por passo de token; `Spacer` é um flex.
 - Um `style=` explícito sempre é mesclado por cima.
+- Próximo: [chaves e identidade](keys.md).

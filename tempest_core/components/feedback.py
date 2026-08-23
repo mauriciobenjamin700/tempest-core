@@ -17,6 +17,8 @@ is out of scope here.
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from pydantic import Field
 
 from tempest_core.components.base import merge_style
@@ -86,6 +88,8 @@ class Banner(Component):
         theme: The design-system theme whose tokens resolve the treatment.
     """
 
+    default_key: ClassVar[str] = "banner"
+
     message: str = Field(default="", description="The banner text.")
     tone: str = Field(
         default="info",
@@ -126,7 +130,7 @@ class Banner(Component):
             Text(
                 content=self.message,
                 style=Style(grow=1.0, color=content, font_size=14.0),
-                key="banner-text",
+                key=self.child_key("text"),
             )
         ]
         if self.action is not None:
@@ -136,7 +140,7 @@ class Banner(Component):
             Style(gap=12.0, align=AlignItems.CENTER),
         )
         return Row(
-            key=self.key or "banner",
+            key=self.base_key,
             style=merge_style(layout, self.style),
             children=children,
         )
@@ -161,6 +165,8 @@ class Alert(Component):
         dismiss: An optional trailing dismiss widget (e.g. a close ``Button``).
         theme: The design-system theme whose tokens resolve the treatment.
     """
+
+    default_key: ClassVar[str] = "alert"
 
     title: str = Field(default="", description="The alert's headline (bold).")
     body: str | None = Field(
@@ -206,7 +212,7 @@ class Alert(Component):
                     font_size=15.0,
                     font_weight=FontWeight.BOLD,
                 ),
-                key="alert-title",
+                key=self.child_key("title"),
             )
         ]
         if self.body is not None:
@@ -214,7 +220,7 @@ class Alert(Component):
                 Text(
                     content=self.body,
                     style=Style(color=content, font_size=13.0),
-                    key="alert-body",
+                    key=self.child_key("body"),
                 )
             )
         row_children: list[Widget] = []
@@ -223,14 +229,14 @@ class Alert(Component):
                 Text(
                     content=self.glyph,
                     style=Style(color=content, font_size=20.0),
-                    key="alert-glyph",
+                    key=self.child_key("glyph"),
                 )
             )
         row_children.append(
             Column(
                 style=Style(grow=1.0, gap=self.theme.space("xs")),
                 children=column_children,
-                key="alert-col",
+                key=self.child_key("col"),
             )
         )
         if self.dismiss is not None:
@@ -240,7 +246,7 @@ class Alert(Component):
             Style(gap=self.theme.space("sm"), align=AlignItems.CENTER),
         )
         return Row(
-            key=self.key or "alert",
+            key=self.base_key,
             style=merge_style(layout, self.style),
             children=row_children,
             semantics=self.semantics,
@@ -261,6 +267,8 @@ class EmptyState(Component):
         action: An optional call-to-action widget (e.g. a ``Button``).
         theme: The design-system theme whose tokens supply colors and spacing.
     """
+
+    default_key: ClassVar[str] = "emptystate"
 
     title: str = Field(default="", description="The primary message.")
     subtitle: str | None = Field(
@@ -291,7 +299,7 @@ class EmptyState(Component):
             Text(
                 content=self.glyph,
                 style=Style(font_size=48.0, color=muted, text_align=TextAlign.CENTER),
-                key="empty-glyph",
+                key=self.child_key("glyph"),
             ),
             Text(
                 content=self.title,
@@ -301,7 +309,7 @@ class EmptyState(Component):
                     color=on_surface,
                     text_align=TextAlign.CENTER,
                 ),
-                key="empty-title",
+                key=self.child_key("title"),
             ),
         ]
         if self.subtitle is not None:
@@ -313,7 +321,7 @@ class EmptyState(Component):
                         color=muted,
                         text_align=TextAlign.CENTER,
                     ),
-                    key="empty-subtitle",
+                    key=self.child_key("subtitle"),
                 )
             )
         if self.action is not None:
@@ -324,7 +332,7 @@ class EmptyState(Component):
             padding=Edge.all(self.theme.space("lg")),
         )
         return Column(
-            key=self.key or "emptystate",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
         )
@@ -349,6 +357,8 @@ class Badge(Component):
         theme: The design-system theme whose tokens resolve the treatment.
         media: Optional viewport snapshot for a responsive ``size``.
     """
+
+    default_key: ClassVar[str] = "badge"
 
     label: str = Field(
         default="",
@@ -396,7 +406,7 @@ class Badge(Component):
         default = merge_styles(resolved, Style(text_align=TextAlign.CENTER))
         return Text(
             content=self.label,
-            key=self.key or "badge",
+            key=self.base_key,
             style=merge_style(default, self.style),
         )
 
@@ -416,6 +426,8 @@ class Stat(Component):
             (error-tinted).
         theme: The design-system theme whose tokens supply colors and spacing.
     """
+
+    default_key: ClassVar[str] = "stat"
 
     label: str = Field(default="", description="The metric's caption (muted).")
     value: str = Field(default="", description="The metric's value (prominent).")
@@ -444,7 +456,7 @@ class Stat(Component):
             Text(
                 content=self.label,
                 style=Style(color=muted, font_size=13.0),
-                key="stat-label",
+                key=self.child_key("label"),
             ),
             Text(
                 content=self.value,
@@ -453,7 +465,7 @@ class Stat(Component):
                     font_size=28.0,
                     font_weight=FontWeight.BOLD,
                 ),
-                key="stat-value",
+                key=self.child_key("value"),
             ),
         ]
         if self.delta is not None:
@@ -469,12 +481,12 @@ class Stat(Component):
                         font_size=13.0,
                         font_weight=FontWeight.MEDIUM,
                     ),
-                    key="stat-delta",
+                    key=self.child_key("delta"),
                 )
             )
         default = Style(gap=self.theme.space("xs"))
         return Column(
-            key=self.key or "stat",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
             semantics=self.semantics,
@@ -506,6 +518,8 @@ class ProgressStepper(Component):
         color_scheme: The Material 3 role family the done/active steps paint with.
         theme: The design-system theme resolving the step colors and spacing.
     """
+
+    default_key: ClassVar[str] = "progress-stepper"
 
     steps: list[str] = Field(
         description="The step labels, in order.", default_factory=_no_steps
@@ -563,18 +577,18 @@ class ProgressStepper(Component):
             )
             label_color = muted
         return Column(
-            key=f"step-{index}",
+            key=self.child_key(f"step-{index}"),
             style=Style(gap=self.theme.space("xs"), align=AlignItems.CENTER),
             children=[
                 Text(
                     content=str(index + 1),
                     style=disc_style,
-                    key=f"step-disc-{index}",
+                    key=self.child_key(f"step-disc-{index}"),
                 ),
                 Text(
                     content=label,
                     style=Style(color=label_color, font_size=12.0),
-                    key=f"step-label-{index}",
+                    key=self.child_key(f"step-label-{index}"),
                 ),
             ],
         )
@@ -584,11 +598,14 @@ class ProgressStepper(Component):
 
         Returns:
             A ``Row`` of step cells joined by flexible connector spaces.
+
+        Note:
+            Each gap between two cells carries a growing connector rule, tinted
+            by whether the step it leads into is already done.
         """
         children: list[Widget] = []
         for index, label in enumerate(self.steps):
             if index > 0:
-                # A growing connector rule between cells.
                 done = index <= self.current
                 color = (
                     self.theme.color(self.color_scheme)
@@ -599,7 +616,7 @@ class ProgressStepper(Component):
                     Text(
                         content="",
                         style=Style(grow=1.0, height=2.0, background=color),
-                        key=f"step-conn-{index}",
+                        key=self.child_key(f"step-conn-{index}"),
                     )
                 )
             children.append(self._step_cell(index, label))
@@ -608,7 +625,7 @@ class ProgressStepper(Component):
             align=AlignItems.CENTER,
         )
         return Row(
-            key=self.key or "progress-stepper",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
             semantics=self.semantics,

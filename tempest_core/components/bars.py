@@ -16,6 +16,8 @@ from the :class:`~tempest_core.theme.Theme` tokens. Every existing call site
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from pydantic import Field
 
 from tempest_core.components.base import merge_style
@@ -105,6 +107,8 @@ class AppBar(Component):
         media: Optional viewport snapshot (accepted for parity; forwarded).
     """
 
+    default_key: ClassVar[str] = "appbar"
+
     title: str = Field(default="", description="The bar's title text.")
     leading: Widget | None = Field(
         default=None,
@@ -162,12 +166,16 @@ class AppBar(Component):
                     font_weight=FontWeight.BOLD,
                     color=content,
                 ),
-                key="appbar-title",
+                key=self.child_key("title"),
             )
         )
         if self.actions:
             children.append(
-                Row(style=Style(gap=8.0), children=self.actions, key="appbar-actions")
+                Row(
+                    style=Style(gap=8.0),
+                    children=self.actions,
+                    key=self.child_key("actions"),
+                )
             )
         default = merge_styles(
             surface,
@@ -178,7 +186,7 @@ class AppBar(Component):
             ),
         )
         return Row(
-            key=self.key or "appbar",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
         )
@@ -201,6 +209,8 @@ class Header(Component):
             keeps the neutral ``ON_SURFACE`` title.
         theme: The design-system theme whose tokens supply colors and spacing.
     """
+
+    default_key: ClassVar[str] = "header"
 
     title: str = Field(default="", description="The header's primary line.")
     subtitle: str | None = Field(
@@ -240,7 +250,7 @@ class Header(Component):
                     font_weight=FontWeight.BOLD,
                     color=title_color,
                 ),
-                key="header-title",
+                key=self.child_key("title"),
             )
         ]
         if self.subtitle is not None:
@@ -250,7 +260,7 @@ class Header(Component):
                     style=Style(
                         font_size=subtitle_role.font_size, color=on_surface_variant
                     ),
-                    key="header-subtitle",
+                    key=self.child_key("subtitle"),
                 )
             )
         default = Style(
@@ -259,7 +269,7 @@ class Header(Component):
             background=surface_variant,
         )
         return Column(
-            key=self.key or "header",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
         )
@@ -282,6 +292,8 @@ class Footer(Component):
         theme: The design-system theme whose tokens resolve the bar surface.
         media: Optional viewport snapshot (accepted for parity; forwarded).
     """
+
+    default_key: ClassVar[str] = "footer"
 
     children: list[Widget] = Field(
         description="The widgets laid out in the footer (e.g. links or labels).",
@@ -330,7 +342,7 @@ class Footer(Component):
             ),
         )
         return Row(
-            key=self.key or "footer",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=self.children,
         )
@@ -370,6 +382,8 @@ class CollapsingAppBar(Component):
         media: Optional viewport snapshot (accepted for parity; forwarded).
         style: An optional style overlaid on the bar's derived default.
     """
+
+    default_key: ClassVar[str] = "collapsing-app-bar"
 
     title: str = Field(default="", description="The bar's title text.")
     expanded_height: float = Field(
@@ -453,7 +467,7 @@ class CollapsingAppBar(Component):
         if self.background is not None:
             default = merge_styles(default, Style(background=self.background))
         return Container(
-            key=self.key or "collapsing-app-bar",
+            key=self.base_key,
             style=merge_style(default, self.style),
             child=Column(
                 style=Style(justify=JustifyContent.END, align=AlignItems.START),
@@ -465,7 +479,7 @@ class CollapsingAppBar(Component):
                             font_weight=FontWeight.BOLD,
                             color=content,
                         ),
-                        key="collapsing-title",
+                        key=self.child_key("title"),
                     )
                 ],
             ),

@@ -18,7 +18,7 @@ still works — the H5 props are additive with backward-compatible defaults.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import Field
 
@@ -66,6 +66,8 @@ class Burger(Component):
         media: Optional viewport snapshot used to resolve a responsive ``size``.
     """
 
+    default_key: ClassVar[str] = "burger"
+
     on_click: Callable[[], Any] = Field(
         description="Invoked when the button is tapped (e.g. to toggle a ``Drawer``)."
     )
@@ -109,7 +111,7 @@ class Burger(Component):
             label="menu",
             theme=self.theme,
             media=self.media,
-            key=self.key or "burger",
+            key=self.base_key,
             style=self.style,
         )
 
@@ -134,6 +136,8 @@ class Drawer(Component):
         theme: The design-system theme whose tokens resolve the panel surface.
         media: Optional viewport snapshot (accepted for parity; forwarded).
     """
+
+    default_key: ClassVar[str] = "drawer"
 
     open: bool = Field(
         default=False,
@@ -174,7 +178,7 @@ class Drawer(Component):
             A styled ``Column`` panel when open, otherwise an empty ``Container``.
         """
         if not self.open:
-            return Container(key=self.key or "drawer")
+            return Container(key=self.base_key)
         surface = resolve_surface_variant(
             variant=self.variant,
             color_scheme=self.color_scheme,
@@ -188,7 +192,7 @@ class Drawer(Component):
             Style(width=self.width, padding=Edge.all(16.0), gap=10.0),
         )
         return Column(
-            key=self.key or "drawer",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=self.children,
         )

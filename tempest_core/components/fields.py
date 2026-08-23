@@ -7,7 +7,7 @@ controlled ``Input``; ``Stepper`` clamps to optional bounds before reporting.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import Field
 
@@ -58,6 +58,8 @@ class Stepper(Component):
         max_value: The upper bound, or ``None`` for unbounded.
         on_change: Called with the new (clamped) value when a button is tapped.
     """
+
+    default_key: ClassVar[str] = "stepper"
 
     value: int = Field(default=0, description="The current value.")
     step: int = Field(default=1, description="The amount added/removed per tap.")
@@ -133,18 +135,18 @@ class Stepper(Component):
         """
         default = Style(gap=10.0, align=AlignItems.CENTER)
         return Row(
-            key=self.key or "stepper",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=[
-                self._button("-", -self.step, "step-down"),
+                self._button("-", -self.step, self.child_key("down")),
                 Text(
                     content=str(self.value),
                     style=Style(
                         font_size=18.0, font_weight=FontWeight.BOLD, color=ON_SURFACE
                     ),
-                    key="step-value",
+                    key=self.child_key("value"),
                 ),
-                self._button("+", self.step, "step-up"),
+                self._button("+", self.step, self.child_key("up")),
             ],
         )
 
@@ -175,6 +177,8 @@ class SearchBar(Component):
         theme: The design-system theme whose tokens resolve the field and pill.
         media: Optional viewport snapshot used to resolve a responsive ``size``.
     """
+
+    default_key: ClassVar[str] = "searchbar"
 
     value: str = Field(default="", description="The current query text (controlled).")
     placeholder: str = Field(default="Search", description="The empty-field hint.")
@@ -229,7 +233,7 @@ class SearchBar(Component):
                 value=self.value,
                 placeholder=self.placeholder,
                 on_change=self.on_change,
-                key="search-input",
+                key=self.child_key("input"),
                 style=field_style,
             )
         ]
@@ -244,7 +248,7 @@ class SearchBar(Component):
                     label="clear",
                     theme=self.theme,
                     media=self.media,
-                    key="search-clear",
+                    key=self.child_key("clear"),
                 )
             )
         surface = resolve_surface_variant(
@@ -264,7 +268,7 @@ class SearchBar(Component):
             ),
         )
         return Row(
-            key=self.key or "searchbar",
+            key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
         )

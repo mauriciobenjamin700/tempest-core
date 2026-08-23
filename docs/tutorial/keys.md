@@ -74,13 +74,13 @@ from tempest_core import SegmentedControl
 
 controle = SegmentedControl(key="quality", options=[], on_select=lambda i: None)
 
-controle.base_key            # "quality"
-controle.child_key("item-0") # "quality-item-0"
+controle.base_key  # "quality"
+controle.child_key("item-0")  # "quality-item-0"
 
 sem_chave = SegmentedControl(options=[], on_select=lambda i: None)
 
-sem_chave.base_key            # "segmented"
-sem_chave.child_key("item-0") # "segmented-item-0"
+sem_chave.base_key  # "segmented"
+sem_chave.child_key("item-0")  # "segmented-item-0"
 ```
 
 !!! warning "Duas instâncias sem `key` ainda colidem"

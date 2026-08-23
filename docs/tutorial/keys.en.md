@@ -74,13 +74,13 @@ from tempest_core import SegmentedControl
 
 control = SegmentedControl(key="quality", options=[], on_select=lambda i: None)
 
-control.base_key            # "quality"
-control.child_key("item-0") # "quality-item-0"
+control.base_key  # "quality"
+control.child_key("item-0")  # "quality-item-0"
 
 unkeyed = SegmentedControl(options=[], on_select=lambda i: None)
 
-unkeyed.base_key            # "segmented"
-unkeyed.child_key("item-0") # "segmented-item-0"
+unkeyed.base_key  # "segmented"
+unkeyed.child_key("item-0")  # "segmented-item-0"
 ```
 
 !!! warning "Two unkeyed instances still collide"

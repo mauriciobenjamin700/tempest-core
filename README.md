@@ -167,7 +167,7 @@ from tempest_core import SegmentedControl
 
 control = SegmentedControl(key="quality", options=[], on_select=lambda i: None)
 
-control.base_key             # "quality"        — the root it emits
+control.base_key  # "quality" — the root it emits
 control.child_key("item-0")  # "quality-item-0" — every inner node
 
 SegmentedControl(options=[], on_select=lambda i: None).base_key  # "segmented"

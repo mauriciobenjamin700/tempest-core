@@ -4,6 +4,23 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.17.1] - 2026-08-25
+
+### Fixed
+
+- **O carry da 0.17.0 testava veracidade, e prop falsy é valor.** `focusable=False`
+  diz *este nó não recebe foco* e `focus_order=0` põe o nó primeiro na travessia —
+  os dois são escolha de quem chamou, e os dois chegavam à raiz **como se nada
+  tivesse sido passado**. É o mesmo defeito que a 0.17.0 consertou, uma camada
+  para dentro.
+
+  A presença agora é explícita: `None` é ausência, mais o `{}` do `attrs`, cujo
+  default é dicionário vazio e não `None` — carregar `{}` numa raiz que já tinha
+  atributo apagaria o que estava lá.
+
+  Guard: `tests/test_base_props.py` ganha o caso falsy parametrizado e o do
+  `attrs` vazio. Medido com a correção revertida: **2 falham**.
+
 ## [0.17.0] - 2026-08-25
 
 ### Fixed

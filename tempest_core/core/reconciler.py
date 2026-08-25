@@ -127,7 +127,7 @@ def _build(widget: Widget) -> tuple[Node, int]:
             continue
         props[name] = getattr(widget, name)
     for name, bit in _PROP_BITS.items():
-        if props.get(name):
+        if _is_set(props.get(name)):
             mask |= bit
     node = Node(
         type=widget.widget_type,
@@ -136,6 +136,24 @@ def _build(widget: Widget) -> tuple[Node, int]:
         children=children,
     )
     return node, mask
+
+
+def _is_set(value: Any) -> bool:  # noqa: ANN401 — any prop value
+    """Decide whether a carried prop holds a value or is simply absent.
+
+    Truthiness is the wrong test here, and it was the first implementation:
+    ``focusable=False`` says *this node does not take focus* and ``focus_order=0``
+    puts a node first in the traversal — both are values a caller chose, and both
+    were dropped as if nothing had been passed. Absence is ``None``, plus the
+    empty ``attrs`` dict, whose default is ``{}`` rather than ``None``.
+
+    Args:
+        value: The prop's value on a component or on a built node.
+
+    Returns:
+        Whether the prop was set.
+    """
+    return value is not None and value != {}
 
 
 def _carry_base_props(
@@ -180,7 +198,7 @@ def _carry_base_props(
         if mask & bit:
             continue
         value = getattr(component, name)
-        if value:
+        if _is_set(value):
             carried[name] = value
             mask |= bit
     if not carried:

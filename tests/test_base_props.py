@@ -272,6 +272,36 @@ def test_a_routed_name_is_not_copied_onto_the_wrapper() -> None:
     assert tree.props["semantics"] is None
 
 
+@pytest.mark.parametrize(
+    ("prop", "value"),
+    [("focusable", False), ("focus_order", 0), ("tag", "section")],
+)
+def test_a_falsy_prop_is_still_a_value(prop: str, value: object) -> None:
+    """``focusable=False`` and ``focus_order=0`` are choices, not absence.
+
+    The first implementation tested truthiness, so a node the caller marked as
+    *not* focusable, and one asked to come first in the traversal, both arrived
+    with the prop unset — the same silent drop this whole file exists to stop,
+    one layer in.
+
+    Args:
+        prop: The base prop under test.
+        value: The falsy-but-meaningful value.
+    """
+    tree = build(Card(key="card", children=[], **{prop: value}))
+    assert tree.props[prop] == value
+
+
+def test_an_empty_attrs_dict_is_absence() -> None:
+    """``attrs`` defaults to ``{}``, so an empty dict carries nothing.
+
+    It is the one carried prop whose "unset" is not ``None``: carrying an empty
+    dict onto a root that already had attributes would erase them.
+    """
+    tree = build(_Named(attrs={}))
+    assert tree.props["attrs"] == {"data-render": "kept", "data-both": "render"}
+
+
 def test_attrs_are_carried_when_the_render_sets_none() -> None:
     """``attrs`` follows the same rule as the rest: carried only if untouched."""
     tree = build(Card(key="card", attrs={"data-app": "1"}, children=[]))

@@ -562,6 +562,20 @@ qtd = Stepper(
 | `min_value` | `int \| None` | `None` | O limite inferior, ou `None` para ilimitado. |
 | `max_value` | `int \| None` | `None` | O limite superior, ou `None` para ilimitado. |
 | `on_change` | `Callable[[int], Any]` | *(obrigatório)* | Chamado com o novo valor (já clampado) no toque. |
+| `variant` | `Variant` | `SOLID` | O tratamento visual dos dois botões. |
+| `color_scheme` | `str` | `"neutral"` | A família de papéis Material 3 que os botões pintam. |
+| `size` | `ResponsiveSize` | `Size.MD` | A densidade de cada botão. |
+| `theme` | `Theme` | tema ativo | O tema que resolve os botões e o valor. |
+| `media` | `MediaQueryData \| None` | `None` | Snapshot de viewport para um `size` responsivo. |
+
+!!! warning "O `Stepper` era escuro por construção"
+    Até a 0.16.0 os dois botões carregavam as constantes fixas `MUTED` / `ON_SURFACE`
+    da paleta escura, e o valor também: num app claro, o stepper pintava um botão
+    cinza-escuro qualquer que fosse o tema, e **nenhuma prop movia isso**. Agora ele
+    resolve de `variant` / `color_scheme` / `size` como o resto do kit, e o valor lê
+    o papel `ON_SURFACE` do tema. Se você dependia do cinza antigo, passe
+    `style=Style(background=..., color=...)` — o `style` do chamador continua
+    ganhando do resolvido.
 
 !!! note "O clamp acontece antes do `on_change`"
     Tocar `+` além de `max_value` (ou `-` abaixo de `min_value`) reporta o limite,

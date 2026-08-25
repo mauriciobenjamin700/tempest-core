@@ -525,3 +525,56 @@ def test_indicator_widgets_carry_color_scheme() -> None:
     assert Spinner(color_scheme="error").color_scheme == "error"
     assert Tooltip(message="hi", color_scheme="primary").color_scheme == "primary"
     assert Skeleton(color_scheme="neutral").color_scheme == "neutral"
+
+
+# --------------------------------------------------------------------------- #
+# Stepper follows the theme (tempestweb#158)
+# --------------------------------------------------------------------------- #
+
+
+def test_stepper_buttons_and_value_follow_the_theme() -> None:
+    """The stepper paints from theme roles, not from the fixed dark constants."""
+    from tempest_core.components import Stepper
+    from tempest_core.theme import ThemeMode
+
+    light = Theme.from_seed(Color(r=103, g=80, b=164), mode=ThemeMode.LIGHT)
+    dark = Theme.from_seed(Color(r=103, g=80, b=164), mode=ThemeMode.DARK)
+
+    def parts(theme: Theme) -> tuple[Style, Style]:
+        node = build(Stepper(value=1, on_change=lambda _: None, theme=theme))
+        down = _find(node, lambda n: n.props.get("label") == "-")
+        value = _find(node, lambda n: n.type == "Text")
+        assert down is not None and value is not None
+        return down.props["style"], value.props["style"]
+
+    light_button, light_value = parts(light)
+    dark_button, dark_value = parts(dark)
+
+    assert light_button.background != dark_button.background
+    assert light_value.color == light.color(ColorRole.ON_SURFACE)
+    assert dark_value.color == dark.color(ColorRole.ON_SURFACE)
+
+
+def test_stepper_carries_the_chakra_style_props() -> None:
+    """``variant`` / ``color_scheme`` / ``size`` move the buttons."""
+    from tempest_core.components import Stepper
+
+    solid = build(Stepper(value=0, on_change=lambda _: None, theme=THEME))
+    ghost = build(
+        Stepper(
+            value=0,
+            on_change=lambda _: None,
+            theme=THEME,
+            variant=Variant.GHOST,
+            color_scheme="primary",
+            size=Size.SM,
+        )
+    )
+
+    def button(node: Node) -> Style:
+        found = _find(node, lambda n: n.props.get("label") == "+")
+        assert found is not None
+        return found.props["style"]
+
+    assert button(solid).background != button(ghost).background
+    assert button(solid).padding != button(ghost).padding

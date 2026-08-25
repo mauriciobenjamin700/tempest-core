@@ -4,6 +4,34 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.16.0] - 2026-08-25
+
+### Fixed
+
+- **O `Stepper` era escuro por construção: não aceitava tema**
+  ([tempestweb#158](https://github.com/mauriciobenjamin700/tempestweb/issues/158)).
+  Os dois botões carregavam as constantes fixas `MUTED` (`#374151`) e `ON_SURFACE`
+  (`#f9fafb`) de `components/base.py`, e o `Text` do valor também. Num app claro o
+  stepper pintava um botão cinza-escuro qualquer que fosse o tema, e **nenhuma prop
+  movia isso** — não havia `theme`, `variant`, `color_scheme` nem `size` para
+  passar.
+
+  Ele passa a resolver como o resto do kit H2: `variant` (default `SOLID`),
+  `color_scheme` (default `"neutral"`), `size` (default `Size.MD`), `theme`
+  (`default_factory=current_theme`) e `media`, com os botões vindo de
+  `resolve_variant` e o valor lendo o papel `ON_SURFACE` do tema. O `gap` do `Row`
+  sai de `10.0` cravado para `theme.space("sm")`.
+
+  Este era o último dos seis componentes do tempestweb#158 — os outros cinco
+  (`TextField`, `EmailField`, `PasswordField`, `LoginForm`, `SignupForm`) moram no
+  tempestweb e foram corrigidos lá na 0.101.0. O `Stepper` é do core, e por isso
+  ficou.
+
+  **Mudança visual para quem já usa:** o cinza escuro antigo era acidente de
+  paleta, não escolha; quem dependia dele passa `style=Style(background=...,
+  color=...)`, que continua ganhando do resolvido. `docs/gallery/navigation.md`
+  (PT + EN) registra o antes/depois.
+
 ## [0.15.0] - 2026-08-23
 
 ### Fixed

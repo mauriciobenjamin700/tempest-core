@@ -234,6 +234,9 @@ from tempest_core.components import (
     merge_style as merge_style,
 )
 from tempest_core.core import (
+    CARRIED_PROPS as CARRIED_PROPS,
+)
+from tempest_core.core import (
     App as App,
 )
 from tempest_core.core import (
@@ -1088,6 +1091,7 @@ __all__ = [
     "Breakpoints",
     "Burger",
     "Button",
+    "CARRIED_PROPS",
     "CNPJInput",
     "CPFInput",
     "Calendar",

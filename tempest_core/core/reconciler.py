@@ -38,12 +38,37 @@ from tempest_core.core.ir import (
 )
 from tempest_core.widgets import Component, Widget
 
-__all__ = ["build", "diff", "build_scene", "diff_scene"]
+__all__ = ["build", "diff", "build_scene", "diff_scene", "CARRIED_PROPS"]
 
 #: The reserved leading path step that addresses the overlay layer of a
 #: :class:`Scene`. A patch whose path starts with this token targets an overlay
 #: rather than the root tree.
 OVERLAY_STEP = "overlay"
+
+#: The props every :class:`~tempest_core.widgets.Widget` declares that describe
+#: the *node itself*, not what it contains — the accessibility surface plus the
+#: two HTML-only escape hatches. They are carried across a component boundary
+#: onto the root the component rendered (see :func:`_carry_base_props`), because
+#: a component is expanded before either renderer sees the tree: whatever the
+#: caller sets on the component itself would otherwise reach no node at all.
+#:
+#: ``style`` is deliberately not here. A component is documented as reading
+#: ``self.style`` and folding it into the tree it returns — several of them merge
+#: it into an inner node rather than the root — so carrying it too would apply it
+#: twice.
+CARRIED_PROPS: tuple[str, ...] = (
+    "semantics",
+    "focusable",
+    "focus_order",
+    "tag",
+    "attrs",
+)
+
+#: One bit per entry of :data:`CARRIED_PROPS`, so a subtree can report which of
+#: them it already sets in a single integer that costs nothing to union upwards.
+_PROP_BITS: dict[str, int] = {
+    name: 1 << index for index, name in enumerate(CARRIED_PROPS)
+}
 
 
 def build(widget: Widget) -> Node:
@@ -55,27 +80,112 @@ def build(widget: Widget) -> Node:
     :meth:`Widget.child_nodes`; everything else on the widget (except ``key`` and
     the declared child slots) becomes a prop.
 
+    Expanding a component would drop what the caller set *on the component*:
+    the props in :data:`CARRIED_PROPS` describe the node, and the component is
+    not a node. They are carried onto the root the component rendered — see
+    :func:`_carry_base_props` — so ``Card(semantics=Semantics(label="Total"))``
+    names something instead of nothing.
+
     Args:
         widget: The root widget to normalize.
 
     Returns:
         The root IR node.
     """
+    node, _ = _build(widget)
+    return node
+
+
+def _build(widget: Widget) -> tuple[Node, int]:
+    """Normalize one widget, reporting which carried props its subtree sets.
+
+    The mask is what makes the carry safe: a component that routes one of these
+    props to a node of its own owns that prop, and the boundary above must not
+    place a second copy on the root. It is unioned upwards during the walk the
+    reconciler already does, so knowing this costs no extra traversal.
+
+    Args:
+        widget: The widget to normalize.
+
+    Returns:
+        The node, and the OR of :data:`_PROP_BITS` for every carried prop set
+        anywhere in the subtree — including the node itself.
+    """
     if isinstance(widget, Component):
-        return build(widget.render())
-    children = [build(child) for child in widget.child_nodes()]
+        node, mask = _build(widget.render())
+        return _carry_base_props(widget, node, mask)
+    children: list[Node] = []
+    mask = 0
+    for child in widget.child_nodes():
+        child_node, child_mask = _build(child)
+        children.append(child_node)
+        mask |= child_mask
     skip = widget.child_field_names | widget.prop_exclude_names
     props: dict[str, Any] = {}
     for name in type(widget).model_fields:
         if name == "key" or name in skip:
             continue
         props[name] = getattr(widget, name)
-    return Node(
+    for name, bit in _PROP_BITS.items():
+        if props.get(name):
+            mask |= bit
+    node = Node(
         type=widget.widget_type,
         key=widget.key,
         props=props,
         children=children,
     )
+    return node, mask
+
+
+def _carry_base_props(
+    component: Component,
+    rendered: Node,
+    mask: int,
+) -> tuple[Node, int]:
+    """Carry a component's own base props onto the tree it rendered.
+
+    A component is not part of the IR: :func:`build` replaces it with what
+    :meth:`~tempest_core.widgets.Component.render` returns, so a prop set on the
+    component and read by nobody inside ``render`` is a prop that reaches no node.
+    ``key`` was already handled (a component namespaces its own keys under
+    :attr:`~tempest_core.widgets.Component.base_key`); :data:`CARRIED_PROPS` is
+    the rest of the props that describe the node itself.
+
+    Measured over the 54 public components before this existed: **50 dropped
+    ``semantics``** and all 54 dropped ``focusable``, ``focus_order``, ``tag`` and
+    ``attrs``. Naming a ``Card`` compiled, type-checked and did nothing.
+
+    **The render owns what it touched.** A prop the rendered subtree already sets
+    anywhere is left alone, because a component that routes one to a node of its
+    own has made a decision the base cannot second-guess: a field puts its
+    accessible name on the ``Input`` a screen reader stops at, and copying that
+    name onto the role-less wrapper too would announce the same control twice and
+    put ``aria-label`` on an element that has no role — measured downstream as
+    ``aria-prohibited-attr`` (serious) on a screen that was clean before.
+
+    Args:
+        component: The component being expanded.
+        rendered: The root node its ``render`` produced (already expanded, so a
+            component that renders another component carries onto the innermost
+            root).
+        mask: Which carried props that subtree already sets, from :func:`_build`.
+
+    Returns:
+        The node — the same one when there is nothing to carry — and the mask
+        including whatever was carried onto it.
+    """
+    carried: dict[str, Any] = {}
+    for name, bit in _PROP_BITS.items():
+        if mask & bit:
+            continue
+        value = getattr(component, name)
+        if value:
+            carried[name] = value
+            mask |= bit
+    if not carried:
+        return rendered, mask
+    return rendered.model_copy(update={"props": {**rendered.props, **carried}}), mask
 
 
 def diff(old: Node, new: Node) -> list[Patch]:

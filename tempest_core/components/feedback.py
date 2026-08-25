@@ -249,7 +249,6 @@ class Alert(Component):
             key=self.base_key,
             style=merge_style(layout, self.style),
             children=row_children,
-            semantics=self.semantics,
         )
 
 
@@ -489,7 +488,6 @@ class Stat(Component):
             key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
-            semantics=self.semantics,
         )
 
 
@@ -628,5 +626,4 @@ class ProgressStepper(Component):
             key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
-            semantics=self.semantics,
         )

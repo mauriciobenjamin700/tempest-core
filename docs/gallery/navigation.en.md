@@ -560,6 +560,20 @@ qty = Stepper(
 | `min_value` | `int \| None` | `None` | The lower bound, or `None` for unbounded. |
 | `max_value` | `int \| None` | `None` | The upper bound, or `None` for unbounded. |
 | `on_change` | `Callable[[int], Any]` | *(required)* | Called with the new (clamped) value on a tap. |
+| `variant` | `Variant` | `SOLID` | The visual treatment of the two buttons. |
+| `color_scheme` | `str` | `"neutral"` | The Material 3 role family the buttons paint with. |
+| `size` | `ResponsiveSize` | `Size.MD` | The density size of each button. |
+| `theme` | `Theme` | active theme | The theme resolving the buttons and the value. |
+| `media` | `MediaQueryData \| None` | `None` | Viewport snapshot for a responsive `size`. |
+
+!!! warning "The `Stepper` used to be dark by construction"
+    Until 0.16.0 both buttons carried the fixed `MUTED` / `ON_SURFACE` constants of
+    the dark palette, and so did the value: on a light app the stepper painted a
+    dark-grey button whatever the theme said, and **no prop moved it**. It now
+    resolves from `variant` / `color_scheme` / `size` like the rest of the kit, and
+    the value reads the theme's `ON_SURFACE` role. If you relied on the old grey,
+    pass `style=Style(background=..., color=...)` — the caller's `style` still wins
+    over the resolved one.
 
 !!! note "The clamp happens before `on_change`"
     Tapping `+` past `max_value` (or `-` below `min_value`) reports the bound, not

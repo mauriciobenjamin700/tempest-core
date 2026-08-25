@@ -301,6 +301,52 @@ card = Container(
     None` (explicit tab order; `None` uses the natural traversal order). Together
     with `Semantics`, they form the accessibility surface both renderers consume.
 
+### A component carries the name you gave it
+
+A component **is not a node**: `build` replaces it with the tree its `render`
+returns, before any renderer sees the tree. So a prop that describes the node —
+`semantics`, `focusable`, `focus_order`, `tag`, `attrs` — has to cross that
+boundary, or it dies there.
+
+```python
+from tempest_core import Card, Semantics, Text, build
+
+tree = build(
+    Card(
+        key="totals",
+        semantics=Semantics(label="Budget totals"),  # (1)!
+        children=[Text(content="$1,234.56")],
+    )
+)
+print(tree.type)  # "Container"
+print(tree.props["semantics"].label)  # "Budget totals"
+```
+
+1. The prop lives on every `Widget`'s base, so naming any component is just this —
+   one line, with no `Container` wrapped around it to hang the name on.
+
+```text
+Container
+Budget totals
+```
+
+!!! warning "Until 0.17.0 this did nothing"
+    The prop was **declared and dropped**: naming a `Card` compiled, type-checked
+    and reached no node at all. Measured over the 54 public components:
+    `semantics` was dropped by **50** of them, and `focusable`, `focus_order`,
+    `tag` and `attrs` by all **54**. If you wrapped a component in a `Container`
+    just to be able to name it, that wrapper can go.
+
+!!! info "Who wins, and why `style` stays out"
+    **The render owns what it touched.** If the tree the component returns already
+    sets the prop on any node, yours stays out — which is what keeps a field
+    correct: it puts the accessible name on the `<input>` a screen reader stops at,
+    and a second copy on the wrapper would announce the same control twice.
+    `style` is **never** carried: a component is documented as reading
+    `self.style` and folding it into the tree it returns, and several merge it into
+    an inner node, so carrying it too would apply it twice. The canonical list is
+    `CARRIED_PROPS`, exported from the package root.
+
 ## Recap
 
 - **Two sides**: the `on_*` prop is the outside; `event_schemas` maps each prop to
@@ -316,6 +362,10 @@ card = Container(
   `AppState`.
 - **Handler aliases** type each prop and accept sync/`async`/zero-arg; watch out
   that package-level `PanHandler`/`ScaleHandler` are the *widgets*.
+- **A component carries them**: `semantics`, `focusable`, `focus_order`, `tag`
+  and `attrs` (`CARRIED_PROPS`) cross the component boundary onto the root it
+  renders — unless its own `render` already touched the prop; `style` never does,
+  because the component folds it in.
 - **`Semantics`** (`label` / `role` / `hint`) plus `focusable` / `focus_order` form
   the accessibility surface Qt and Compose consume.
 

@@ -20,7 +20,13 @@ from tempest_core.core.ir import (
     Scene,
     Update,
 )
-from tempest_core.core.reconciler import build, build_scene, diff, diff_scene
+from tempest_core.core.reconciler import (
+    CARRIED_PROPS,
+    build,
+    build_scene,
+    diff,
+    diff_scene,
+)
 from tempest_core.core.state import App, OverlayEntry
 
 __all__ = [
@@ -33,6 +39,7 @@ __all__ = [
     "Remove",
     "Reorder",
     "Patch",
+    "CARRIED_PROPS",
     "build",
     "diff",
     "build_scene",

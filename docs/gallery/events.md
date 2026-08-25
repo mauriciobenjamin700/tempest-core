@@ -306,6 +306,52 @@ card = Container(
     com a `Semantics`, formam a superfície de acessibilidade que os dois
     renderizadores consomem.
 
+### O componente carrega o nome que você deu a ele
+
+Um componente **não é um nó**: o `build` o troca pela árvore que o `render` dele
+devolve, antes de qualquer renderizador ver a árvore. Então uma prop que descreve
+o nó — `semantics`, `focusable`, `focus_order`, `tag`, `attrs` — precisa
+atravessar essa fronteira, ou morre ali.
+
+```python
+from tempest_core import Card, Semantics, Text, build
+
+árvore = build(
+    Card(
+        key="totais",
+        semantics=Semantics(label="Totais do orçamento"),  # (1)!
+        children=[Text(content="R$ 1.234,56")],
+    )
+)
+print(árvore.type)  # "Container"
+print(árvore.props["semantics"].label)  # "Totais do orçamento"
+```
+
+1. A prop está na base de todo `Widget`, então nomear qualquer componente é isto:
+   uma linha, sem embrulhar o componente num `Container` só para pendurar o nome.
+
+```text
+Container
+Totais do orçamento
+```
+
+!!! warning "Até a 0.17.0 isso não fazia nada"
+    A prop era **declarada e descartada**: nomear um `Card` compilava, passava no
+    `mypy` e chegava a nó nenhum. Medido sobre os 54 componentes públicos:
+    `semantics` era descartada por **50** deles, e `focusable`, `focus_order`,
+    `tag` e `attrs` pelos **54**. Se você escreveu um `Container` em volta de um
+    componente só para poder nomeá-lo, esse embrulho pode sair.
+
+!!! info "Quem ganha, e por que `style` fica de fora"
+    **O `render` é dono do que ele tocou.** Se a árvore que o componente devolve
+    já define a prop em qualquer nó, a sua fica de fora — é o que mantém um campo
+    correto: ele põe o nome acessível no `<input>` em que o leitor de tela para, e
+    uma segunda cópia no wrapper anunciaria o mesmo controle duas vezes. `style`
+    **nunca** é carregada: componente é documentado como quem lê `self.style` e o
+    dobra na árvore que devolve, e vários o mesclam num nó interno, então carregar
+    também aplicaria duas vezes. A lista canônica é `CARRIED_PROPS`, exportada da
+    raiz do pacote.
+
 ## Recapitulando
 
 - **Dois lados**: o prop `on_*` é o de fora; `event_schemas` mapeia cada prop para
@@ -321,6 +367,10 @@ card = Container(
   `ConnectivityState`, `AppState`.
 - **Aliases de handler** tipam cada prop e aceitam sync/`async`/zero-arg; cuidado
   que `PanHandler`/`ScaleHandler` no nível do pacote são os *widgets*.
+- **O componente carrega**: `semantics`, `focusable`, `focus_order`, `tag` e
+  `attrs` (`CARRIED_PROPS`) atravessam a fronteira do componente e caem na raiz
+  que ele renderiza — a não ser que o próprio `render` já tenha tocado a prop;
+  `style` nunca, porque o componente já o dobra.
 - **`Semantics`** (`label` / `role` / `hint`) mais `focusable` / `focus_order`
   formam a superfície de acessibilidade que Qt e Compose consomem.
 

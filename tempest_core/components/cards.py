@@ -173,8 +173,7 @@ class ListTile(Component):
     Themed (Trilho H3): the title uses ``ON_SURFACE``, the subtitle uses
     ``ON_SURFACE_VARIANT``, and the gaps/padding come from the theme's spacing
     scale rather than fixed pixels. An optional ``color_scheme`` tints the title
-    with the role color (e.g. a highlighted/active row). The accessibility surface
-    (``semantics``) is preserved on the row.
+    with the role color (e.g. a highlighted/active row).
 
     Attributes:
         title: The row's primary text.
@@ -215,7 +214,7 @@ class ListTile(Component):
 
         Returns:
             A ``Row`` of the leading widget, the growing title block and the
-            trailing widget; ``self.semantics`` is preserved on the row.
+            trailing widget.
         """
         on_surface = self.theme.color(ColorRole.ON_SURFACE)
         on_surface_variant = self.theme.color(ColorRole.ON_SURFACE_VARIANT)
@@ -270,7 +269,6 @@ class ListTile(Component):
             key=self.base_key,
             style=merge_style(default, self.style),
             children=children,
-            semantics=self.semantics,
         )
 
 

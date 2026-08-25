@@ -4,6 +4,61 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.17.0] - 2026-08-25
+
+### Fixed
+
+- **`semantics` era prop declarada que o componente descartava** — e com ela
+  `focusable`, `focus_order`, `tag` e `attrs`. Todo `Widget` declara as cinco (vêm
+  da base), então `Card(semantics=Semantics(label="Total"))` construía, passava no
+  `mypy` e **não chegava a nó nenhum**: um componente não é nó, o `build` o
+  substitui pela árvore do `render`, e o que a app pôs nele morria ali. Medido
+  sobre os 54 componentes públicos, antes:
+
+  | Prop | Descartada por |
+  | --- | --- |
+  | `semantics` | **50 de 54** (`ListTile`, `Alert`, `Stat` e `ProgressStepper` repassavam à mão) |
+  | `focusable` | **54 de 54** |
+  | `focus_order` | **54 de 54** |
+  | `tag` | **54 de 54** |
+  | `attrs` | **54 de 54** |
+  | `key` | 0 de 54 — já resolvido pelo `base_key` na 0.15.0 |
+
+  A consequência foi medida no consumidor: uma grade de vinte itens com uma linha
+  de cabeçalho precisa de célula **sem legenda visível**, e célula sem legenda cujo
+  `semantics` é descartado é controle sem nome acessível nenhum. O axe reportava
+  `label` (**crítico**) em todo campo de um formulário de login, em todo app que o
+  usava; quem usa leitor de tela ouvia "caixa de edição" vinte vezes.
+
+  O `build` passa a carregar as cinco props para a raiz que o componente
+  renderizou (`CARRIED_PROPS`, agora exportada da raiz do pacote). Um só
+  mecanismo, no `build` e não em 54 `render`s, então componente novo ganha o
+  comportamento sem o autor saber que a regra existe — e os quatro repasses
+  escritos à mão saíram.
+
+  **O `render` é dono do que ele tocou.** Prop que a subárvore renderizada já
+  define **em qualquer nó** fica intacta: componente que roteia uma delas para um
+  nó próprio tomou uma decisão que a base não tem como adivinhar. Foi medido no
+  consumidor: um campo põe o nome acessível no `Input` em que o leitor de tela
+  para, e copiar esse nome também para o wrapper sem role anuncia o mesmo
+  controle duas vezes e vira `aria-prohibited-attr` (**serious**) numa tela que
+  estava limpa. A primeira versão desta correção sobrescrevia, e derrubou **9
+  testes da tempestweb 0.113.0**; com a regra de subárvore sobra **1**, e é a
+  regeneração do espelho JS (`values.gen.js`) por causa da constante nova.
+
+  A máscara que diz "a subárvore já define isto" é um inteiro unido durante a
+  travessia que o reconciliador já fazia — saber isso não custa travessia extra.
+
+  **`style` continua de fora, de propósito.** Componente é documentado como quem
+  lê `self.style` e o dobra na árvore que devolve — vários o mesclam num nó
+  interno, não na raiz —, então carregar também aplicaria duas vezes.
+
+  Guard: `tests/test_base_props.py` varre os 54, mais o caso aninhado
+  (componente que renderiza componente), o merge de `attrs` e a checagem de que
+  `CARRIED_PROPS` + `{key, style, attrs}` é a superfície inteira da base — prop
+  nova na base que ninguém carregar falha aqui em vez de sumir em silêncio.
+  Medido com a correção revertida: **112 dos 167 testes falham**.
+
 ## [0.16.0] - 2026-08-25
 
 ### Fixed

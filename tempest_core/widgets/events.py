@@ -14,8 +14,9 @@ from collections.abc import Mapping
 from enum import StrEnum
 from typing import Any, TypeVar, cast
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import ConfigDict, Field, ValidationError
 
+from tempest_core._model import _CoreModel
 from tempest_core.theme import ThemeMode
 
 __all__ = [
@@ -61,7 +62,7 @@ __all__ = [
 ]
 
 
-class Event(BaseModel):
+class Event(_CoreModel):
     """Base class for all events crossing the native boundary."""
 
     model_config = ConfigDict(frozen=True)

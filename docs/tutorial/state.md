@@ -37,6 +37,17 @@ app.set_state(lambda s: setattr(s, "valor", 1))  # (3)!
     `view()` só **lê** `app.state` e descreve a UI. Mudar estado é trabalho dos
     handlers, via `set_state`. A view nunca muta nada.
 
+!!! note "Entrega falha não desalinha a árvore"
+    `apply_patches` é o seu renderizador, e renderizador falha: o socket cai, o
+    cliente não decodifica, o encoder recusa o payload. Quando a chamada levanta,
+    o `App` **não** adota a cena nova — a baseline continua descrevendo o que o
+    renderizador realmente tem.
+
+    Isso é o que torna a perda reparável sozinha. O rebuild seguinte diffa a
+    partir da árvore de verdade, então o trabalho que o lote perdido carregava é
+    regerado — inclusive um `insert`, que é justamente o que um diff posterior
+    não recuperaria se a baseline tivesse andado.
+
 ## Navegação também é estado
 
 A navegação vive no próprio `App`: `app.push(route)` / `app.pop()` /
@@ -50,4 +61,6 @@ produzindo uma árvore diferente.
 - `App(state, view, apply_patches)` + `start()` inicia a UI.
 - `set_state(mutator)` agenda um rebuild coalescido → diff → patches.
 - `app.push` / `app.pop` / `app.reset` é navegação como estado (rota lida em `app.nav.top`).
+- A baseline só avança depois que os patches foram entregues; entrega que
+  falha é reparada pelo rebuild seguinte.
 - Próximo: [estilo](style.md).

@@ -14,7 +14,9 @@ pulling in a heavyweight i18n stack.
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import ConfigDict
+
+from tempest_core._model import _CoreModel
 
 __all__ = [
     "Locale",
@@ -23,7 +25,7 @@ __all__ = [
 ]
 
 
-class Locale(BaseModel):
+class Locale(_CoreModel):
     """An immutable locale: language, optional region, and layout direction.
 
     Attributes:

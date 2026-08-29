@@ -32,8 +32,9 @@ from __future__ import annotations
 import colorsys
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 
+from tempest_core._model import _CoreModel
 from tempest_core.style import Color, Curve, FontWeight
 
 __all__ = [
@@ -219,7 +220,7 @@ def _tone_to_color(hue: float, saturation: float, tone: int) -> Color:
     )
 
 
-class TonalPalette(BaseModel):
+class TonalPalette(_CoreModel):
     """A Material 3 tonal palette: one hue sampled at the standard tones.
 
     Generated from a single key color via :func:`tonal_palette_from_seed`; the
@@ -275,7 +276,7 @@ def tonal_palette_from_seed(seed: Color) -> TonalPalette:
     )
 
 
-class ColorScheme(BaseModel):
+class ColorScheme(_CoreModel):
     """A resolved Material 3 color scheme — every role as a concrete color.
 
     One scheme is the full set of M3 roles for a single mode (light or dark).
@@ -420,7 +421,7 @@ class ColorScheme(BaseModel):
         return color
 
 
-class ColorSchemes(BaseModel):
+class ColorSchemes(_CoreModel):
     """The light and dark :class:`ColorScheme` pair of a theme.
 
     Attributes:
@@ -688,7 +689,7 @@ def color_schemes_from_seed(
     )
 
 
-class SpacingScale(BaseModel):
+class SpacingScale(_CoreModel):
     """The 4dp-grid spacing scale (named steps → logical pixels).
 
     Named ``t-shirt`` steps mapping to a 4dp grid, matching Chakra's spacing
@@ -736,7 +737,7 @@ class SpacingScale(BaseModel):
         return value
 
 
-class ShapeScale(BaseModel):
+class ShapeScale(_CoreModel):
     """The Material 3 shape (corner-radius) scale in logical pixels.
 
     ``full`` uses the framework's pill sentinel (``999``) so the renderer clamps
@@ -783,7 +784,7 @@ class ShapeScale(BaseModel):
         return value
 
 
-class TypographyToken(BaseModel):
+class TypographyToken(_CoreModel):
     """One role of the Material 3 type scale (size + line-height + weight).
 
     Attributes:
@@ -801,7 +802,7 @@ class TypographyToken(BaseModel):
     letter_spacing: float = 0.0
 
 
-class TypographyScale(BaseModel):
+class TypographyScale(_CoreModel):
     """The Material 3 type scale (display/headline/title/body/label × sizes).
 
     Each role is a :class:`TypographyToken` carrying size, line-height and
@@ -895,7 +896,7 @@ class TypographyScale(BaseModel):
         return token
 
 
-class ElevationScale(BaseModel):
+class ElevationScale(_CoreModel):
     """The Material 3 elevation scale (levels 0-5 → dp).
 
     Maps the six M3 elevation levels to their dp values; renderers turn the dp
@@ -942,7 +943,7 @@ class ElevationScale(BaseModel):
         return value
 
 
-class MotionScale(BaseModel):
+class MotionScale(_CoreModel):
     """The Material 3 motion scale (standard durations + easing curves).
 
     Durations are in milliseconds (M3's ``short``/``medium``/``long`` buckets);
@@ -966,7 +967,7 @@ class MotionScale(BaseModel):
     easing_emphasized: Curve = Curve.EASE_OUT
 
 
-class Breakpoints(BaseModel):
+class Breakpoints(_CoreModel):
     """Responsive width breakpoints in logical pixels (Chakra-style).
 
     Used by H1's responsive token resolution against the E9
@@ -988,7 +989,7 @@ class Breakpoints(BaseModel):
     xl: float = 1240.0
 
 
-class TokenSet(BaseModel):
+class TokenSet(_CoreModel):
     """The full set of design tokens a theme resolves against.
 
     Bundles the color schemes with every systematic scale (spacing, shape,
@@ -1071,7 +1072,7 @@ class TokenSet(BaseModel):
         return self.schemes.for_mode(is_dark=is_dark)
 
 
-class TokenRef(BaseModel):
+class TokenRef(_CoreModel):
     """A reference to a design token, resolved by the theme at build time.
 
     This is the **seam** that lets a :class:`~tempest_core.style.Style` field

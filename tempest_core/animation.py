@@ -27,8 +27,9 @@ import math
 from collections.abc import Callable
 from typing import Generic, Protocol, TypeVar, cast, runtime_checkable
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ConfigDict, Field
 
+from tempest_core._model import _CoreModel
 from tempest_core.style import Color, Curve, Edge
 
 __all__ = ["Spring", "AnimationController", "Tween"]
@@ -53,7 +54,7 @@ class _AppClock(Protocol):
         ...
 
 
-class Spring(BaseModel):
+class Spring(_CoreModel):
     """A spring's physical parameters, used instead of a fixed duration.
 
     When a :class:`AnimationController` is given a :class:`Spring`, it advances
@@ -294,7 +295,7 @@ class AnimationController:
         return False
 
 
-class Tween(BaseModel, Generic[T]):
+class Tween(_CoreModel, Generic[T]):
     """A linear interpolator between two typed endpoints.
 
     Supports ``float``, :class:`~tempestroid.style.Color` (per-channel),

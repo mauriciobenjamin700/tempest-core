@@ -19,8 +19,9 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Annotated, Any, ClassVar, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ConfigDict, Field
 
+from tempest_core._model import _CoreModel
 from tempest_core.widgets.base import EventHandler, Widget
 from tempest_core.widgets.events import CameraFrameEvent, Event, QrScanEvent
 
@@ -125,7 +126,7 @@ class Icon(Widget):
     )
 
 
-class MoveTo(BaseModel):
+class MoveTo(_CoreModel):
     """Move the current point of the active path without drawing.
 
     Attributes:
@@ -143,7 +144,7 @@ class MoveTo(BaseModel):
     y: float = Field(description="Target y coordinate, in logical pixels.")
 
 
-class LineTo(BaseModel):
+class LineTo(_CoreModel):
     """Add a straight line from the current point to ``(x, y)``.
 
     Attributes:
@@ -161,7 +162,7 @@ class LineTo(BaseModel):
     y: float = Field(description="Target y coordinate, in logical pixels.")
 
 
-class ArcTo(BaseModel):
+class ArcTo(_CoreModel):
     """Add an elliptical arc within the bounding box ``(x, y, width, height)``.
 
     Attributes:
@@ -187,7 +188,7 @@ class ArcTo(BaseModel):
     sweep_angle: float = Field(description="Sweep angle, in degrees.")
 
 
-class Close(BaseModel):
+class Close(_CoreModel):
     """Close the active subpath back to its start point.
 
     Attributes:
@@ -201,7 +202,7 @@ class Close(BaseModel):
     )
 
 
-class FillCmd(BaseModel):
+class FillCmd(_CoreModel):
     """Fill the active path with a solid color and reset the path.
 
     Attributes:
@@ -221,7 +222,7 @@ class FillCmd(BaseModel):
     )
 
 
-class StrokeCmd(BaseModel):
+class StrokeCmd(_CoreModel):
     """Stroke the active path with a solid color and reset the path.
 
     Attributes:
@@ -245,7 +246,7 @@ class StrokeCmd(BaseModel):
     )
 
 
-class DrawText(BaseModel):
+class DrawText(_CoreModel):
     """Draw a run of text at a baseline anchor.
 
     Attributes:
@@ -274,7 +275,7 @@ class DrawText(BaseModel):
     )
 
 
-class DrawRect(BaseModel):
+class DrawRect(_CoreModel):
     """Add a rectangle to the active path.
 
     Attributes:
@@ -296,7 +297,7 @@ class DrawRect(BaseModel):
     height: float = Field(description="Rectangle height, in logical pixels.")
 
 
-class DrawOval(BaseModel):
+class DrawOval(_CoreModel):
     """Add an ellipse (oval) to the active path.
 
     Attributes:

@@ -196,7 +196,14 @@ class App(Generic[S]):
         survives a code edit. The new tree is built eagerly (synchronously) so an
         incompatible view — e.g. one reading a state attribute the preserved
         state lacks — raises here and the old view stays installed, letting the
-        caller fall back to a clean restart.
+        caller fall back to a clean restart. That is why the build runs before
+        ``self._view`` is reassigned: the old view is untouched until the new one
+        has proven it can build.
+
+        Delivery is committed by :meth:`_commit`, so a renderer that fails to
+        take the patches leaves the baseline behind and the next rebuild re-sends
+        them. The view swap itself is not rolled back in that case — the new view
+        builds fine, it is the far side that did not receive the result.
 
         Args:
             view: The new view function (typically from a reloaded module).
@@ -207,18 +214,16 @@ class App(Generic[S]):
         Raises:
             RuntimeError: If called before :meth:`start`.
             Exception: Whatever the new ``view``/``build`` raises — the swap is
-                rolled back (the old view stays installed) before re-raising.
+                rolled back (the old view stays installed) before re-raising —
+                or whatever applying the patches raises, with the baseline left
+                describing the tree the renderer still has.
         """
         if self._current is None:
             raise RuntimeError("cannot swap_view before start()")
-        # Build with the new view eagerly so a failure aborts before we commit;
-        # the old self._view is untouched until the build succeeds.
         new = build_scene(self._inject_windows(view(self)), self._overlay_specs())
         self._view = view
         patches = diff_scene(self._current, new)
-        self._current = new
-        if patches:
-            self._apply(patches)
+        self._commit(new, patches)
         return patches
 
     def set_state(self, mutate: Callable[[S], None] | None = None) -> None:
@@ -627,16 +632,45 @@ class App(Generic[S]):
         self._rebuild_scheduled = True
         self._loop().call_soon(self._rebuild)
 
+    def _commit(self, new: Scene, patches: list[Patch]) -> None:
+        """Deliver ``patches``, then adopt ``new`` as the baseline to diff from.
+
+        The order is the contract, and it is the whole reason this is a method
+        rather than three lines repeated at each call site: ``self._current``
+        describes *what the renderer has*, so it may only advance once the
+        renderer has actually been handed the patches that get it there.
+
+        Committing first — which both call sites used to do — makes a failed
+        delivery unrecoverable. The next diff is taken against a tree the
+        renderer never received, so every later patch addresses nodes that do not
+        exist on the far side, and the error surfaces one rebuild later in a
+        widget unrelated to the cause. Measured in tempestweb issue #160: a batch
+        the client could not decode was dropped, and the following tick failed
+        with ``patch path out of range`` pointing at an app bar whose second
+        action had simply never been delivered.
+
+        Leaving the baseline behind instead makes the failure self-healing: the
+        exception propagates to the caller (the event loop's handler, for a
+        scheduled rebuild), and because ``self._current`` still describes what the
+        renderer really has, the next rebuild re-diffs from there and re-sends the
+        work the failed delivery lost.
+
+        Args:
+            new: The scene just built, to become the baseline once delivered.
+            patches: The patches reconciling the baseline to ``new``; an empty
+                list delivers nothing and only advances the baseline.
+        """
+        if patches:
+            self._apply(patches)
+        self._current = new
+
     def _rebuild(self) -> None:
         """Rebuild the scene, diff against the current one, and apply patches."""
         self._rebuild_scheduled = False
         if self._current is None:
             return
         new = self._build()
-        patches = diff_scene(self._current, new)
-        self._current = new
-        if patches:
-            self._apply(patches)
+        self._commit(new, diff_scene(self._current, new))
 
     def _now(self) -> float:
         """Return the current animation-clock timestamp in seconds.

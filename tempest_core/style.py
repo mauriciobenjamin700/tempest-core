@@ -14,7 +14,9 @@ from __future__ import annotations
 
 from enum import IntEnum, StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
+
+from tempest_core._model import _CoreModel
 
 __all__ = [
     "FlexDirection",
@@ -520,7 +522,7 @@ class ComponentState(StrEnum):
     FOCUS = "focus"
 
 
-class Color(BaseModel):
+class Color(_CoreModel):
     """An RGBA color.
 
     Construct it directly, from a hex string via :meth:`from_hex`, or by passing
@@ -711,7 +713,7 @@ class Color(BaseModel):
         return blended.with_alpha(1.0)
 
 
-class Edge(BaseModel):
+class Edge(_CoreModel):
     """Per-side spacing in logical pixels (used for padding and margin).
 
     Attributes:
@@ -759,7 +761,7 @@ class Edge(BaseModel):
         return cls(top=vertical, bottom=vertical, left=horizontal, right=horizontal)
 
 
-class Border(BaseModel):
+class Border(_CoreModel):
     """A uniform border (``border-width`` + ``border-color``).
 
     Applies the same width and color to all four sides. Use it in
@@ -778,7 +780,7 @@ class Border(BaseModel):
     color: Color | None = None
 
 
-class SideBorder(BaseModel):
+class SideBorder(_CoreModel):
     """A per-side border (``border-top``/``border-right``/…).
 
     Each side is an independent :class:`Border`, or ``None`` to leave that side
@@ -794,7 +796,7 @@ class SideBorder(BaseModel):
     left: Border | None = None
 
 
-class Corners(BaseModel):
+class Corners(_CoreModel):
     """Per-corner border radii in logical pixels (``border-*-radius``).
 
     Use it in :attr:`Style.radius` instead of a single float when corners differ
@@ -809,7 +811,7 @@ class Corners(BaseModel):
     bottom_left: float = 0.0
 
 
-class Shadow(BaseModel):
+class Shadow(_CoreModel):
     """A drop shadow (``box-shadow``) / Material elevation.
 
     Compose maps it to elevation; Qt approximates it with a
@@ -830,7 +832,7 @@ class Shadow(BaseModel):
     offset_y: float = 0.0
 
 
-class GradientStop(BaseModel):
+class GradientStop(_CoreModel):
     """One color stop of a :class:`Gradient`.
 
     Attributes:
@@ -844,7 +846,7 @@ class GradientStop(BaseModel):
     position: float = Field(ge=0.0, le=1.0)
 
 
-class Gradient(BaseModel):
+class Gradient(_CoreModel):
     """A linear color gradient usable wherever a background color is.
 
     Attributes:
@@ -858,7 +860,7 @@ class Gradient(BaseModel):
     direction: GradientDirection = GradientDirection.TOP_BOTTOM
 
 
-class Transition(BaseModel):
+class Transition(_CoreModel):
     """An implicit animation applied when a style's properties change.
 
     Modelled on CSS ``transition`` / Flutter's implicitly-animated widgets: when
@@ -879,7 +881,7 @@ class Transition(BaseModel):
     delay_ms: int = Field(default=0, ge=0)
 
 
-class Style(BaseModel):
+class Style(_CoreModel):
     """An inline, typed style object.
 
     Every field is optional: ``None`` means "unset", letting the leaf renderer

@@ -19,7 +19,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ConfigDict, Field
+
+from tempest_core._model import _CoreModel
 
 __all__ = [
     "Route",
@@ -28,7 +30,7 @@ __all__ = [
 ]
 
 
-class Route(BaseModel):
+class Route(_CoreModel):
     """A single navigation destination.
 
     A route is an immutable value (frozen, like :class:`~tempestroid.style.Style`
@@ -47,7 +49,7 @@ class Route(BaseModel):
     params: dict[str, Any] = Field(default_factory=dict)
 
 
-class NavStack(BaseModel):
+class NavStack(_CoreModel):
     """The ordered stack of routes, from root to the visible screen.
 
     Unlike :class:`Route`, the stack is **mutable**: :class:`~tempestroid.App`

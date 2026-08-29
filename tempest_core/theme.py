@@ -19,8 +19,9 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ConfigDict, Field
 
+from tempest_core._model import _CoreModel
 from tempest_core.style import Color, Curve, Style
 from tempest_core.tokens import (
     ColorRole,
@@ -106,7 +107,7 @@ class ThemeMode(StrEnum):
     SYSTEM = "system"
 
 
-class Theme(BaseModel):
+class Theme(_CoreModel):
     """An immutable theme: the active mode plus a small color palette.
 
     The palette mirrors a subset of Material's color roles. Every legacy color
@@ -402,7 +403,7 @@ class Theme(BaseModel):
         return Style.model_validate(merged)
 
 
-class MediaQueryData(BaseModel):
+class MediaQueryData(_CoreModel):
     """An immutable snapshot of the viewport / environment context.
 
     Read by the ``view`` to build responsively (e.g. switch a column to a row

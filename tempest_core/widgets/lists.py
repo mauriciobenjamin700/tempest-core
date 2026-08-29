@@ -39,8 +39,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Annotated, ClassVar, TypeAlias
 
-from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
+from pydantic import ConfigDict, Field, WithJsonSchema
 
+from tempest_core._model import _CoreModel
 from tempest_core.widgets.base import (
     EndReachedHandler,
     RefreshHandler,
@@ -161,7 +162,7 @@ def _empty_sections() -> list[SectionHeader]:
     return []
 
 
-class SectionHeader(BaseModel):
+class SectionHeader(_CoreModel):
     """One section of a :class:`SectionList`: a header plus virtualized items.
 
     A section is *not* a widget — it is a frozen value object describing how to

@@ -23,8 +23,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ConfigDict, Field
 
+from tempest_core._model import _CoreModel
 from tempest_core.components.base import (
     MUTED,
     ON_MUTED,
@@ -87,7 +88,7 @@ def _no_str() -> list[str]:
     return []
 
 
-class TableCell(BaseModel):
+class TableCell(_CoreModel):
     """A single cell of a :class:`Table`.
 
     Attributes:
@@ -112,7 +113,7 @@ class TableCell(BaseModel):
     style: Style | None = None
 
 
-class TableRow(BaseModel):
+class TableRow(_CoreModel):
     """A single row of a :class:`Table`.
 
     Attributes:

@@ -17,7 +17,9 @@ from __future__ import annotations
 
 from typing import Any, TypeAlias
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import ConfigDict
+
+from tempest_core._model import _CoreModel
 
 __all__ = [
     "Path",
@@ -39,11 +41,13 @@ __all__ = [
 Path: TypeAlias = tuple[int | str, ...]
 
 
-class _IRModel(BaseModel):
-    """Base for IR models: shared Pydantic config.
+class _IRModel(_CoreModel):
+    """Base for IR models: what the IR adds on top of the core's shared config.
 
     Props and nodes may carry arbitrary handler objects, so every IR model
-    allows arbitrary types.
+    allows arbitrary types. Pydantic merges this over
+    :class:`~tempest_core._model._CoreModel`'s config, so the finiteness guard
+    there stays in force.
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)

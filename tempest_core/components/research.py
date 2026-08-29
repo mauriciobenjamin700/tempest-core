@@ -34,8 +34,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ConfigDict, Field
 
+from tempest_core._model import _CoreModel
 from tempest_core.components.base import merge_style
 from tempest_core.components.cards import Card
 from tempest_core.components.feedback import Badge, Stat
@@ -139,7 +140,7 @@ def _color_floats(color: Color) -> list[float]:
     return [color.r / 255.0, color.g / 255.0, color.b / 255.0, color.a]
 
 
-class ChartSeries(BaseModel):
+class ChartSeries(_CoreModel):
     """A single named, optionally-colored data series for a chart.
 
     A chart takes a list of these rather than bare ``list[float]`` so it can plot
@@ -169,7 +170,7 @@ class ChartSeries(BaseModel):
     )
 
 
-class DetectionBox(BaseModel):
+class DetectionBox(_CoreModel):
     """A normalized object-detection bounding box (``xyxy`` in ``[0, 1]``).
 
     Coordinates are fractions of the canvas width/height (``0`` = left/top, ``1`` =

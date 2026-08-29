@@ -18,8 +18,9 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ConfigDict, Field
 
+from tempest_core._model import _CoreModel
 from tempest_core.widgets.base import (
     DismissHandler,
     MenuSelectHandler,
@@ -48,7 +49,7 @@ def _empty_children() -> list[Widget]:
     return []
 
 
-class MenuItem(BaseModel):
+class MenuItem(_CoreModel):
     """A single selectable entry in a :class:`Menu` or :class:`ActionSheet`.
 
     A frozen value model (not a widget): it carries only JSON-serializable data

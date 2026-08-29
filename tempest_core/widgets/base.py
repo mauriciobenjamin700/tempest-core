@@ -13,8 +13,9 @@ import inspect
 from collections.abc import Awaitable, Callable
 from typing import Annotated, Any, ClassVar, TypeAlias
 
-from pydantic import BaseModel, ConfigDict, Field, WithJsonSchema
+from pydantic import ConfigDict, Field, WithJsonSchema
 
+from tempest_core._model import _CoreModel
 from tempest_core.style import Style
 from tempest_core.widgets.events import (
     DateChangeEvent,
@@ -267,7 +268,7 @@ PageChangeHandler: TypeAlias = Annotated[
 ]
 
 
-class Semantics(BaseModel):
+class Semantics(_CoreModel):
     """Accessibility metadata propagated to both renderers.
 
     Attached to any :class:`Widget` via :attr:`Widget.semantics`; the leaf
@@ -300,7 +301,7 @@ class Semantics(BaseModel):
     )
 
 
-class Widget(BaseModel):
+class Widget(_CoreModel):
     """Base class for every node in the declarative UI tree.
 
     Attributes:

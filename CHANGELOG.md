@@ -4,6 +4,89 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.18.0] - 2026-08-29
+
+### Fixed
+
+- **Um `nan` num campo numérico não estragava a propriedade: derrubava o lote de
+  patches inteiro** (tempestweb #160). `nan`, `inf` e `-inf` não têm token em
+  JSON, e todo renderizador que este core alimenta é alcançado por JSON — o
+  encoder do Python escreve as palavras cruas `NaN`/`Infinity` e nenhum
+  `JSON.parse` de browser aceita. O batch morria **dentro da decodificação do
+  cliente**, antes do transporte, antes do renderizador, antes de qualquer
+  diagnóstico. Em 3 de 7 reproduções não houve **nenhuma** linha de console.
+
+  Ninguém digita `nan`: ele chega de dado de fora — `float(metrics["carga_pct"])`
+  sobre a string `"NaN"`, uma divisão por zero, um sensor sem leitura — e entrava
+  na árvore sem sinal.
+
+  A varredura mostrou que a lacuna era muito maior do que a issue supunha: **68
+  modelos** com campo float, **nenhum** guardado. `Slider.value`,
+  `ProgressBar.value`, `Shadow.blur`, `DetectionBox`, os comandos de `Canvas` e os
+  `Event` de gesto perdiam um lote exatamente como `Style.width`.
+
+  E **limite não substitui finitude**: a issue supunha que campo com bound estava
+  seguro, citando `Style.opacity` — mas isso vale só porque ele é limitado dos
+  **dois** lados (`inf <= 1.0` é falso). `text_scale` e `aspect_ratio` carregam
+  `gt=0.0` e aceitavam `inf` sem reclamar, já que `inf > 0.0` é verdadeiro.
+
+  Todo modelo do pacote passa a herdar `_CoreModel`, que fixa
+  `allow_inf_nan=False`; as **49 classes** que herdavam `BaseModel` direto agora
+  herdam dele (`Widget` puxa 134 modelos, `Event` 33, `_IRModel` 8). A config do
+  Pydantic faz merge, então `frozen`, `extra="forbid"` e `arbitrary_types_allowed`
+  de cada subclasse continuam valendo. **222 de 222 modelos guardados.**
+
+  A recusa acontece na **construção**, e o `ValidationError` nomeia o campo
+  (`width — Input should be a finite number`) na linha que montou o widget, em vez
+  de um serializador falhar depois sem saber qual de mil nós carregava o valor.
+
+- **A baseline avançava antes da entrega, e isso transformava qualquer falha de
+  entrega em árvore permanentemente dessincronizada** (tempestweb #160).
+  `App._rebuild` e `App.swap_view` faziam `self._current = new` **antes** de
+  `self._apply(patches)`. Quando aplicar levantava, o runtime passava a diffar
+  contra uma cena que o renderizador nunca recebeu: todo patch seguinte endereçava
+  nó inexistente do outro lado, e o erro visível aparecia um rebuild depois, num
+  widget sem relação com a causa (`patch path out of range`).
+
+  Os dois pontos passam pelo novo `App._commit`, que entrega primeiro e adota a
+  cena nova depois. A ordem é o contrato, e ter um lugar só é o motivo de ser
+  método: corrigir só o rebuild agendado deixaria o defeito vivo atrás do
+  `swap_view`.
+
+  Falha de entrega agora é **auto-reparável**: a baseline continua descrevendo o
+  que o renderizador tem, então o rebuild seguinte regenera o trabalho perdido —
+  inclusive um `insert`, que é justamente o que um diff posterior não recuperaria
+  se a baseline tivesse andado (a forma exata do relato: um app bar cuja segunda
+  ação nunca chegou).
+
+### Migration
+
+Passar `nan`/`inf` para qualquer campo numérico agora levanta `ValidationError`
+em vez de ser aceito. Isso é a correção, não um efeito colateral — o valor antes
+aceito destruía o lote que o carregava —, mas é comportamento visível novo, no
+mesmo espírito da 0.14.0, que passou a recusar kwarg não-declarado.
+
+Valide onde o número entra na árvore:
+
+```python
+import math
+
+from tempest_core import Style
+
+carga = float(metricas["carga_pct"])
+Style(width=carga if math.isfinite(carga) else 0.0)
+```
+
+Achar os pontos de risco: qualquer `float(...)` sobre dado de fora, e qualquer
+divisão cujo denominador possa ser zero, que alimente prop de widget.
+
+### Tests
+
+`tests/test_undelivered_batch.py` (13 casos). A varredura de finitude percorre o
+pacote com `pkgutil`, então modelo novo é coberto sem ninguém registrar nada.
+Medido com cada correção revertida: **7 falham** sem a guarda de finitude, **3**
+sem a ordem de `_commit`.
+
 ## [0.17.1] - 2026-08-25
 
 ### Fixed

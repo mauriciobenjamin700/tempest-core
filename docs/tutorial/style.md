@@ -27,6 +27,70 @@ def cartao() -> Widget:
 2. `Color.from_hex("#f5f5f5")` → `Color(r, g, b, a)`. No web isso vira
    `rgba(...)`; o valor cruza a fronteira como `{r, g, b, a}`.
 
+## Todo número é finito
+
+Um campo numérico de `Style` — e de qualquer widget — recusa `nan`, `inf` e
+`-inf`:
+
+```python
+from tempest_core import Style
+
+Style(width=float("nan"))
+# ValidationError: width — Input should be a finite number
+```
+
+Parece severo para um valor que ninguém digita de propósito. Mas ninguém digita:
+ele **chega**, de dado de fora.
+
+```python
+metricas = await backend.get("/metrics")  # {"carga_pct": "NaN"}
+Style(width=float(metricas["carga_pct"]))  # float("NaN") == nan
+```
+
+Uma divisão por zero, um sensor sem leitura, um campo que o backend serializou
+como a string `"NaN"` — e o `nan` entra na árvore sem nenhum sinal.
+
+!!! danger "Por que isso não pode passar"
+    `nan` e `inf` **não têm token em JSON**, e todo renderizador que este core
+    alimenta é alcançado por JSON. O encoder do Python escreve as palavras cruas
+    `NaN`/`Infinity`, e nenhum `JSON.parse` de browser aceita.
+
+    O estrago não é a propriedade errada: é o **lote inteiro** que a carrega. Um
+    `nan` num `width` derruba o batch de patches que ia junto — inclusive as
+    mudanças de widgets que não têm nada a ver com ele.
+
+    Foi medido na issue #160 do tempestweb: uma métrica que chegou como `"NaN"`
+    matou o lote dentro da decodificação do cliente — antes do transporte, antes
+    do renderizador, antes de qualquer diagnóstico —, e o erro visível apareceu
+    **um rebuild depois**, como `patch path out of range`, num app bar cuja
+    segunda ação simplesmente nunca tinha sido entregue. Em 3 de 7 reproduções
+    não houve **nenhuma** linha de console.
+
+!!! tip "Limite não substitui finitude"
+    `Style.opacity` (`ge=0.0, le=1.0`) já recusava `inf` — mas só porque
+    `inf <= 1.0` é falso. Um limite de um lado só não segura: `text_scale` e
+    `aspect_ratio` têm `gt=0.0`, e `inf > 0.0` é verdadeiro. Por isso a guarda é
+    de **finitude**, não de faixa.
+
+Recusar na construção é o ponto: o `ValidationError` nomeia o campo na linha que
+montou o widget. Valide onde o número entra:
+
+```python
+import math
+
+from tempest_core import Style
+
+
+def largura_da_barra(bruto: str) -> Style:
+    """Converte o número do backend, caindo para 0 quando não é finito."""
+    carga = float(bruto)
+    return Style(width=carga if math.isfinite(carga) else 0.0)
+
+
+print(largura_da_barra("42.5").width)  # 42.5
+print(largura_da_barra("NaN").width)  # 0.0
+```
+
 ## Animação implícita
 
 Declare uma `Transition` e a mudança de propriedades é animada em vez de saltar:
@@ -84,4 +148,6 @@ def barra_de_navegacao() -> Widget:
 - `Style` é tipado e inline; sem cascata CSS.
 - `Color.from_hex`, `Edge.all/symmetric`, `Transition` cobrem o dia a dia.
 - Cada renderizador traduz o mesmo `Style` para o seu alvo.
+- Todo número é finito: `nan`/`inf` são recusados na construção, porque JSON
+  não os representa e um só deles derruba o lote de patches inteiro.
 - Veja a [referência da API](../reference.md) para tudo.

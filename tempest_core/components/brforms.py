@@ -251,7 +251,13 @@ class EmailInput(_BRField):
 
 
 class PasswordInput(_BRField):
-    """A labelled password field (secure, with the built-in eye toggle).
+    """A labelled password field: secure, with the renderer's visibility toggle.
+
+    The eye is the **renderer's**, not this component's: it follows from
+    ``secure=True`` on the inner :class:`~tempest_core.widgets.Input`, whose
+    ``secure`` field documents the contract every leaf renderer implements — the
+    toggle reveals the text locally, without a round-trip to the app. Nothing
+    here configures it, and there is no prop to turn it off.
 
     Attributes:
         value: The current text value (controlled).

@@ -4,6 +4,42 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.19.0] - 2026-09-13
+
+### Fixed
+
+- **`DataTable` e `Table` não alinhavam as colunas entre as linhas**
+  (tempestweb #214). Não havia grade: cada linha era uma linha flex independente
+  cujas células (`grow=1.0`, sem largura) partiam do **próprio** texto. As
+  colunas só coincidiam enquanto todas as células tivessem largura parecida —
+  ou seja, a tabela ficava ilegível exatamente quando ganhava dado de verdade.
+  Medido em Chrome a 1440px, uma linha com um valor de 47 caracteres deslocou
+  todas as colunas seguintes **daquela linha** em até 175px.
+
+  Alinhar não exige grade, exige que a coluna `c` parta da mesma base em toda
+  linha. As duas tabelas agora derivam uma **trilha compartilhada** do texto
+  mais largo de cada coluna — cabeçalho incluído — e cada célula cresce a partir
+  dela. A base é estimativa (`nº de caracteres × largura média + padding`),
+  porque o core é agnóstico de renderizador e não mede texto; o alinhamento não
+  depende da precisão dela, só de ela ser a mesma em todas as linhas, e a sobra
+  continua sendo resolvida por `grow`/`shrink` em quem sabe medir.
+
+  Os fundos inline das linhas **continuam inline**, de propósito: os
+  renderizadores nativos do tempestroid não têm folha de estilo para pintá-los.
+
+- **`AppBar` estourava em viewport estreita** (tempestweb #215). As `actions`
+  iam numa `Row` sem `flex_wrap`, a `Row` externa também não tinha, e o título
+  levava `grow=1.0` — então o título ficava com toda a sobra e as ações saíam
+  pela direita. Medido a 320px: a borda direita das ações em x=341, o botão de
+  logout inalcançável, e `document.scrollWidth` maior que o `clientWidth`, o que
+  dá rolagem horizontal na página inteira.
+
+  O componente já **recebia** `media` e o usava só para elevação. Agora ele
+  também decide o layout com ele: abaixo do breakpoint `md` do tema a barra vira
+  coluna e o título larga o `grow`. As ações passam a quebrar sempre, o que
+  segura uma fileira larga mesmo sem `media`. Sem `media` — ou com `width` ainda
+  em `0.0`, que quer dizer "não reportado" — nada muda.
+
 ## [0.18.0] - 2026-08-29
 
 ### Fixed

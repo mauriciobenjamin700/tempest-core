@@ -34,7 +34,7 @@ table = Table(
 
 The `headers` become an **emphasised first row** (fill `SURFACE`, text
 `ON_SURFACE` in bold); each body row gets a bottom divider and each cell
-**grows** (`grow=1.0`) to share the row width evenly. Without `headers`, you get
+**grows** (`grow=1.0`) from its column's base width. Without `headers`, you get
 the body only.
 
 ### Props
@@ -45,10 +45,26 @@ the body only.
 | `headers` | `list[str]` | `[]` | Header labels rendered as an emphasised first row. Empty = no header. |
 | `style` | `Style \| None` | `None` | A `Style` overlaid on the table's default `SURFACE` background. |
 
-!!! note "Columns by position, equal width"
-    There's no column model: the *n*-th `TableCell` of each row occupies the *n*-th
-    column, and every cell grows equally. Align your rows yourself — a row with
-    fewer cells simply has fewer columns on that row.
+!!! note "Columns by position, one shared track"
+    There's no column model: the *n*-th `TableCell` of each row occupies the
+    *n*-th column. A row with fewer cells simply has fewer columns on that row.
+
+    What the columns **do** share is a base width, derived from the widest string
+    in the column (header included). That is what keeps the header and every row
+    aligned: each row is still an independent flex line, but they all start from
+    the same number.
+
+!!! warning "Why the base width is an estimate"
+    The core is renderer-agnostic: it cannot measure text — there is no font, no
+    device and no canvas while the tree is being built. The base is
+    `character count × average character width + padding`, and the remainder is
+    resolved by `grow`/`shrink` in the renderer, which *can* measure.
+
+    Estimating costs nothing in alignment, which is the point: the number is a
+    **shared starting point**, and starting from the same place is what aligns.
+    It costs exact proportion in a column of unusually narrow or wide characters
+    (`IIII` versus `WWWW`). Want exact control? Pass `style=Style(width=…)` on the
+    cell — it is overlaid on the base.
 
 ## `TableCell`
 

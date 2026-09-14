@@ -65,7 +65,21 @@ bar = AppBar(
 | `color_scheme` | `str` | `"neutral"` | The M3 role family to tint with. |
 | `elevation` | `int \| None` | `None` | M3 elevation level (0-5) overriding the default. |
 | `theme` | `Theme` | `Theme()` | The theme whose tokens resolve the surface. |
-| `media` | `MediaQueryData \| None` | `None` | Viewport snapshot (parity; forwarded). |
+| `media` | `MediaQueryData \| None` | `None` | Viewport snapshot: resolves the elevation and, below the `md` breakpoint, stacks the actions under the title. |
+
+!!! tip "Narrow: the actions drop below the title"
+    The bar is a row of a title that takes all the slack and actions that do not
+    shrink — so on a narrow viewport the last action went off-screen and the whole
+    page gained a horizontal scrollbar. Measured at 320px: the right edge of the
+    actions landed at x=341, and the logout button became unreachable.
+
+    Pass `media` and the bar becomes a **column** below the theme's `md`
+    breakpoint (600px by default, and your theme can move it): the title drops its
+    `grow` and the actions stay reachable. The actions also always **wrap**
+    (`flex_wrap`), which already holds a wide set of actions even with no `media`.
+
+    With no `media` — or before the first report, while `width` is still `0.0` —
+    the bar stays a row: `0.0` means "not reported yet", not "zero pixels wide".
 
 !!! tip "Surface via resolver, title on top"
     The bar is assembled with `merge_styles(surface, ...)`: `resolve_surface_variant`

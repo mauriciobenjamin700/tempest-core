@@ -50,6 +50,69 @@ __all__ = ["TableCell", "TableRow", "Table", "DataTable"]
 
 _CELL_PADDING: Edge = Edge.symmetric(vertical=8.0, horizontal=12.0)
 _ROW_DIVIDER: SideBorder = SideBorder(bottom=Border(width=1.0, color=MUTED))
+_CHAR_WIDTH: float = 7.5
+_MIN_CELL_WIDTH: float = 48.0
+
+
+def _column_track(columns: list[list[str]]) -> list[float]:
+    """Derive one shared base width per column, from the column's own content.
+
+    A table has no grid: each row is an independent flex line. Sizing a cell from
+    its own text therefore aligns the columns only by accident — while every cell
+    happens to be about as wide as the cell above it. With real data they stop
+    agreeing: one long value pushed every following column of *that row* by up to
+    175px, and the table became unreadable exactly when it had something to show
+    (tempestweb#214).
+
+    Alignment does not require a grid, only that column ``c`` start from the same
+    base in every row. This derives that base from the widest string in the
+    column — header included — so the whole column is sized once and each row
+    then only distributes its own slack, identically.
+
+    The width is an estimate: the core is renderer-agnostic and cannot measure
+    text, so it multiplies the character count by :data:`_CHAR_WIDTH` (an average
+    advance for the body font) and adds the cell padding. Being an estimate costs
+    nothing here — the number is a *shared* starting point, and flex grow/shrink
+    resolves the remainder — but it does mean the track is deterministic, which
+    is what lets the conformance suite pin it.
+
+    Args:
+        columns: The strings of each column, column-major (``columns[c]`` holds
+            every value that appears in column ``c``, header first when there is
+            one).
+
+    Returns:
+        One base width in logical pixels per column, in column order.
+    """
+    horizontal = _CELL_PADDING.left + _CELL_PADDING.right
+    widths: list[float] = []
+    for values in columns:
+        longest = max((len(value) for value in values), default=0)
+        widths.append(max(_MIN_CELL_WIDTH, longest * _CHAR_WIDTH + horizontal))
+    return widths
+
+
+def _columns_of(rows: list[list[str]], headers: list[str]) -> list[list[str]]:
+    """Transpose header and body text into one list of strings per column.
+
+    Rows are allowed to be ragged (a shorter row simply has no cell for the
+    trailing columns), so this walks by index rather than zipping.
+
+    Args:
+        rows: The body rows, each a list of cell strings.
+        headers: The header labels, or an empty list when the table has none.
+
+    Returns:
+        ``columns[c]`` for every column index the table uses.
+    """
+    count = max([len(headers), *(len(row) for row in rows)], default=0)
+    columns: list[list[str]] = [[] for _ in range(count)]
+    for index, label in enumerate(headers):
+        columns[index].append(label)
+    for row in rows:
+        for index, value in enumerate(row):
+            columns[index].append(value)
+    return columns
 
 
 def _no_cells() -> list[TableCell]:
@@ -150,13 +213,14 @@ class Table(Component):
     )
     style: Style | None = None
 
-    def _cell(self, content: str, *, header: bool, key: str) -> Widget:
+    def _cell(self, content: str, *, header: bool, key: str, width: float) -> Widget:
         """Build one primitive cell wrapped in a growing container.
 
         Args:
             content: The cell text.
             header: Whether the cell belongs to the header row.
             key: A stable key for the cell container.
+            width: The column's shared base width, from :func:`_column_track`.
 
         Returns:
             A growing ``Container`` wrapping the cell's ``Text``.
@@ -167,17 +231,27 @@ class Table(Component):
         )
         return Container(
             key=key,
-            style=Style(grow=1.0, padding=_CELL_PADDING),
+            style=Style(grow=1.0, width=width, padding=_CELL_PADDING),
             child=Text(content=content, style=text_style),
         )
 
     def render(self) -> Widget:
         """Lower the table into a primitive column of rows.
 
+        Every column starts from one shared base width (:func:`_column_track`),
+        so the columns line up between rows instead of each row sizing its cells
+        from its own content.
+
         Returns:
             A ``Column`` of ``Row``s; each row carries a bottom divider and each
-            cell grows to share the row width evenly.
+            cell grows from its column's shared base.
         """
+        track = _column_track(
+            _columns_of(
+                [[cell.content for cell in row.cells] for row in self.rows],
+                self.headers,
+            )
+        )
         body: list[Widget] = []
         if self.headers:
             body.append(
@@ -185,7 +259,12 @@ class Table(Component):
                     key=self.child_key("header"),
                     style=Style(border=_ROW_DIVIDER, background=SURFACE),
                     children=[
-                        self._cell(text, header=True, key=self.child_key(f"th-{index}"))
+                        self._cell(
+                            text,
+                            header=True,
+                            key=self.child_key(f"th-{index}"),
+                            width=track[index],
+                        )
                         for index, text in enumerate(self.headers)
                     ],
                 )
@@ -201,6 +280,7 @@ class Table(Component):
                             cell.content,
                             header=False,
                             key=self.child_key(f"td-{r_index}-{c_index}"),
+                            width=track[c_index],
                         )
                         for c_index, cell in enumerate(row.cells)
                     ],
@@ -319,12 +399,13 @@ class DataTable(Component):
             return f"{label} ▾"
         return label
 
-    def _header_cell(self, index: int, label: str) -> Widget:
+    def _header_cell(self, index: int, label: str, width: float) -> Widget:
         """Build one header cell — a tappable button when ``on_sort`` is wired.
 
         Args:
             index: The column index.
             label: The raw column label.
+            width: The column's shared base width, from :func:`_column_track`.
 
         Returns:
             A growing header ``Button`` (when sortable via ``on_sort``) or a plain
@@ -340,6 +421,7 @@ class DataTable(Component):
                 key=self.child_key(f"th-{index}"),
                 style=Style(
                     grow=1.0,
+                    width=width,
                     padding=_CELL_PADDING,
                     background=self.theme.color(ColorRole.SURFACE_VARIANT),
                     color=on_surface,
@@ -349,27 +431,30 @@ class DataTable(Component):
             )
         return Container(
             key=self.child_key(f"th-{index}"),
-            style=Style(grow=1.0, padding=_CELL_PADDING),
+            style=Style(grow=1.0, width=width, padding=_CELL_PADDING),
             child=Text(
                 content=text,
                 style=Style(color=on_surface, font_weight=FontWeight.BOLD),
             ),
         )
 
-    def _body_cell(self, r_index: int, c_index: int, content: str) -> Widget:
+    def _body_cell(
+        self, r_index: int, c_index: int, content: str, width: float
+    ) -> Widget:
         """Build one body cell.
 
         Args:
             r_index: The displayed row index (for keying).
             c_index: The column index (for keying).
             content: The cell text.
+            width: The column's shared base width, from :func:`_column_track`.
 
         Returns:
             A growing ``Container`` wrapping the cell ``Text`` in ``ON_SURFACE``.
         """
         return Container(
             key=self.child_key(f"td-{r_index}-{c_index}"),
-            style=Style(grow=1.0, padding=_CELL_PADDING),
+            style=Style(grow=1.0, width=width, padding=_CELL_PADDING),
             child=Text(
                 content=content,
                 style=Style(color=self.theme.color(ColorRole.ON_SURFACE)),
@@ -447,6 +532,11 @@ class DataTable(Component):
     def render(self) -> Widget:
         """Lower the data table into a themed column of header + body rows.
 
+        Every column starts from one shared base width (:func:`_column_track`),
+        derived from the widest string in the column on the page being shown, so
+        the header and every row line up instead of each row sizing its own
+        cells.
+
         Returns:
             A ``Column`` of a header row, the current page's body rows (with a
             zebra stripe and a bottom divider each) and, when paginated, a pager
@@ -460,6 +550,8 @@ class DataTable(Component):
             row index, so stripes stay continuous across pages instead of
             restarting on each page slice.
         """
+        page_rows = self._page_rows()
+        track = _column_track(_columns_of(page_rows, self.columns))
         divider = SideBorder(
             bottom=Border(width=1.0, color=self.theme.color(ColorRole.OUTLINE_VARIANT))
         )
@@ -475,20 +567,20 @@ class DataTable(Component):
                         background=self.theme.color(ColorRole.SURFACE_VARIANT),
                     ),
                     children=[
-                        self._header_cell(index, label)
+                        self._header_cell(index, label, track[index])
                         for index, label in enumerate(self.columns)
                     ],
                 )
             )
         row_offset = self.page * self.page_size if self.page_size else 0
-        for r_index, row in enumerate(self._page_rows()):
+        for r_index, row in enumerate(page_rows):
             stripe = zebra if (row_offset + r_index) % 2 == 1 else surface
             body.append(
                 Row(
                     key=self.child_key(f"row-{r_index}"),
                     style=Style(border=divider, background=stripe),
                     children=[
-                        self._body_cell(r_index, c_index, value)
+                        self._body_cell(r_index, c_index, value, track[c_index])
                         for c_index, value in enumerate(row)
                     ],
                 )

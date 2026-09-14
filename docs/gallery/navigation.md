@@ -65,7 +65,22 @@ barra = AppBar(
 | `color_scheme` | `str` | `"neutral"` | A família de papéis M3 com que tingir. |
 | `elevation` | `int \| None` | `None` | Nível de elevação M3 (0-5) sobrescrevendo o padrão. |
 | `theme` | `Theme` | `Theme()` | O tema cujos tokens resolvem a superfície. |
-| `media` | `MediaQueryData \| None` | `None` | Snapshot de viewport (paridade; encaminhado). |
+| `media` | `MediaQueryData \| None` | `None` | Snapshot de viewport: resolve a elevação e, abaixo do breakpoint `md`, empilha as ações sob o título. |
+
+!!! tip "Estreito: as ações descem para baixo do título"
+    A barra é uma linha de um título que fica com toda a sobra e ações que não
+    encolhem — então, numa viewport estreita, a última ação saía da tela e a
+    página inteira ganhava rolagem horizontal. Medido a 320px: a borda direita
+    das ações caía em x=341, e o botão de logout ficava inalcançável.
+
+    Passe o `media` e a barra vira **coluna** abaixo do breakpoint `md` do tema
+    (600px por padrão, e o seu tema pode mudá-lo): o título perde o `grow` e as
+    ações ficam alcançáveis. As ações também sempre **quebram** (`flex_wrap`), o
+    que já segura uma fileira larga de ações mesmo sem `media`.
+
+    Sem `media` — ou antes do primeiro relato, quando `width` ainda é `0.0` — a
+    barra continua sendo uma linha: `0.0` quer dizer "ainda não reportado", não
+    "zero pixels de largura".
 
 !!! tip "Superfície via resolver, título por cima"
     A barra é montada com `merge_styles(surface, ...)`: o `resolve_surface_variant`

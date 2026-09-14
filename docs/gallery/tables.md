@@ -34,7 +34,7 @@ tabela = Table(
 
 Os `headers` viram uma **primeira linha enfatizada** (fundo `SURFACE`, texto
 `ON_SURFACE` em negrito); cada linha do corpo ganha um divisor inferior e cada
-célula **cresce** (`grow=1.0`) para dividir a largura da linha por igual. Sem
+célula **cresce** (`grow=1.0`) a partir da largura-base da sua coluna. Sem
 `headers`, você tem só o corpo.
 
 ### Props
@@ -45,10 +45,27 @@ célula **cresce** (`grow=1.0`) para dividir a largura da linha por igual. Sem
 | `headers` | `list[str]` | `[]` | Rótulos de cabeçalho renderizados como primeira linha enfatizada. Vazio = sem cabeçalho. |
 | `style` | `Style \| None` | `None` | Um `Style` sobreposto ao fundo `SURFACE` padrão da tabela. |
 
-!!! note "Colunas por posição, largura por igual"
-    Não há modelo de coluna: a *n*-ésima `TableCell` de cada linha ocupa a *n*-ésima
-    coluna, e todas as células crescem igualmente. Alinhe suas linhas você mesmo —
-    uma linha com menos células simplesmente tem menos colunas naquela linha.
+!!! note "Colunas por posição, trilha compartilhada"
+    Não há modelo de coluna: a *n*-ésima `TableCell` de cada linha ocupa a
+    *n*-ésima coluna. Uma linha com menos células simplesmente tem menos colunas
+    naquela linha.
+
+    O que as colunas **têm** é uma largura-base comum, derivada do texto mais
+    largo da coluna (cabeçalho incluído). É o que faz o cabeçalho e todas as
+    linhas ficarem alinhados: cada linha continua sendo uma linha flex
+    independente, mas todas partem do mesmo número.
+
+!!! warning "Por que a largura-base é uma estimativa"
+    O core é agnóstico de renderizador: ele não mede texto — não há fonte, nem
+    device, nem canvas na hora de construir a árvore. A base é
+    `nº de caracteres × largura média de caractere + padding`, e a sobra é
+    resolvida por `grow`/`shrink` no renderizador, que **sabe** medir.
+
+    Estimar não custa o alinhamento, que é o ponto: o número é um **ponto de
+    partida compartilhado**, e partir do mesmo lugar é o que alinha. Custa
+    proporção exata numa coluna de caracteres muito estreitos ou muito largos
+    (`IIII` contra `WWWW`). Quer controle exato? Passe `style=Style(width=…)` na
+    célula — ele é sobreposto à base.
 
 ## `TableCell`
 

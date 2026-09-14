@@ -26,6 +26,8 @@ from tempest_core.style import (
     CardVariant,
     Color,
     Edge,
+    FlexDirection,
+    FlexWrap,
     FontWeight,
     JustifyContent,
     Style,
@@ -104,7 +106,8 @@ class AppBar(Component):
         color_scheme: The Material 3 role family to tint with.
         elevation: An explicit M3 elevation level (0-5) overriding the default.
         theme: The design-system theme whose tokens resolve the bar surface.
-        media: Optional viewport snapshot (accepted for parity; forwarded).
+        media: Optional viewport snapshot; drives the surface elevation and, below
+            the theme's ``md`` breakpoint, stacks the actions under the title.
     """
 
     default_key: ClassVar[str] = "appbar"
@@ -136,16 +139,43 @@ class AppBar(Component):
     )
     media: MediaQueryData | None = Field(
         default=None,
-        description="Optional viewport snapshot (accepted for parity; forwarded).",
+        description="Optional viewport snapshot; drives the surface elevation and, "
+        "below the theme's ``md`` breakpoint, stacks the actions under the title.",
     )
 
-    def render(self) -> Widget:
-        """Lower the app bar into a horizontal primitive row.
+    def _stacks(self) -> bool:
+        """Decide whether the bar lays its parts out vertically.
+
+        A bar is a row of a title that takes the slack and actions that do not
+        shrink, so a narrow viewport pushed the last action off-screen and gave
+        the whole page a horizontal scrollbar: measured at 320px, the right edge
+        of the actions landed at x=341 and the logout button became unreachable.
+        Below the theme's ``md`` breakpoint the parts stack instead, which is what
+        a responsive page header does.
+
+        The decision needs a real viewport, so a bar built without ``media`` (or
+        before the first report, when ``width`` is still ``0.0``) keeps the row.
 
         Returns:
-            A ``Row`` with the leading widget, a growing title and the actions,
+            ``True`` when the bar should lay out as a column.
+        """
+        if self.media is None or self.media.width <= 0.0:
+            return False
+        return self.media.width < self.theme.tokens.breakpoints.md
+
+    def render(self) -> Widget:
+        """Lower the app bar into a primitive row, or a column when narrow.
+
+        The actions always wrap: on a renderer that honours ``flex_wrap`` this
+        keeps a wide row of actions on-screen even when no ``media`` was passed,
+        and it costs nothing on the ones that ignore it.
+
+        Returns:
+            A ``Row`` with the leading widget, a growing title and the actions —
+            a ``Row`` whose direction is ``COLUMN`` below the ``md`` breakpoint —
             carrying the resolved surface style.
         """
+        stacked = self._stacks()
         surface = _bar_surface(
             variant=self.variant,
             color_scheme=self.color_scheme,
@@ -161,7 +191,7 @@ class AppBar(Component):
             Text(
                 content=self.title,
                 style=Style(
-                    grow=1.0,
+                    grow=None if stacked else 1.0,
                     font_size=20.0,
                     font_weight=FontWeight.BOLD,
                     color=content,
@@ -172,7 +202,7 @@ class AppBar(Component):
         if self.actions:
             children.append(
                 Row(
-                    style=Style(gap=8.0),
+                    style=Style(gap=8.0, flex_wrap=FlexWrap.WRAP),
                     children=self.actions,
                     key=self.child_key("actions"),
                 )
@@ -182,7 +212,9 @@ class AppBar(Component):
             Style(
                 padding=Edge.symmetric(vertical=14.0, horizontal=16.0),
                 gap=12.0,
-                align=AlignItems.CENTER,
+                direction=FlexDirection.COLUMN if stacked else None,
+                align=AlignItems.START if stacked else AlignItems.CENTER,
+                flex_wrap=FlexWrap.WRAP,
             ),
         )
         return Row(

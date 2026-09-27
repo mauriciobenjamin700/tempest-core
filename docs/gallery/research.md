@@ -3,9 +3,8 @@
 O kit de **pesquisa / ciência de dados** é a camada que um pesquisador acadêmico
 usa para mostrar o resultado de um modelo ONNX /
 [`ort-vision-sdk`](https://github.com/mauriciobenjamin700/ort-vision-sdk) de ponta
-a ponta: cartões de métrica num dashboard, gráficos simples (linha / barra),
-caixas de detecção sobre uma imagem e o fluxo *escolher imagem → mostrar
-resultado*. Tudo aqui **abaixa para primitivas que já existem** (composição) ou
+a ponta: cartões de métrica num dashboard, [gráficos](charts.md), caixas de
+detecção sobre uma imagem e o fluxo *escolher imagem → mostrar resultado*. Tudo aqui **abaixa para primitivas que já existem** (composição) ou
 para uma **lista de comandos do `Canvas`** (gráficos / overlays) — nenhum campo
 novo de `Style`, nenhum resolver novo e **nenhum comando de desenho novo** é
 introduzido. 🔬
@@ -15,8 +14,6 @@ introduzido. 🔬
       inventar primitiva.
     - Como a função pura `confidence_scheme` mapeia confiança → status e alimenta
       tanto o `ConfidenceBadge` quanto o `DetectionOverlay`.
-    - Como `LineChart` / `BarChart` emitem uma **lista de comandos determinística**
-      do `Canvas` usando só o vocabulário de desenho existente.
     - Por que um `DetectionBox` é **`xyxy` normalizado em `[0, 1]`** e como ele vira
       caixas sobre uma `Image`.
     - Como o `ResultView` arranja o fluxo picker → resultado sem guardar estado.
@@ -177,125 +174,12 @@ confidence_scheme(0.63, high=0.9, mid=0.6)  # "warning" (limiares próprios)
     função: o `ConfidenceBadge` e o `DetectionOverlay` repassam esses dois nomes
     direto para cá.
 
-## Gráficos sobre o Canvas
+## Gráficos
 
-Os gráficos não são widgets novos: cada um **abaixa para um `Canvas`** carregando
-uma lista de comandos de desenho. A lista é **determinística** para uma entrada
-fixa — a suíte de conformância fixa a sequência exata — e usa só o vocabulário de
-desenho que já existe. Os dados chegam num `ChartSeries` congelado, então um mesmo
-gráfico plota várias séries nomeadas e coloridas.
-
-### `ChartSeries`
-
-Uma única série de dados nomeada e (opcionalmente) colorida. Um gráfico recebe uma
-**lista** desses em vez de um `list[float]` cru, para plotar várias séries de uma
-vez, cada uma com seu rótulo e — se quiser — seu próprio `color_scheme`. É um
-modelo **congelado** (`frozen`):
-
-```python
-from tempest_core import ChartSeries
-
-loss = ChartSeries(points=[0.90, 0.42, 0.31, 0.18], label="loss", color_scheme="error")
-acc = ChartSeries(points=[0.55, 0.71, 0.84, 0.92], label="acc", color_scheme="success")
-```
-
-#### Props
-
-| Prop | Tipo | Padrão | O que faz |
-| --- | --- | --- | --- |
-| `points` | `list[float]` | `[]` | Os valores-y da série, na ordem de plotagem (um por posição x). |
-| `label` | `str` | `""` | Um rótulo opcional (ex.: para legenda; carregado, não desenhado pelos gráficos mínimos). |
-| `color_scheme` | `str \| None` | `None` | A família de papéis M3 da série; `None` cai na paleta rotativa do gráfico. |
-
-!!! note "Paleta rotativa quando `color_scheme` é `None`"
-    Quando uma série não nomeia sua cor, o gráfico escolhe da paleta rotativa
-    (`primary` → `secondary` → `tertiary` → `error` → `success` → `warning` →
-    `info`) pelo **índice** da série. Assim duas séries sem cor nunca saem iguais, e
-    você só precisa setar `color_scheme` quando a cor importa semanticamente.
-
-### `LineChart`
-
-Um gráfico de linhas multi-série desenhado sobre um `Canvas`. Cada `ChartSeries`
-vira uma polilinha conectada sobre um plot emoldurado, com gridlines no eixo Y e
-rótulos de tick alinhados à direita:
-
-```python
-from tempest_core import ChartSeries, LineChart
-
-curva = LineChart(
-    series=[
-        ChartSeries(
-            points=[0.90, 0.42, 0.31, 0.18], label="loss", color_scheme="error"
-        ),
-        ChartSeries(
-            points=[0.55, 0.71, 0.84, 0.92], label="acc", color_scheme="success"
-        ),
-    ],
-    width=320.0,
-    height=200.0,
-)
-```
-
-#### Props
-
-| Prop | Tipo | Padrão | O que faz |
-| --- | --- | --- | --- |
-| `series` | `list[ChartSeries]` | `[]` | As séries a plotar (cada uma sua polilinha + cor). |
-| `width` | `float` | `320.0` | A largura do canvas, em pixels lógicos. |
-| `height` | `float` | `200.0` | A altura do canvas, em pixels lógicos. |
-| `color_scheme` | `str` | `"primary"` | A família M3 padrão de uma série sem cor própria. |
-| `theme` | `Theme` | `Theme()` | O tema cujos tokens viram as cores concretas. **Não entra na IR.** |
-
-!!! note "Vocabulário de desenho — não existe `DrawLine`"
-    Uma linha é `MoveTo` + uma sequência de `LineTo` + um único `StrokeCmd`; os
-    eixos e as gridlines saem do mesmo trio. Os rótulos do eixo Y são `DrawText`
-    (ancorado na baseline, **sem** campo de alinhamento) — para alinhá-los à direita
-    o engine desloca a âncora para a esquerda estimando a largura do texto. Nenhum
-    comando de desenho novo foi criado, e a lista final é determinística para
-    entrada fixa.
-
-### `BarChart`
-
-Um gráfico de barras sobre um `Canvas`. Aceita ou uma lista de `ChartSeries` (a
-**primeira** série vira as barras) ou, para o caso trivial de série única, uma
-`values: list[float]` simples com `labels` opcionais:
-
-```python
-from tempest_core import BarChart
-
-# Caminho simples: uma lista de valores (+ rótulos).
-barras = BarChart(values=[3.0, 5.0, 2.0], labels=["a", "b", "c"])
-```
-
-```python
-from tempest_core import BarChart, ChartSeries
-
-# Caminho tipado: a primeira série vira as barras, com cor explícita.
-barras = BarChart(
-    series=[ChartSeries(points=[3.0, 5.0, 2.0], color_scheme="tertiary")],
-    labels=["a", "b", "c"],
-)
-```
-
-#### Props
-
-| Prop | Tipo | Padrão | O que faz |
-| --- | --- | --- | --- |
-| `series` | `list[ChartSeries]` | `[]` | As séries (a **primeira** é plotada como barras). Opcional se `values` for dado. |
-| `values` | `list[float]` | `[]` | Uma lista de valores de série única (usada quando `series` está vazio). |
-| `labels` | `list[str]` | `[]` | Rótulos opcionais do eixo X para as barras. |
-| `width` | `float` | `320.0` | A largura do canvas, em pixels lógicos. |
-| `height` | `float` | `200.0` | A altura do canvas, em pixels lógicos. |
-| `color_scheme` | `str` | `"primary"` | A família M3 padrão das barras (se a série não nomear a sua). |
-| `theme` | `Theme` | `Theme()` | O tema cujos tokens viram as cores concretas. **Não entra na IR.** |
-
-!!! note "Barra é `DrawRect` + `FillCmd`; `series` vence `values`"
-    Cada barra é um `DrawRect` seguido de um `FillCmd` sobre o mesmo plot
-    emoldurado dos eixos. Quando **os dois** `series` e `values` são passados, o
-    `series` ganha (usa-se o `points` e o `color_scheme` da primeira série);
-    `values` só entra quando `series` está vazio. A baseline sempre inclui o `0`,
-    então as barras têm um chão com significado. A sequência de comandos é
-    determinística — a suíte de conformância a fixa.
+`ChartSeries`, `LineChart` e `BarChart` ganharam página própria, junto com
+`AreaChart`, `PieChart` e `RadarChart` e a paleta e a escala que os cinco
+compartilham: veja [Gráficos](charts.md). Eles continuam importáveis de
+`tempest_core.components.research`, então nada que já os usava quebra.
 
 ## Overlay de detecção
 
@@ -434,10 +318,8 @@ view = ResultView(
 - **`confidence_scheme(conf, *, high=0.8, mid=0.5)`** é a função pura e
   determinística por trás de toda cor de confiança: `>= high` → `success`,
   `>= mid` → `warning`, senão `error`.
-- **Gráficos**: `LineChart` / `BarChart` abaixam para uma lista de comandos
-  **determinística** do `Canvas` — linha = `MoveTo` + `LineTo` + `StrokeCmd`, barra
-  = `DrawRect` + `FillCmd`, sem `DrawLine`. Os dados vêm num `ChartSeries`
-  congelado; no `BarChart`, `series` vence `values`.
+- **Gráficos** moraram aqui e agora têm a [página deles](charts.md), com uma
+  paleta e uma escala compartilhadas.
 - **Detecção**: `DetectionBox` é `xyxy` normalizado em `[0, 1]`; o
   `DetectionOverlay` é um `Stack(Image COVER + Canvas)` que colore cada caixa pela
   mesma `confidence_scheme`, sem depender do `ort-vision-sdk`.

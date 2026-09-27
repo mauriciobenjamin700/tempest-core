@@ -108,6 +108,22 @@ boxed = DetectionOverlay(
         DetectionBox(x1=0.1, y1=0.2, x2=0.5, y2=0.6, name="cat", conf=0.93),
     ],
 )
+
+# Charts share one theme-derived palette (every color >= 3:1 on the surface,
+# WCAG 1.4.11) and one 1/2/5 nice-tick scale.
+from tempest_core import AreaChart, PieChart, RadarChart, chart_palette, nice_ticks
+
+area = AreaChart(
+    stacked=True,
+    labels=["jan", "feb", "mar"],
+    series=[ChartSeries(points=[10, 14, 9]), ChartSeries(points=[4, 6, 8])],
+)
+pie = PieChart(slices=[("organic", 62.0), ("paid", 38.0)], hole=0.5)
+radar = RadarChart(
+    axes=["power", "speed", "range"], series=[ChartSeries(points=[3, 4, 2])]
+)
+colors = chart_palette(4)  # series 0..3, same in every chart
+ticks = nice_ticks(0.0, 23.1, count=4)  # [0.0, 5.0, 10.0, 15.0, 20.0, 25.0]
 ```
 
 The H3 surface kit (`CardVariant`, `resolve_surface_variant`, `Surface`,

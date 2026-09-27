@@ -89,6 +89,7 @@ plugins:
             "Tables": "Tabelas"
             "BR forms & pickers": "Formulários BR & seletores"
             "Research": "Pesquisa"
+            "Charts": "Gráficos"
             "Events & handlers": "Eventos & handlers"
             "API reference": "Referência da API"
         - locale: en
@@ -159,5 +160,6 @@ nav:
       - "Tables": gallery/tables.md
       - "BR forms & pickers": gallery/br-forms-pickers.md
       - "Research": gallery/research.md
+      - "Charts": gallery/charts.md
       - "Events & handlers": gallery/events.md
   - API reference: reference.md

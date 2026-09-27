@@ -201,6 +201,11 @@ nomeadas. O `BarChart` também aceita uma `values: list[float]` simples para o c
 de série única. Cada gráfico emite uma lista de comandos do `Canvas`
 **determinística** — a suíte de conformância fixa a sequência.
 
+Série sem `color_scheme` pega a cor de `chart_palette`, derivada do tema e com
+contraste mínimo contra a `surface`; o eixo usa `nice_ticks`. `AreaChart`,
+`PieChart` e `RadarChart` usam as mesmas duas peças — tudo em
+[Gráficos](../gallery/charts.md).
+
 !!! note "Vocabulário de desenho — sem `DrawLine`"
     Uma linha é `MoveTo` + uma sequência de `LineTo` + um `StrokeCmd`; uma barra é
     `DrawRect` + `FillCmd`; os rótulos do eixo Y são `DrawText` (ancorado na
@@ -277,10 +282,11 @@ padrão passa da paleta escura antiga para o M3 claro).
 - Navegação (`AppBar` / `NavBar` / `Tabs` / `SearchBar`) é um skin pass: barras via
   resolver de superfície, item ativo via pílula de destaque, abas com sublinhado —
   sem resolver/enum/campo novo.
-- Pesquisa (`MetricCard` / `StatCard` / `ConfidenceBadge` / `LineChart` /
-  `BarChart` / `DetectionOverlay` / `ResultView`) compõe primitivas e desenha
-  gráficos/overlays via lista de comandos do `Canvas` — determinística, sem comando
-  de desenho novo; `confidence_scheme` mapeia confiança → status; a `DataTable`
+- Pesquisa (`MetricCard` / `StatCard` / `ConfidenceBadge` / `DetectionOverlay` /
+  `ResultView`) e os gráficos (`LineChart` / `BarChart` / `AreaChart` /
+  `PieChart` / `RadarChart`) compõem primitivas e desenham via lista de comandos
+  do `Canvas` — determinística, sem comando de desenho novo; os gráficos dividem
+  uma paleta e uma escala; `confidence_scheme` mapeia confiança → status; a `DataTable`
   ganha ordenação/paginação conduzidas pelo app.
 - `HStack` / `VStack` aceitam `gap` por passo de token; `Spacer` é um flex.
 - Um `style=` explícito sempre é mesclado por cima.

@@ -195,6 +195,11 @@ A series' data is a frozen `ChartSeries` (`points` + `label` + optional
 Each chart emits a **deterministic** `Canvas` command list — the conformance suite
 pins the sequence.
 
+A series without a `color_scheme` takes its color from `chart_palette`, derived
+from the theme and held to a minimum contrast against the `surface`; the axis uses
+`nice_ticks`. `AreaChart`, `PieChart` and `RadarChart` use the same two pieces —
+all in [Charts](../gallery/charts.md).
+
 !!! note "Draw vocabulary — there is no `DrawLine`"
     A line is `MoveTo` + a run of `LineTo` + one `StrokeCmd`; a bar is `DrawRect` +
     `FillCmd`; y-axis labels are `DrawText` (baseline-anchored, no align field → 
@@ -270,9 +275,11 @@ default look shifts from the legacy dark palette to M3 light).
 - Navigation (`AppBar` / `NavBar` / `Tabs` / `SearchBar`) is a skin pass: bars via
   the surface resolver, active item via the accent pill, tabs with an underline —
   no new resolver/enum/field.
-- Research (`MetricCard` / `StatCard` / `ConfidenceBadge` / `LineChart` /
-  `BarChart` / `DetectionOverlay` / `ResultView`) composes primitives and draws
-  charts/overlays via a `Canvas` command list — deterministic, no new draw command;
+- Research (`MetricCard` / `StatCard` / `ConfidenceBadge` / `DetectionOverlay` /
+  `ResultView`) and the charts (`LineChart` / `BarChart` / `AreaChart` /
+  `PieChart` / `RadarChart`) compose primitives and draw via a `Canvas` command
+  list — deterministic, no new draw command; the charts share one palette and one
+  scale;
   `confidence_scheme` maps confidence → status; `DataTable` gains app-driven
   sort/pagination.
 - `HStack` / `VStack` accept a token-step `gap`; `Spacer` is a flex.

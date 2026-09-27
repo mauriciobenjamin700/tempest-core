@@ -20,11 +20,13 @@ still works — the H5 props are additive with backward-compatible defaults.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from typing import Any, ClassVar
 
-from pydantic import Field
+from pydantic import ConfigDict, Field, field_validator
 
+from tempest_core._model import _CoreModel
 from tempest_core.components.base import merge_style
 from tempest_core.style import (
     AlignItems,
@@ -51,7 +53,7 @@ from tempest_core.variants import (
 )
 from tempest_core.widgets import Button, Component, Row, Text, Widget
 
-__all__ = ["NavBar", "Tabs", "Breadcrumb"]
+__all__ = ["NavBar", "Tabs", "Breadcrumb", "BreadcrumbItem", "BREADCRUMB_HREF_SCHEMES"]
 
 
 def _no_labels() -> list[str]:
@@ -332,22 +334,132 @@ class Tabs(Component):
         )
 
 
+#: URL schemes a :class:`BreadcrumbItem` ``href`` may carry. A crumb label is
+#: very often data the app did not write (a folder name, a remote path), and the
+#: HTML renderer escapes attribute *values* but cannot make a ``javascript:`` URL
+#: safe — escaping a script is still a script. Relative references (``/b/fotos``,
+#: ``../``, ``?page=2``, ``#top``) carry no scheme and are always allowed.
+BREADCRUMB_HREF_SCHEMES: frozenset[str] = frozenset({"http", "https"})
+
+#: Characters the WHATWG URL parser removes from anywhere in an input before it
+#: reads the scheme, so ``"java\tscript:alert(1)"`` is ``javascript:`` to a
+#: browser. The scheme check strips them the same way before looking.
+_URL_STRIPPED_CHARS: dict[int, None] = dict.fromkeys(map(ord, "\t\n\r"))
+
+_SCHEME_RE: re.Pattern[str] = re.compile(r"^([a-zA-Z][a-zA-Z0-9+.-]*):")
+
+
+def _href_scheme(href: str) -> str | None:
+    """Read the scheme a browser would resolve ``href`` with.
+
+    Mirrors the WHATWG URL parser's pre-processing: leading/trailing C0 control
+    characters and spaces are trimmed, and ASCII tab/newline/carriage return are
+    removed from anywhere, before the scheme is read.
+
+    Args:
+        href: The raw ``href`` value.
+
+    Returns:
+        The lower-cased scheme, or ``None`` for a relative reference.
+    """
+    cleaned = href.translate(_URL_STRIPPED_CHARS).strip("".join(map(chr, range(33))))
+    match = _SCHEME_RE.match(cleaned)
+    return match.group(1).lower() if match else None
+
+
+class BreadcrumbItem(_CoreModel):
+    """One crumb of a :class:`Breadcrumb` that can carry its own destination.
+
+    A plain ``str`` crumb is still accepted by :class:`Breadcrumb`; this model is
+    what gives a step an ``href``, so a server-rendered trail (no event loop to
+    resolve ``on_select``) can still take the user back to each folder. The HTML
+    renderer emits an ``<a href>`` for it; non-web renderers ignore ``href`` and
+    draw the label as text.
+
+    Attributes:
+        label: The visible crumb text.
+        href: The destination URL, or ``None`` for a crumb without one. Must be a
+            relative reference or use a scheme in
+            :data:`BREADCRUMB_HREF_SCHEMES`.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    label: str = Field(description="The visible crumb text.")
+    href: str | None = Field(
+        default=None,
+        description="The destination URL, or ``None`` for a crumb without one. Must "
+        "be a relative reference or use an ``http``/``https`` scheme.",
+    )
+
+    @field_validator("href")
+    @classmethod
+    def _check_href(cls, value: str | None) -> str | None:
+        """Refuse an ``href`` whose scheme would run or embed content.
+
+        Args:
+            value: The candidate ``href``.
+
+        Returns:
+            The unchanged ``href``.
+
+        Raises:
+            ValueError: If the resolved scheme is not in
+                :data:`BREADCRUMB_HREF_SCHEMES` (``javascript:``, ``data:``,
+                ``vbscript:`` …), or if the value contains a control character.
+        """
+        if value is None:
+            return None
+        if any(ord(char) < 32 or ord(char) == 127 for char in value):
+            raise ValueError("href must not contain control characters")
+        scheme = _href_scheme(value)
+        if scheme is not None and scheme not in BREADCRUMB_HREF_SCHEMES:
+            raise ValueError(
+                f"href scheme {scheme!r} is not allowed; use a relative reference "
+                f"or one of {sorted(BREADCRUMB_HREF_SCHEMES)}"
+            )
+        return value
+
+
+def _no_crumbs() -> list[str | BreadcrumbItem]:
+    """Provide a fresh, typed empty crumb list for the default factory.
+
+    Returns:
+        A new empty list of crumbs.
+    """
+    return []
+
+
 class Breadcrumb(Component):
-    """A path trail of crumbs joined by a separator.
+    """A path trail of crumbs joined by a separator, rendered as a navigation landmark.
 
     Themed (Trilho H5, tokens-only): the separators use the theme's
     ``ON_SURFACE_VARIANT`` role, the current (last) crumb uses ``ON_SURFACE`` and a
-    non-current crumb uses ``ON_SURFACE_VARIANT``; a tappable link crumb resolves
-    its style via :func:`~tempest_core.variants.resolve_variant` (LINK,
-    ``color_scheme``). Backward-compatible: ``Breadcrumb(items=…)`` is a neutral
-    trail.
+    non-current crumb uses ``ON_SURFACE_VARIANT``; a link crumb resolves its style
+    via :func:`~tempest_core.variants.resolve_variant` (LINK, ``color_scheme``).
+    Backward-compatible: ``Breadcrumb(items=…)`` is a neutral trail.
+
+    A crumb navigates one of two ways. A :class:`BreadcrumbItem` with an ``href``
+    is a real link — the web renderers emit ``<a href>`` and the browser owns the
+    navigation, which is what a server-rendered page needs. A crumb without an
+    ``href`` (a plain ``str``) becomes a tappable button when ``on_select`` is set,
+    for the platforms with an event loop. ``on_select`` never fires for a crumb
+    that has an ``href``.
+
+    Semantics on the web: the root is a ``<nav>`` labelled by :attr:`label`, the
+    last crumb carries ``aria-current="page"`` and the separators are
+    ``aria-hidden``, so a screen reader announces the landmark and the steps but
+    not the ``/`` between them. A ``tag`` or ``attrs`` set on the component merges
+    over these defaults on the root.
 
     Attributes:
-        items: The crumb labels from root to current, in order.
+        items: The crumbs from root to current, in order: plain labels or
+            :class:`BreadcrumbItem` s carrying an ``href``.
         separator: The text drawn between crumbs.
-        on_select: Optional handler called with a crumb's index when tapped; when
-            ``None`` the crumbs are presentational. The last crumb (current) is
-            never tappable.
+        on_select: Optional handler called with a crumb's index when a crumb
+            without an ``href`` is tapped; when ``None`` those crumbs are
+            presentational. The last crumb (current) is never tappable.
+        label: The accessible name of the navigation landmark (``aria-label``).
         color_scheme: The Material 3 role family the link crumb paints with.
         theme: The design-system theme whose tokens supply colors and the link.
         media: Optional viewport snapshot (accepted for parity; forwarded).
@@ -355,16 +467,21 @@ class Breadcrumb(Component):
 
     default_key: ClassVar[str] = "breadcrumb"
 
-    items: list[str] = Field(
-        description="The crumb labels from root to current, in order.",
-        default_factory=_no_labels,
+    items: list[str | BreadcrumbItem] = Field(
+        description="The crumbs from root to current, in order: plain labels or "
+        "``BreadcrumbItem`` s carrying an ``href``.",
+        default_factory=_no_crumbs,
     )
     separator: str = Field(default="/", description="The text drawn between crumbs.")
     on_select: Callable[[int], Any] | None = Field(
         default=None,
-        description="Optional handler called with a crumb's index when tapped; when "
-        "``None`` the crumbs are presentational. The last crumb (current) is never "
-        "tappable.",
+        description="Optional handler called with a crumb's index when a crumb "
+        "without an ``href`` is tapped; when ``None`` those crumbs are "
+        "presentational. The last crumb (current) is never tappable.",
+    )
+    label: str = Field(
+        default="Breadcrumb",
+        description="The accessible name of the navigation landmark (aria-label).",
     )
     color_scheme: str = Field(
         default="primary",
@@ -395,36 +512,71 @@ class Breadcrumb(Component):
 
         return handler
 
-    def _crumb(self, index: int, label: str) -> Widget:
-        """Build one crumb (tappable unless it is the current/last one).
+    def _link_style(self) -> Style:
+        """Resolve the LINK style every navigable crumb paints with.
+
+        Returns:
+            The resolved LINK variant style in :attr:`color_scheme`.
+        """
+        return resolve_variant(
+            variant=Variant.LINK,
+            size=Size.SM,
+            color_scheme=self.color_scheme,
+            theme=self.theme,
+            media=self.media,
+        )
+
+    def _crumb(self, index: int, item: str | BreadcrumbItem) -> Widget:
+        """Build one crumb.
+
+        An ``href`` crumb is a ``Text`` tagged ``a`` (a link on every web
+        renderer, text elsewhere) that takes only the LINK variant's typography —
+        color, size, weight, underline. The variant's padding, background and
+        48px ``min_height`` are a button's hit box; on an inline ``<a>`` they
+        drew each crumb as a box and pushed it off the separators' baseline. A
+        plain crumb is a ``Button`` when
+        ``on_select`` is set and it is not the last one, else a ``Text``. The last
+        crumb carries ``aria-current="page"`` in every case.
 
         Args:
             index: The crumb's position.
-            label: The crumb text.
+            item: The crumb label or item.
 
         Returns:
-            A ``Button`` for navigable crumbs, else a ``Text``.
+            The crumb widget.
         """
-        on_surface = self.theme.color(ColorRole.ON_SURFACE)
-        on_surface_variant = self.theme.color(ColorRole.ON_SURFACE_VARIANT)
+        key = self.child_key(f"item-{index}")
         is_last = index == len(self.items) - 1
-        if self.on_select is not None and not is_last:
-            link = resolve_variant(
-                variant=Variant.LINK,
-                size=Size.SM,
-                color_scheme=self.color_scheme,
-                theme=self.theme,
-                media=self.media,
+        label = item if isinstance(item, str) else item.label
+        href = None if isinstance(item, str) else item.href
+        current = {"aria-current": "page"} if is_last else {}
+        if href is not None:
+            link = self._link_style()
+            return Text(
+                content=label,
+                key=key,
+                tag="a",
+                attrs={"href": href, **current},
+                style=Style(
+                    color=link.color,
+                    font_size=link.font_size,
+                    font_weight=FontWeight.BOLD if is_last else link.font_weight,
+                    text_decoration=link.text_decoration,
+                ),
             )
+        if self.on_select is not None and not is_last:
             return Button(
                 label=label,
                 on_click=self._handler(index),
-                key=self.child_key(f"item-{index}"),
-                style=link,
+                key=key,
+                style=self._link_style(),
             )
+        on_surface = self.theme.color(ColorRole.ON_SURFACE)
+        on_surface_variant = self.theme.color(ColorRole.ON_SURFACE_VARIANT)
         return Text(
             content=label,
-            key=self.child_key(f"item-{index}"),
+            key=key,
+            attrs=current,
             style=Style(
                 color=on_surface if is_last else on_surface_variant,
                 font_size=14.0,
@@ -433,26 +585,29 @@ class Breadcrumb(Component):
         )
 
     def render(self) -> Widget:
-        """Lower the breadcrumb into a primitive row of crumbs and separators.
+        """Lower the breadcrumb into a ``nav``-tagged row of crumbs and separators.
 
         Returns:
-            A ``Row`` interleaving crumbs with separator labels.
+            A ``Row`` interleaving crumbs with ``aria-hidden`` separator labels.
         """
         on_surface_variant = self.theme.color(ColorRole.ON_SURFACE_VARIANT)
         children: list[Widget] = []
-        for index, label in enumerate(self.items):
+        for index, item in enumerate(self.items):
             if index:
                 children.append(
                     Text(
                         content=self.separator,
                         style=Style(color=on_surface_variant, font_size=14.0),
                         key=self.child_key(f"sep-{index}"),
+                        attrs={"aria-hidden": "true"},
                     )
                 )
-            children.append(self._crumb(index, label))
+            children.append(self._crumb(index, item))
         default = Style(gap=6.0, align=AlignItems.CENTER)
         return Row(
             key=self.base_key,
             style=merge_style(default, self.style),
+            tag=self.tag or "nav",
+            attrs={"aria-label": self.label, **self.attrs},
             children=children,
         )

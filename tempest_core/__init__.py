@@ -42,6 +42,9 @@ from tempest_core.components import (
     BACKGROUND as BACKGROUND,
 )
 from tempest_core.components import (
+    BREADCRUMB_HREF_SCHEMES as BREADCRUMB_HREF_SCHEMES,
+)
+from tempest_core.components import (
     MUTED as MUTED,
 )
 from tempest_core.components import (
@@ -79,6 +82,9 @@ from tempest_core.components import (
 )
 from tempest_core.components import (
     Breadcrumb as Breadcrumb,
+)
+from tempest_core.components import (
+    BreadcrumbItem as BreadcrumbItem,
 )
 from tempest_core.components import (
     Burger as Burger,
@@ -1087,7 +1093,9 @@ __all__ = [
     "Blur",
     "Border",
     "BottomSheet",
+    "BREADCRUMB_HREF_SCHEMES",
     "Breadcrumb",
+    "BreadcrumbItem",
     "Breakpoints",
     "Burger",
     "Button",

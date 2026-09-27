@@ -293,9 +293,10 @@ trilha = Breadcrumb(
 
 | Prop | Tipo | Padrão | O que faz |
 | --- | --- | --- | --- |
-| `items` | `list[str]` | `[]` | Os labels das migalhas, da raiz à atual, em ordem. |
+| `items` | `list[str \| BreadcrumbItem]` | `[]` | As migalhas, da raiz à atual: labels ou `BreadcrumbItem` com `href`. |
 | `separator` | `str` | `"/"` | O texto desenhado entre as migalhas. |
-| `on_select` | `Callable[[int], Any] \| None` | `None` | Handler opcional com o índice da migalha; `None` deixa tudo presentacional. |
+| `on_select` | `Callable[[int], Any] \| None` | `None` | Handler opcional com o índice da migalha sem `href`; `None` deixa essas presentacionais. |
+| `label` | `str` | `"Breadcrumb"` | O nome acessível do landmark `<nav>` (`aria-label`). |
 | `color_scheme` | `str` | `"primary"` | A família de papéis M3 com que a migalha-link pinta. |
 | `theme` | `Theme` | `Theme()` | O tema cujos tokens fornecem cores e o link. |
 | `media` | `MediaQueryData \| None` | `None` | Snapshot de viewport (paridade; encaminhado). |
@@ -304,6 +305,64 @@ trilha = Breadcrumb(
     Mesmo com `on_select` setado, a migalha atual (`index == len(items) - 1`) é um
     `Text`, nunca um `Button` — você não navega para onde já está. Sem `on_select`,
     todas as migalhas são `Text`.
+
+#### Migalhas com destino: `BreadcrumbItem`
+
+Numa página renderizada no servidor (SSR) não há loop de eventos para resolver
+`on_select` — o clique precisa ser um link de verdade. É o caso clássico de um
+navegador de pastas: `bucket / fotos / 2026`, cada passo levando de volta à sua
+pasta. Para isso, troque o `str` por um `BreadcrumbItem` com `href`:
+
+```python
+from tempest_core import Breadcrumb, BreadcrumbItem
+
+trilha = Breadcrumb(
+    items=[
+        BreadcrumbItem(label="bucket", href="/b"),
+        BreadcrumbItem(label="fotos", href="/b/fotos"),
+        BreadcrumbItem(label="2026", href="/b/fotos/2026"),
+    ],
+    label="Pastas",
+)
+```
+
+No renderizador HTML do tempestweb isso vira:
+
+```html
+<nav aria-label="Pastas">
+  <a href="/b">bucket</a><span aria-hidden="true">/</span>
+  <a href="/b/fotos">fotos</a><span aria-hidden="true">/</span>
+  <a href="/b/fotos/2026" aria-current="page">2026</a>
+</nav>
+```
+
+Peça por peça:
+
+- A raiz é um `<nav>` com `aria-label` (de `label`) — o leitor de tela anuncia
+  um landmark de navegação.
+- Cada `BreadcrumbItem` com `href` vira `<a href>`, com a tipografia do link
+  (cor, sublinhado) mas **sem** a caixa de botão.
+- A última migalha ganha `aria-current="page"` — com ou sem `href`.
+- Os separadores são `aria-hidden`: o leitor lê os passos, não as barras.
+
+Dá para misturar: `str` e `BreadcrumbItem` convivem na mesma lista. `on_select`
+continua valendo para as migalhas **sem** `href`; uma migalha com `href` é
+sempre link, e quem navega é o browser.
+
+!!! tip "Nativo (tempestroid)"
+    Qt e Compose ignoram `tag`/`attrs`, então lá uma migalha com `href` é texto.
+    Se a mesma tela roda nos dois, use `str` + `on_select` onde precisa de toque.
+
+!!! check "`href` perigoso é recusado na construção"
+    Label de migalha costuma ser dado que o app não escreveu (nome de pasta,
+    caminho remoto). O `BreadcrumbItem` aceita referência relativa (`/b`,
+    `../`, `?page=2`, `#top`) e `http`/`https`; `javascript:`, `data:`,
+    `vbscript:`, `file:` e caractere de controle levantam `ValidationError` —
+    inclusive disfarçados (`" javascript:"`, `"java\tscript:"`), que é como o
+    browser os lê. A lista fica em `BREADCRUMB_HREF_SCHEMES`.
+
+**Recap** 🚀: `BreadcrumbItem(label, href)` para link real, `str` + `on_select`
+para toque; `nav` + `aria-current` + separador escondido vêm de graça.
 
 ## Menu lateral
 

@@ -4,6 +4,42 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.20.0] - 2026-09-27
+
+### Added
+
+- **`Breadcrumb` com destino por passo: `BreadcrumbItem(label, href)`** (#30).
+  `items` aceitava só `list[str]` e navegava por `on_select(index)`, que no SSR
+  não tem quem resolva: não há callback do lado do servidor. O breadcrumb de um
+  navegador de pastas (`bucket / fotos / 2026`, cada passo levando de volta à
+  pasta) não saía do widget, e o tempest-bucket mantinha um `FolderBreadcrumb`
+  próprio só para isso.
+
+  `items` agora é `list[str | BreadcrumbItem]`. Um item com `href` vira `Text`
+  com `tag="a"` e `attrs={"href": ...}` — `<a href>` no renderizador HTML —, com
+  a tipografia do LINK (cor, sublinhado) e **sem** o padding, o fundo e o
+  `min_height` de 48px da variante, que são a área de toque de um botão: medido
+  no Chrome, com a variante inteira cada `<a>` virava uma caixa fora da linha
+  de base dos separadores. `str` + `on_select` continua igual para as
+  plataformas com evento, e as duas formas convivem na mesma lista.
+
+- **`BREADCRUMB_HREF_SCHEMES`**: o `href` é validado na construção. Label de
+  migalha costuma ser dado que o app não escreveu, e o renderizador escapa o
+  *valor* do atributo mas não torna um `javascript:` seguro. Referência relativa
+  e `http`/`https` passam; `javascript:`, `data:`, `vbscript:`, `file:` e
+  caractere de controle levantam `ValidationError`, inclusive nas formas que o
+  browser normaliza (`" javascript:"`, `"java\tscript:"`).
+
+### Changed
+
+- **`Breadcrumb` é um landmark de navegação na web.** A raiz sai com
+  `tag="nav"` e `aria-label` (novo campo `label`, default `"Breadcrumb"`), a
+  última migalha com `aria-current="page"` e os separadores com
+  `aria-hidden="true"` — o leitor de tela anuncia os passos, não as barras.
+  `tag`/`attrs` passados ao componente se mesclam por cima na raiz. A forma da
+  árvore não muda (mesmas chaves, mesma ordem); renderizadores nativos ignoram
+  `tag`/`attrs`.
+
 ## [0.19.0] - 2026-09-13
 
 ### Fixed

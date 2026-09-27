@@ -292,9 +292,10 @@ trail = Breadcrumb(
 
 | Prop | Type | Default | What it does |
 | --- | --- | --- | --- |
-| `items` | `list[str]` | `[]` | The crumb labels from root to current, in order. |
+| `items` | `list[str \| BreadcrumbItem]` | `[]` | The crumbs from root to current: labels or `BreadcrumbItem`s with an `href`. |
 | `separator` | `str` | `"/"` | The text drawn between crumbs. |
-| `on_select` | `Callable[[int], Any] \| None` | `None` | Optional handler with the crumb's index; `None` keeps everything presentational. |
+| `on_select` | `Callable[[int], Any] \| None` | `None` | Optional handler with the index of a crumb without `href`; `None` keeps those presentational. |
+| `label` | `str` | `"Breadcrumb"` | The accessible name of the `<nav>` landmark (`aria-label`). |
 | `color_scheme` | `str` | `"primary"` | The M3 role family the link crumb paints with. |
 | `theme` | `Theme` | `Theme()` | The theme whose tokens supply colors and the link. |
 | `media` | `MediaQueryData \| None` | `None` | Viewport snapshot (parity; forwarded). |
@@ -303,6 +304,64 @@ trail = Breadcrumb(
     Even with `on_select` set, the current crumb (`index == len(items) - 1`) is a
     `Text`, never a `Button` — you don't navigate to where you already are. Without
     `on_select`, every crumb is `Text`.
+
+#### Crumbs with a destination: `BreadcrumbItem`
+
+A server-rendered (SSR) page has no event loop to resolve `on_select` — the click
+has to be a real link. The classic case is a folder browser: `bucket / photos /
+2026`, each step taking you back to its folder. Swap the `str` for a
+`BreadcrumbItem` with an `href`:
+
+```python
+from tempest_core import Breadcrumb, BreadcrumbItem
+
+trail = Breadcrumb(
+    items=[
+        BreadcrumbItem(label="bucket", href="/b"),
+        BreadcrumbItem(label="photos", href="/b/photos"),
+        BreadcrumbItem(label="2026", href="/b/photos/2026"),
+    ],
+    label="Folders",
+)
+```
+
+The tempestweb HTML renderer turns it into:
+
+```html
+<nav aria-label="Folders">
+  <a href="/b">bucket</a><span aria-hidden="true">/</span>
+  <a href="/b/photos">photos</a><span aria-hidden="true">/</span>
+  <a href="/b/photos/2026" aria-current="page">2026</a>
+</nav>
+```
+
+Piece by piece:
+
+- The root is a `<nav>` with an `aria-label` (from `label`) — screen readers
+  announce a navigation landmark.
+- Each `BreadcrumbItem` with an `href` becomes `<a href>`, with the link's
+  typography (color, underline) but **without** the button box.
+- The last crumb gets `aria-current="page"` — with or without an `href`.
+- Separators are `aria-hidden`: the reader reads the steps, not the slashes.
+
+You can mix them: `str` and `BreadcrumbItem` live in the same list. `on_select`
+still applies to the crumbs **without** an `href`; a crumb with an `href` is
+always a link, and the browser does the navigating.
+
+!!! tip "Native (tempestroid)"
+    Qt and Compose ignore `tag`/`attrs`, so there a crumb with an `href` is text.
+    If the same screen runs on both, use `str` + `on_select` where you need taps.
+
+!!! check "A dangerous `href` is refused at construction"
+    A crumb label is often data the app did not write (a folder name, a remote
+    path). `BreadcrumbItem` accepts relative references (`/b`, `../`,
+    `?page=2`, `#top`) and `http`/`https`; `javascript:`, `data:`, `vbscript:`,
+    `file:` and control characters raise `ValidationError` — disguised ones too
+    (`" javascript:"`, `"java\tscript:"`), since that is how a browser reads
+    them. The list lives in `BREADCRUMB_HREF_SCHEMES`.
+
+**Recap** 🚀: `BreadcrumbItem(label, href)` for a real link, `str` + `on_select`
+for taps; `nav` + `aria-current` + hidden separators come for free.
 
 ## Side menu
 

@@ -65,6 +65,14 @@ loudly, which is the point — a component this sweep cannot build is a componen
 the sweep is not covering.
 """
 
+OWN_ROOT_TAG: dict[str, str] = {"Breadcrumb": "nav"}
+"""Components whose root is a semantic element by design, not by the carry.
+
+A ``Breadcrumb`` is a navigation landmark whatever the caller passes (issue #30);
+its ``render`` sets ``tag="nav"`` itself. Every other component's root stays
+untagged until the caller tags it.
+"""
+
 
 def _noop(*_args: Any, **_kwargs: Any) -> None:
     """Swallow whatever a component's handler is called with."""
@@ -240,7 +248,7 @@ def test_a_component_given_nothing_invents_nothing(
     assert tree.props["semantics"] is None
     assert tree.props["focusable"] is None
     assert tree.props["focus_order"] is None
-    assert tree.props["tag"] is None
+    assert tree.props["tag"] == OWN_ROOT_TAG.get(component.__name__)
 
 
 def test_the_render_keeps_the_prop_it_touched() -> None:

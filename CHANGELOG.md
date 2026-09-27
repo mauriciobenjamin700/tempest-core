@@ -4,6 +4,87 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.22.0] - 2026-09-27
+
+### Added
+
+- **`AreaChart`, `PieChart` e `RadarChart`** (#24). Faltavam as três formas que
+  aparecem em quase todo painel — série acumulada no tempo, composição de um
+  total, comparação multi-eixo — e uma app que precisava de pizza desenhava
+  `Container`s com `Style` na mão, escolhendo cor por conta.
+
+  Os três abaixam para um `Canvas`, como `LineChart`/`BarChart`, só com o
+  vocabulário de desenho existente. `AreaChart` preenche cada série até o zero ou,
+  com `stacked=True`, empilha as séries ponto a ponto (ponto que uma série curta
+  não tem conta como `0`). `PieChart` recebe `slices: list[tuple[str, float]]`,
+  desenha no sentido horário a partir das 12h, tem `hole` para donut e legenda com
+  porcentagem. `RadarChart` recebe `axes` + `series`, com `max_value` opcional.
+
+  O contrato de valor é definido, não adivinhado: fatia **negativa** é
+  `ValidationError` na construção; fatia **zero** mantém legenda e slot de cor;
+  **total zero** desenha o contorno vazio do anel. No radar, valor abaixo de `0`
+  fica no centro e acima da escala fica na borda; com menos de 3 eixos só os raios
+  são desenhados.
+
+  Arco é polilinha de `LineTo`, **não** `ArcTo`: o renderizador Qt lê o ângulo do
+  `ArcTo` no sentido anti-horário e o Compose no horário (`path.arcTo` de cada
+  um), então a mesma lista desenharia pizzas espelhadas. Coordenada trigonométrica
+  sai arredondada a 3 casas, para a golden não depender do `libm` da plataforma.
+
+- **`tempest_core.dataviz`** — a paleta e a escala que os cinco gráficos
+  compartilham, reexportadas da raiz: `chart_palette`, `nice_ticks`, `nice_step`,
+  `format_tick`, `linear_map` e as constantes `CHART_MIN_CONTRAST`,
+  `CHART_HUE_STEP`, `CHART_MIN_SATURATION`, `NICE_THRESHOLDS`, `NICE_FACTORS`.
+
+  `chart_palette(n)` deriva `n` cores do tema: a cor 0 é o próprio papel do
+  `color_scheme`, cada seguinte gira o matiz pelo ângulo de ouro (~137,5°) — o que
+  torna a sequência **estável em prefixo**: a série `i` tem a mesma cor com 3 ou 8
+  séries — e toda cor anda de tom até **3:1 contra a `surface`**. O limiar é o
+  WCAG 2.1 **1.4.11** (contraste não-textual, o critério de linha, barra e fatia);
+  o 4.5:1 é de texto, e o texto do gráfico já sai nos papéis `on_surface`. Medido
+  nos testes: 7 seeds × 7 famílias × claro/escuro × 12 cores, todas ≥ 3:1, e todo
+  par entre as 8 primeiras a ΔE\*76 ≥ 10.
+
+  Medido também: o papel `success` do tema baseline fica em ~2,9:1 sobre a
+  `surface` clara — os tokens garantem `on_success` sobre `success`, não `success`
+  sobre `surface`. A paleta escurece essa âncora em vez de emiti-la; uma série com
+  `color_scheme="success"` explícito continua pintando o papel exato.
+
+  `nice_ticks` usa o passo `1 / 2 / 5 × 10ⁿ` com os limiares do `tickSpec` do
+  d3-array 3.2.4 (`√50`, `√10`, `√2` — o algoritmo sob os eixos do recharts, que
+  o tempest-react-sdk usa) e alarga o domínio até múltiplos do passo, como o
+  `scale.nice()`. Domínio de um valor só, domínio zero e limites invertidos têm
+  resposta definida; `nan`/`inf` levantam `ValueError`.
+
+  A fonte citada na issue não traz nenhuma das duas peças: a paleta do
+  tempest-react-sdk é lista fixa de hex (`--tempest-chart-1…8`) e o `scales.ts` só
+  mapeia valor em rampa sequencial/divergente de tokens. O core deriva do tema
+  porque renderiza em Qt, Compose e DOM, onde não existe folha de estilo.
+
+- **`media` nos gráficos**: o `platform_dark_mode` dele resolve um tema `SYSTEM`,
+  como no resto do kit.
+
+### Changed
+
+- **`LineChart` e `BarChart` usam a paleta e o eixo novos.** O visual default
+  muda:
+  - série sem `color_scheme` do `LineChart` deixa de rodar
+    `primary → secondary → tertiary → error → …`: a série 0 segue o
+    `color_scheme` do gráfico (antes era sempre `primary`) e as seguintes vêm da
+    `chart_palette`. Série com `color_scheme` explícito não muda;
+  - o eixo Y passa de 4 intervalos iguais do intervalo acolchoado em 5%, com
+    rótulo `.1f` (`23.1`), para `nice_ticks` com as casas que o passo pede (`25`);
+  - `BarChart` desenha os `labels` que já aceitava e ignorava, e barra negativa
+    passa a descer da linha do zero com altura positiva (antes saía com altura
+    negativa).
+
+  **Os goldens `h6_barchart_commands` / `h6_linechart_commands` do tempestroid
+  mudam** e precisam ser regenerados ao subir o core.
+
+- Os gráficos moram em `tempest_core.components.charts`;
+  `tempest_core.components.research` continua exportando `ChartSeries`,
+  `LineChart` e `BarChart`.
+
 ## [0.21.0] - 2026-09-27
 
 ### Added

@@ -3,7 +3,7 @@
 The **research / data-science** kit is the layer an academic researcher reaches
 for to show an ONNX /
 [`ort-vision-sdk`](https://github.com/mauriciobenjamin700/ort-vision-sdk) result
-end to end: dashboard metric cards, simple charts (line / bar), detection boxes on
+end to end: dashboard metric cards, [charts](charts.md), detection boxes on
 top of an image, and the *pick an image → show the result* flow. Everything here
 **lowers to primitives that already exist** (composition) or to a **`Canvas`
 command list** (charts / overlays) — no new `Style` field, no new resolver, and
@@ -14,8 +14,6 @@ command list** (charts / overlays) — no new `Style` field, no new resolver, an
       without inventing a primitive.
     - How the pure `confidence_scheme` function maps confidence → status and feeds
       both `ConfidenceBadge` and `DetectionOverlay`.
-    - How `LineChart` / `BarChart` emit a **deterministic command list** over the
-      `Canvas` using only the existing draw vocabulary.
     - Why a `DetectionBox` is **normalized `xyxy` in `[0, 1]`** and how it becomes
       boxes over an `Image`.
     - How `ResultView` arranges the picker → result flow while holding no state.
@@ -175,122 +173,12 @@ confidence_scheme(0.63, high=0.9, mid=0.6)  # "warning" (custom thresholds)
     functions: `ConfidenceBadge` and `DetectionOverlay` forward those two names
     straight here.
 
-## Charts over the Canvas
+## Charts
 
-Charts aren't new widgets: each one **lowers to a `Canvas`** carrying a draw
-command list. The list is **deterministic** for fixed input — the conformance
-suite pins the exact sequence — and uses only the draw vocabulary that already
-exists. Data arrives in a frozen `ChartSeries`, so one chart plots several named,
-colored series.
-
-### `ChartSeries`
-
-A single named, optionally-colored data series. A chart takes a **list** of these
-rather than a bare `list[float]`, so it can plot several series at once, each with
-its own label and (optionally) its own `color_scheme`. It's a **frozen** model:
-
-```python
-from tempest_core import ChartSeries
-
-loss = ChartSeries(points=[0.90, 0.42, 0.31, 0.18], label="loss", color_scheme="error")
-acc = ChartSeries(points=[0.55, 0.71, 0.84, 0.92], label="acc", color_scheme="success")
-```
-
-#### Props
-
-| Prop | Type | Default | What it does |
-| --- | --- | --- | --- |
-| `points` | `list[float]` | `[]` | The series' y-values, in plot order (one per x position). |
-| `label` | `str` | `""` | An optional label (e.g. for a legend; carried, not drawn by the minimal charts). |
-| `color_scheme` | `str \| None` | `None` | The series' M3 role family; `None` falls back to the chart's rotating palette. |
-
-!!! note "Rotating palette when `color_scheme` is `None`"
-    When a series doesn't name its color, the chart picks from the rotating palette
-    (`primary` → `secondary` → `tertiary` → `error` → `success` → `warning` →
-    `info`) by the series **index**. So two uncolored series never come out the
-    same, and you only set `color_scheme` when the color carries meaning.
-
-### `LineChart`
-
-A multi-series line chart drawn over a `Canvas`. Each `ChartSeries` becomes a
-connected polyline over a framed plot with y-axis gridlines and right-aligned tick
-labels:
-
-```python
-from tempest_core import ChartSeries, LineChart
-
-curve = LineChart(
-    series=[
-        ChartSeries(
-            points=[0.90, 0.42, 0.31, 0.18], label="loss", color_scheme="error"
-        ),
-        ChartSeries(
-            points=[0.55, 0.71, 0.84, 0.92], label="acc", color_scheme="success"
-        ),
-    ],
-    width=320.0,
-    height=200.0,
-)
-```
-
-#### Props
-
-| Prop | Type | Default | What it does |
-| --- | --- | --- | --- |
-| `series` | `list[ChartSeries]` | `[]` | The series to plot (each its own polyline + color). |
-| `width` | `float` | `320.0` | The canvas width, in logical pixels. |
-| `height` | `float` | `200.0` | The canvas height, in logical pixels. |
-| `color_scheme` | `str` | `"primary"` | The default M3 family for a series with no color of its own. |
-| `theme` | `Theme` | `Theme()` | The theme whose tokens become the concrete colors. **Kept out of the IR.** |
-
-!!! note "Draw vocabulary — there is no `DrawLine`"
-    A line is `MoveTo` + a run of `LineTo` + a single `StrokeCmd`; the axes and
-    gridlines come from the same trio. The y-axis labels are `DrawText`
-    (baseline-anchored, **no** alignment field) — to right-align them the engine
-    shifts the anchor left by an estimate of the text width. No new draw command is
-    created, and the final list is deterministic for fixed input.
-
-### `BarChart`
-
-A bar chart over a `Canvas`. Accepts either a list of `ChartSeries` (the **first**
-series becomes the bars) or, for the trivial single-series case, a plain
-`values: list[float]` with optional `labels`:
-
-```python
-from tempest_core import BarChart
-
-# Simple path: a list of values (+ labels).
-bars = BarChart(values=[3.0, 5.0, 2.0], labels=["a", "b", "c"])
-```
-
-```python
-from tempest_core import BarChart, ChartSeries
-
-# Typed path: the first series becomes the bars, with an explicit color.
-bars = BarChart(
-    series=[ChartSeries(points=[3.0, 5.0, 2.0], color_scheme="tertiary")],
-    labels=["a", "b", "c"],
-)
-```
-
-#### Props
-
-| Prop | Type | Default | What it does |
-| --- | --- | --- | --- |
-| `series` | `list[ChartSeries]` | `[]` | The series (the **first** is plotted as bars). Optional if `values` is given. |
-| `values` | `list[float]` | `[]` | A single-series value list (used when `series` is empty). |
-| `labels` | `list[str]` | `[]` | Optional x-axis labels for the bars. |
-| `width` | `float` | `320.0` | The canvas width, in logical pixels. |
-| `height` | `float` | `200.0` | The canvas height, in logical pixels. |
-| `color_scheme` | `str` | `"primary"` | The default M3 family for the bars (if the series names none). |
-| `theme` | `Theme` | `Theme()` | The theme whose tokens become the concrete colors. **Kept out of the IR.** |
-
-!!! note "A bar is `DrawRect` + `FillCmd`; `series` beats `values`"
-    Each bar is a `DrawRect` followed by a `FillCmd` over the same framed plot as
-    the axes. When **both** `series` and `values` are passed, `series` wins (its
-    first series' `points` and `color_scheme` are used); `values` only kicks in when
-    `series` is empty. The baseline always includes `0`, so bars have a meaningful
-    floor. The command sequence is deterministic — the conformance suite pins it.
+`ChartSeries`, `LineChart` and `BarChart` moved to a page of their own, next to
+`AreaChart`, `PieChart` and `RadarChart` and the palette and scale all five share:
+see [Charts](charts.md). They remain importable from
+`tempest_core.components.research`, so nothing that already used them breaks.
 
 ## Detection overlay
 
@@ -428,10 +316,8 @@ view = ResultView(
 - **`confidence_scheme(conf, *, high=0.8, mid=0.5)`** is the pure, deterministic
   function behind every confidence color: `>= high` → `success`, `>= mid` →
   `warning`, else `error`.
-- **Charts**: `LineChart` / `BarChart` lower to a **deterministic** `Canvas`
-  command list — line = `MoveTo` + `LineTo` + `StrokeCmd`, bar = `DrawRect` +
-  `FillCmd`, no `DrawLine`. Data comes in a frozen `ChartSeries`; on `BarChart`,
-  `series` beats `values`.
+- **Charts** used to live here and now have [their own page](charts.md), with a
+  shared palette and scale.
 - **Detection**: `DetectionBox` is normalized `xyxy` in `[0, 1]`;
   `DetectionOverlay` is a `Stack(Image COVER + Canvas)` that colors each box by the
   same `confidence_scheme`, with no `ort-vision-sdk` dependency.

@@ -91,7 +91,13 @@ from tempest_core.components.mediainputs import (
     ImagePicture,
 )
 from tempest_core.components.menu import Burger, Drawer
-from tempest_core.components.navigation import Breadcrumb, NavBar, Tabs
+from tempest_core.components.navigation import (
+    BREADCRUMB_HREF_SCHEMES,
+    Breadcrumb,
+    BreadcrumbItem,
+    NavBar,
+    Tabs,
+)
 from tempest_core.components.research import (
     BarChart,
     ChartSeries,
@@ -129,6 +135,8 @@ __all__ = [
     "NavBar",
     "Tabs",
     "Breadcrumb",
+    "BreadcrumbItem",
+    "BREADCRUMB_HREF_SCHEMES",
     "Burger",
     "Drawer",
     "Calendar",

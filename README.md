@@ -139,6 +139,11 @@ resolves its field via `resolve_field_variant` and its clear button as an
 `Breadcrumb` migrate to theme roles. Every old call site and explicit `style=`
 keeps working.
 
+`Breadcrumb` also takes `BreadcrumbItem(label, href)` crumbs: each renders as an
+`<a href>` inside a labelled `<nav>`, the last one marked `aria-current="page"`,
+so a server-rendered trail links every step back to its folder. Plain `str`
+crumbs + `on_select` keep working on the platforms with events.
+
 The H6 research / data-science kit (`tempest_core/components/research.py`) is the
 surface a researcher uses to show an ONNX / [`ort-vision-sdk`](https://github.com/mauriciobenjamin700/ort-vision-sdk)
 result end to end — **no new `Style` field, no new resolver, no new `Canvas` draw

@@ -186,6 +186,27 @@ that looks a node up by a literal key needs the new form: full table in the
 tutorial ([PT-BR](https://mauriciobenjamin700.github.io/tempest-core/tutorial/keys/)
 · [EN-US](https://mauriciobenjamin700.github.io/tempest-core/en/tutorial/keys/)).
 
+### Relative time, in the app's language (0.21.0)
+
+`relative_time` turns a signed delta in seconds (`target - now`) into "há 3
+minutos" / "3 minutes ago", resolving the language from the same `Locale` you
+hand to `translate`. The core never reads a clock, so it stays deterministic:
+
+```python
+from tempest_core import Locale, relative_time
+
+relative_time(-1)  # "agora"
+relative_time(-45)  # "há 45 segundos"
+relative_time(-90, Locale(language="en"))  # "2 minutes ago"
+relative_time(172_800, Locale(language="en"))  # "in 2 days"
+```
+
+Under 30 s is "now", rounding is half up, and an amount rounded up to a unit's
+limit moves to the next unit (59.5 s is "1 minute", never "60 seconds"). Full
+rules in the tutorial
+([PT-BR](https://mauriciobenjamin700.github.io/tempest-core/tutorial/i18n/)
+· [EN-US](https://mauriciobenjamin700.github.io/tempest-core/en/tutorial/i18n/)).
+
 ## Install
 
 ```bash

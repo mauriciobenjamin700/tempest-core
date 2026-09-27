@@ -4,6 +4,36 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [0.21.0] - 2026-09-27
+
+### Added
+
+- **`relative_time`: "há 3 minutos", "ontem", "em 2 dias" pelo idioma do app**
+  (#25). Toda tela de lista precisa desse texto, e o core não tinha: saía como
+  `str(dt)` ou como versão à mão que erra no plural ("há 1 minutos") e no limite
+  ("há 0 segundos", "há 60 minutos").
+
+  Recebe **delta em segundos** (`alvo - agora`), não `datetime`: o core não lê
+  relógio, "agora" é decisão do app, e a função fica testável sem congelar
+  tempo. O idioma sai do mesmo `Locale` que o app já passa para `translate`, e as
+  frases passam pelo próprio `translate` — `translations=` acrescenta idioma ou
+  troca frase, e chave que faltar cai no inglês, uma a uma, sem vazar a chave
+  crua.
+
+  As regras estão escritas e fixadas em teste: menos de 30 s é "agora" (zero
+  incluído); a unidade é a primeira cujo limite o delta não alcança; o
+  arredondamento é meio para cima, como o `Math.round` (89 s → "1 minuto", 90 s →
+  "2 minutos"); e quando o arredondamento chega ao limite a unidade sobe — 59,5 s
+  é "1 minuto", nunca "60 segundos". Esse último passo é a única divergência
+  deliberada da fonte (`tempest-react-sdk`, `relativeTime`), que imprime "60 min
+  atrás" nesse ponto. Janela, escada de unidades (mês = 30 dias, ano = 365) e
+  tabelas são constantes públicas (`RELATIVE_TIME_*`) com teste que as fixa.
+
+  `nan` e infinito levantam `ValueError`, pelo mesmo motivo do guard de finitos da
+  0.18.0: dado ruim chegando de fora não pode virar "há inf anos" na tela.
+
+  Tutorial novo: **5. Idioma e tempo relativo** (PT + EN).
+
 ## [0.20.0] - 2026-09-27
 
 ### Added

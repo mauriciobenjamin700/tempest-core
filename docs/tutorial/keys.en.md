@@ -170,3 +170,4 @@ component's name.
   still need an explicit `key`.
 - Your own components follow the same contract, and the parametrized guard
   enforces it.
+- Next: [language and relative time](i18n.md).

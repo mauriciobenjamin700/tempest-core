@@ -29,12 +29,14 @@ navigation building blocks:
   :class:`ProgressStepper` and :class:`EmptyState`, themed via the H4 status
   families (success / warning / info) and the badge/alert variant resolvers.
 * Research / data-science (Trilho H6) — :class:`MetricCard` / :class:`StatCard`,
-  :class:`ConfidenceBadge`, the Canvas-backed :class:`LineChart` /
-  :class:`BarChart`, the :class:`DetectionOverlay` (bounding boxes over an image)
+  :class:`ConfidenceBadge`, the :class:`DetectionOverlay` (bounding boxes over an image)
   and the :class:`ResultView` image-picker→result flow, plus the
   :class:`ChartSeries` / :class:`DetectionBox` value models and the
   :func:`confidence_scheme` helper — the kit for showing an ONNX /
   ``ort-vision-sdk`` result end to end.
+* Charts — the Canvas-backed :class:`LineChart`, :class:`BarChart`,
+  :class:`AreaChart`, :class:`PieChart` and :class:`RadarChart`, sharing one
+  theme-derived palette and one nice-tick scale (:mod:`tempest_core.dataviz`).
 
 The default theme tokens and :func:`merge_style` (used to overlay a caller's
 ``style`` onto a component default) are re-exported for building custom
@@ -67,6 +69,14 @@ from tempest_core.components.brforms import (
     PhoneInput,
 )
 from tempest_core.components.cards import Avatar, Card, Divider, ListTile
+from tempest_core.components.charts import (
+    AreaChart,
+    BarChart,
+    ChartSeries,
+    LineChart,
+    PieChart,
+    RadarChart,
+)
 from tempest_core.components.dates import Calendar, Clock
 from tempest_core.components.disclosure import Accordion
 from tempest_core.components.feedback import (
@@ -99,12 +109,9 @@ from tempest_core.components.navigation import (
     Tabs,
 )
 from tempest_core.components.research import (
-    BarChart,
-    ChartSeries,
     ConfidenceBadge,
     DetectionBox,
     DetectionOverlay,
-    LineChart,
     MetricCard,
     ResultView,
     StatCard,
@@ -180,6 +187,9 @@ __all__ = [
     "ConfidenceBadge",
     "LineChart",
     "BarChart",
+    "AreaChart",
+    "PieChart",
+    "RadarChart",
     "DetectionOverlay",
     "ResultView",
     "merge_style",

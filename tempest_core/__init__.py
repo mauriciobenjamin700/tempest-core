@@ -2,9 +2,9 @@
 
 The engine behind both tempestroid (native renderers) and tempestweb (DOM): the
 IR, reconciler, state model, style model, widgets, components and the
-cross-cutting helpers (animation, i18n, navigation, theme, validators). It carries
-no platform-coupled code (no Qt, no JNI, no Android, no DOM) so it imports cleanly
-under CPython, Pyodide and a headless server.
+cross-cutting helpers (animation, dataviz, i18n, navigation, theme, validators).
+It carries no platform-coupled code (no Qt, no JNI, no Android, no DOM) so it
+imports cleanly under CPython, Pyodide and a headless server.
 
 This is the single source of truth — consumers depend on the published package and
 import from here (``from tempest_core import App, Column, build, diff``) rather than
@@ -67,6 +67,9 @@ from tempest_core.components import (
 )
 from tempest_core.components import (
     AppBar as AppBar,
+)
+from tempest_core.components import (
+    AreaChart as AreaChart,
 )
 from tempest_core.components import (
     Avatar as Avatar,
@@ -177,7 +180,13 @@ from tempest_core.components import (
     PhoneInput as PhoneInput,
 )
 from tempest_core.components import (
+    PieChart as PieChart,
+)
+from tempest_core.components import (
     ProgressStepper as ProgressStepper,
+)
+from tempest_core.components import (
+    RadarChart as RadarChart,
 )
 from tempest_core.components import (
     RadioGroup as RadioGroup,
@@ -295,6 +304,36 @@ from tempest_core.core import (
 )
 from tempest_core.core import (
     widget_catalog as widget_catalog,
+)
+from tempest_core.dataviz import (
+    CHART_HUE_STEP as CHART_HUE_STEP,
+)
+from tempest_core.dataviz import (
+    CHART_MIN_CONTRAST as CHART_MIN_CONTRAST,
+)
+from tempest_core.dataviz import (
+    CHART_MIN_SATURATION as CHART_MIN_SATURATION,
+)
+from tempest_core.dataviz import (
+    NICE_FACTORS as NICE_FACTORS,
+)
+from tempest_core.dataviz import (
+    NICE_THRESHOLDS as NICE_THRESHOLDS,
+)
+from tempest_core.dataviz import (
+    chart_palette as chart_palette,
+)
+from tempest_core.dataviz import (
+    format_tick as format_tick,
+)
+from tempest_core.dataviz import (
+    linear_map as linear_map,
+)
+from tempest_core.dataviz import (
+    nice_step as nice_step,
+)
+from tempest_core.dataviz import (
+    nice_ticks as nice_ticks,
 )
 from tempest_core.devices import (
     DEFAULT_DEVICE as DEFAULT_DEVICE,
@@ -1095,6 +1134,7 @@ __all__ = [
     "AppBar",
     "AppState",
     "ArcTo",
+    "AreaChart",
     "AspectRatio",
     "Autocomplete",
     "Avatar",
@@ -1115,6 +1155,9 @@ __all__ = [
     "Burger",
     "Button",
     "CARRIED_PROPS",
+    "CHART_HUE_STEP",
+    "CHART_MIN_CONTRAST",
+    "CHART_MIN_SATURATION",
     "CNPJInput",
     "CPFInput",
     "Calendar",
@@ -1245,6 +1288,8 @@ __all__ = [
     "MetricCard",
     "MotionScale",
     "MoveTo",
+    "NICE_FACTORS",
+    "NICE_THRESHOLDS",
     "NavBar",
     "NavStack",
     "Navigator",
@@ -1262,6 +1307,7 @@ __all__ = [
     "Patch",
     "Path",
     "PhoneInput",
+    "PieChart",
     "PinInput",
     "Popover",
     "Position",
@@ -1269,6 +1315,7 @@ __all__ = [
     "ProgressStepper",
     "QrScanEvent",
     "QrScanner",
+    "RadarChart",
     "RadioGroup",
     "RangeChangeEvent",
     "RangeChangeHandler",
@@ -1391,6 +1438,7 @@ __all__ = [
     "Wrap",
     "build",
     "build_scene",
+    "chart_palette",
     "color_schemes_from_seed",
     "confidence_scheme",
     "current_theme",
@@ -1398,12 +1446,16 @@ __all__ = [
     "diff",
     "diff_scene",
     "event_catalog",
+    "format_tick",
     "handler_accepts_event",
     "icon_names",
     "icon_path",
     "introspect",
+    "linear_map",
     "merge_style",
     "merge_styles",
+    "nice_step",
+    "nice_ticks",
     "parse_event",
     "register_icon",
     "relative_time",

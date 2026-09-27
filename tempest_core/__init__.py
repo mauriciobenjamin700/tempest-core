@@ -306,7 +306,22 @@ from tempest_core.devices import (
     resolve_device as resolve_device,
 )
 from tempest_core.i18n import (
+    RELATIVE_TIME_FALLBACK_LANGUAGE as RELATIVE_TIME_FALLBACK_LANGUAGE,
+)
+from tempest_core.i18n import (
+    RELATIVE_TIME_JUST_NOW_SECONDS as RELATIVE_TIME_JUST_NOW_SECONDS,
+)
+from tempest_core.i18n import (
+    RELATIVE_TIME_TRANSLATIONS as RELATIVE_TIME_TRANSLATIONS,
+)
+from tempest_core.i18n import (
+    RELATIVE_TIME_UNITS as RELATIVE_TIME_UNITS,
+)
+from tempest_core.i18n import (
     Locale as Locale,
+)
+from tempest_core.i18n import (
+    relative_time as relative_time,
 )
 from tempest_core.i18n import (
     t as t,
@@ -1262,6 +1277,10 @@ __all__ = [
     "RefreshControl",
     "RefreshEvent",
     "RefreshHandler",
+    "RELATIVE_TIME_FALLBACK_LANGUAGE",
+    "RELATIVE_TIME_JUST_NOW_SECONDS",
+    "RELATIVE_TIME_TRANSLATIONS",
+    "RELATIVE_TIME_UNITS",
     "Remove",
     "Reorder",
     "ReorderEvent",
@@ -1387,6 +1406,7 @@ __all__ = [
     "merge_styles",
     "parse_event",
     "register_icon",
+    "relative_time",
     "resolve_alert_variant",
     "resolve_badge_variant",
     "resolve_badge_variant_states",

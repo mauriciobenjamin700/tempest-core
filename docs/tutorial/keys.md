@@ -169,3 +169,4 @@ nome do componente.
 - `default_key` nomeia o componente para a instância sem `key` — duas na mesma
   tela ainda precisam de `key` explícita.
 - Componente próprio segue o mesmo contrato, e o guard parametrizado cobra isso.
+- Próximo: [idioma e tempo relativo](i18n.md).

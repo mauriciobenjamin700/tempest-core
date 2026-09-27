@@ -41,6 +41,7 @@ SECTIONS: list[tuple[str, list[str]]] = [
             "tutorial/style.md",
             "tutorial/state.md",
             "tutorial/design-system.md",
+            "tutorial/i18n.md",
         ],
     ),
     (

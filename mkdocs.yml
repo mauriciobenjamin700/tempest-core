@@ -70,6 +70,7 @@ plugins:
             "2. Styling": "2. Estilo"
             "3. Design system": "3. Design system"
             "4. Keys and identity": "4. Chaves e identidade"
+            "5. Language and relative time": "5. Idioma e tempo relativo"
             "Component gallery": "Galeria de componentes"
             "Text": "Texto"
             "Buttons": "Botões"
@@ -139,6 +140,7 @@ nav:
       - "2. Styling": tutorial/style.md
       - "3. Design system": tutorial/design-system.md
       - "4. Keys and identity": tutorial/keys.md
+      - "5. Language and relative time": tutorial/i18n.md
   - Component gallery:
       - "Text": gallery/text.md
       - "Buttons": gallery/buttons.md

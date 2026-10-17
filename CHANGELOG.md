@@ -6,6 +6,8 @@ versioning.
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-10-17
+
 ### Changed
 
 - **Os modelos são construídos sob demanda** (`defer_build=True` na base

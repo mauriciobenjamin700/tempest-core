@@ -4,6 +4,29 @@ All notable changes to **tempest-core** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); this project adheres to semantic
 versioning.
 
+## [Unreleased]
+
+### Changed
+
+- **Os modelos são construídos sob demanda** (`defer_build=True` na base
+  `_CoreModel`). Importar o core construía o validador e o serializador de todos
+  os ~260 modelos de uma vez, e a maioria dos apps usa uma fração deles. Medido no
+  painel do tempest-webtunnel (tempestweb 0.139.0): no import, 226 modelos do core
+  eram construídos e agora são 16 (os que uma constante de módulo instancia).
+
+  Mediana de tempo de CPU no CPython 3.11 (25 rodadas intercaladas): `import
+  tempest_core` de 384 ms para 241 ms (−37%); import do app + primeira `view` +
+  `model_dump` de 468 ms para 362 ms (−23%). No Pyodide 314 sob Node (8 rodadas):
+  `import tempest_core` de 882 ms para 661 ms (−25%); o lado Python inteiro do boot
+  de 1018 ms para 830 ms (−18%). A primeira `view` fica mais cara (≈2 → ≈20 ms),
+  porque é ali que as classes usadas passam a ser construídas.
+
+  Sem mudança observável: validação, `model_dump`/`model_dump_json`, JSON schema
+  (o `widget_catalog()` inteiro sai byte a byte igual), uniões discriminadas,
+  árvores recursivas, `frozen`, `extra="forbid"` e `allow_inf_nan=False`. Um
+  teste fixa a configuração e força a construção de todo modelo, para uma
+  anotação que não resolve falhar na suíte e não no primeiro uso dentro de um app.
+
 ## [0.22.0] - 2026-09-27
 
 ### Added

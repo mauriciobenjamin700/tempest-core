@@ -231,6 +231,10 @@ pip install tempest-core
 
 Requires Python `>=3.11`. Only hard dependency: `pydantic>=2`.
 
+Models are built lazily (`defer_build=True` on the shared base): importing the
+core no longer builds ~260 validators up front, and each class is built on its
+first use instead.
+
 ## Status
 
 Extracted from tempestroid's vendored core. **tempestweb** consumes it directly

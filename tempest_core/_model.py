@@ -51,4 +51,17 @@ class _CoreModel(BaseModel):
     #: field (``width``, ``Input should be a finite number``) at the line that
     #: built the widget, instead of a serializer failing later with no idea which
     #: of a thousand nodes carried the value.
-    model_config = ConfigDict(allow_inf_nan=False)
+    #:
+    #: ``defer_build=True`` because building a model's validator and serializer
+    #: is the dominant cost of importing the core, and most apps touch a fraction
+    #: of the widget catalog. Measured on the tempest-webtunnel dashboard
+    #: (tempestweb 0.138.0, CPython): 264 models were built at import, 200 ms of
+    #: a 441 ms ``import app`` — ``tempest_core.widgets`` alone 94 ms,
+    #: ``tempest_core.components`` 57 ms. Under Pyodide on a phone that same
+    #: Python-side boot took about 12 s of a 29 s load. With the build deferred,
+    #: Pydantic builds each class on its first validation (construction,
+    #: ``model_validate``), first ``model_dump``/``model_dump_json`` or first
+    #: ``model_json_schema``, so the cost is paid once per class actually used
+    #: and nothing observable changes: ``model_fields``, ``frozen``, ``extra``
+    #: and ``allow_inf_nan`` behave exactly as when built eagerly.
+    model_config = ConfigDict(allow_inf_nan=False, defer_build=True)
